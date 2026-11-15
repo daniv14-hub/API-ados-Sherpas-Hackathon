@@ -31,3 +31,9 @@
 ## Last Claude Code session
 (Claude Code updates this block before ending each session.)
 - 15/11: brainstorm produced the flow-v1 wireframe (rejected, see above). No code written.
+- 15/11 (evening): logged team decision D15 in `decisions.md` (mascot = virtual financial advisor, 2D avatar,
+  protagonist, always available; short line at every checkpoint, data-driven for analytical profiles and
+  motivational for emotional ones; asking during the video is PROVISIONAL, dropped if it complicates the build).
+  No code written.
+- Needs from the desktop Claude: narrow Q-MASCOT in `open-questions.md` to look, name and animation (to agree 16/11);
+  note that "analytical vs emotional" is a new profile field the conversation must capture (D4).
