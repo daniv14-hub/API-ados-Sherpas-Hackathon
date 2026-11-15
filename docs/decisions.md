@@ -26,6 +26,7 @@ Rewritten 15/11 after reviewing every planning conversation. IDs are stable; don
 | D12 | Tone | Explain reality honestly, measured in their goals | DECIDED |
 | D13 | Demo | Demo with the Johnsons, who mostly agree; show the mediation | DECIDED |
 | D14 | Video | The "if you act" scene uses what the plan gives | DECIDED |
+| D15 | Mascot | Virtual financial advisor, 2D avatar, always available, cheers at checkpoints | DECIDED |
 
 What we ruled out at idea stage (questionnaire, NotebookLM-style menu, expert dashboard, generic video,
 favourite-character narrator, video per step, leaderboard) and why: `docs/idea-note.md`.
@@ -151,3 +152,14 @@ favourite-character narrator, video per step, leaderboard) and why: `docs/idea-n
   life cover $250K of $1.6M+ → covered), the score that goes up (only plan combinations), the money they stop losing.
 - No future wealth figure and no "2 houses" multiples on the act side: we don't have that data and we don't build it.
 - Nothing more to it: say what will happen if they act, with the plan's own effects.
+
+## D15 · The mascot: a virtual financial advisor, always present — DECIDED (team, via Dani, 15/11)
+- The mascot is **very much the protagonist** of the whole experience. It is a **virtual financial advisor**, drawn
+  as a **2D avatar**. Extends D8.
+- It is **always available**: the family can ask it questions at any point of the experience, not only in the game.
+- **At every completed level** (checkpoint, D11) the mascot appears with a **short line** that encourages them to keep
+  completing levels and shows them they are **closer to their goal**.
+- Still open (Q-MASCOT, to be agreed on 16/11): its exact look, name and how it's animated.
+- Constraint from the hard rules, not a new decision: any figure in those checkpoint lines must come from the case
+  data (D5, D6). How "closer to the goal" is measured depends on Q-PROGRESS.
+
