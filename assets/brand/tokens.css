@@ -1,0 +1,58 @@
+/* Sherpas design tokens, copied 15/11/2026 from the client plan app (app.sherpaswealth.com, :root CSS variables)
+   and the marketing site (sherpaswealth.com). Hex values converted from the app's oklch values. Don't invent new ones. */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600&display=swap");
+
+:root {
+  /* Typography: Poppins for big headings, Inter for everything else */
+  --font-heading: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Brand blue */
+  --brand-50:  #eff5ff;
+  --brand-100: #e0e7ff;
+  --brand-200: #c6d2fd;
+  --brand-300: #a4b7fd;
+  --brand-400: #6485fb;
+  --brand-500: #4666d7;  /* --color-brand */
+  --brand-600: #1c45d7;
+  --brand-700: #1738b1;
+  --brand-800: #112980;
+  --brand-900: #0f2267;
+  --brand-950: #0b0f2e;
+  /* Marketing-site CTA gradient (pill buttons) */
+  --brand-gradient: linear-gradient(127deg, #948df7 11%, #4565d6 119%);
+  /* Score hero card background (app) */
+  --hero-gradient: linear-gradient(120deg, rgba(225,232,255,.75) 0%, rgba(199,213,255,.5) 60%, rgba(225,232,255,.75) 100%);
+
+  /* Neutrals (blue-tinted grays) */
+  --gray-100: #eff1f5;
+  --gray-200: #e2e5eb;  /* borders */
+  --gray-300: #d1d4da;
+  --gray-400: #a1a4b3;
+  --gray-500: #5f6480;  /* muted text */
+  --gray-600: #4a4e65;
+  --gray-700: #434759;
+  --gray-800: #2f323e;  /* body text */
+  --gray-900: #15161a;  /* headings, primary */
+  --surface-base: #f3f3f3;
+  --surface-frame: #f8fafd;
+  --surface-raised: #ffffff;  /* cards */
+  --dark-bg: #161827;         /* marketing site dark hero */
+
+  /* Status */
+  --success: #1dae53;  --success-600: #168b41;
+  --warning: #e38f10;  --warning-500: #ed8e00;
+  --error: #f04545;    --error-600: #cd3b3b;  /* score 52 is shown in #cd3b3b-ish red */
+  --priority-high: #cd3b3b; --priority-medium: #f7bb61; --priority-low: #1dae53;
+
+  /* Charts (app order) */
+  --chart-1: #4565d6; --chart-2: #178c42; --chart-3: #cc3a3a; --chart-4: #ed8e00;
+  --chart-5: #5353c8; --chart-6: #2ec4c6; --chart-7: #e8738a; --chart-8: #dbae3a;
+
+  /* Shape */
+  --radius: 10px;        /* default (.625rem) */
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 9999px; /* buttons, chips */
+  --border: 1px solid var(--gray-200);
+}

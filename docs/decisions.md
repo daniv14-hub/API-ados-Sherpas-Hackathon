@@ -1,47 +1,153 @@
 # Decisions log
 
-Format: context → options → decision → why. Newest at the bottom. Dates in Europe/Madrid.
+Rewritten 15/11 after reviewing every planning conversation. IDs are stable; don't renumber.
+
+**Status labels**
+- `DECIDED` — the team decided it. Closed. Don't reopen without asking.
+- `PROVISIONAL` — the team accepted it on a condition (stated). Can change if the condition fails.
+- `FACT` — verified in the case data. Not a choice; a constraint.
+- Anything not here, or listed in `open-questions.md`, is **not decided**. Ideas the desktop Claude proposed but the
+  team never confirmed are listed as open questions, not here.
+
+## Index
+| ID | Area | Topic | Status |
+|----|------|-------|--------|
+| D1 | Conversation | Voice conversation instead of a questionnaire | DECIDED |
+| D2 | Couples | Individual matters apart, joint matters mediated | DECIDED |
+| D3 | Video | Rendered in the browser, not MP4 / generative video | PROVISIONAL |
+| D4 | Video | Built while they talk; numbers never from the LLM | PROVISIONAL |
+| D5 | Data | There is no "if you act" projection | FACT |
+| D6 | Data / Game | Every improvement shown comes from the plan; scores don't add up | DECIDED + FACT |
+| D7 | Process | Solo work gathers info; decisions together | DECIDED |
+| D8 | Conversation | A Sherpas mascot leads the conversation | DECIDED |
+| D9 | Look | Sherpas brand, integrable into their product | DECIDED |
+| D10 | Video | Animated explainer with narration, not stories | DECIDED |
+| D11 | Game | Mission-style game: plan steps = levels, progress bar | DECIDED |
+| D12 | Tone | Explain reality honestly, measured in their goals | DECIDED |
+| D13 | Demo | Demo with the Johnsons, who mostly agree; show the mediation | DECIDED |
+| D14 | Video | The "if you act" scene uses what the plan gives | DECIDED |
+
+What we ruled out at idea stage (questionnaire, NotebookLM-style menu, expert dashboard, generic video,
+favourite-character narrator, video per step, leaderboard) and why: `docs/idea-note.md`.
 
 ---
 
-## D1 · Voice conversation instead of a written questionnaire (12/11)
-- **Context:** `persona.md` gives profile data, but not what really keeps the family up at night, how much detail they want, or which goal matters most.
-- **Options:** written questionnaire · no intake at all (use `persona.md` only) · voice conversation.
-- **Decision:** voice conversation with an AI agent.
-- **Why:** a questionnaire adds friction, and `persona.md` alone misses the real worries. Sherpas' existing chat is **text only**, so voice also sets us apart.
+## D1 · Voice conversation instead of a questionnaire — DECIDED (team, 12/11; in idea note)
+- `persona.md` has the profile, but its subjective worries section says "None recorded": nobody asked the family.
+- A written questionnaire adds friction and people drop out. A voice conversation is smoother.
+- The agent knows what it must find out: what worries them, how much detail they want, how much risk they accept,
+  which goal is theirs. It keeps the conversation natural while it collects that.
+- Sherpas' existing chat is **text only**, so voice sets us apart.
 
-## D2 · Couples: individual vs joint decisions (13/11, after asking the Sherpas mentor)
-- **Context:** in the Weah and Johnson cases, partners can disagree (e.g. Timothy accepts more risk than Melanie). Nothing happens until both agree.
-- **Options asked to the mentor:** A) one experience showing both views · B) one experience per person · C) the agent mediates until they agree.
-- **Mentor's answer:** C is fine (the AI can even fully replace the advisor). B fits better because households have individual **and** joint accounts (e.g. Melanie's own retirement account). The mentor invited us to explore all three.
-- **Decision:** combine **B for individual matters** (each person's accounts and coverage) and **C for joint matters** (house, kids' college, credit card, joint accounts). Averaging the two views was ruled out: it speaks to neither person and hides the disagreement.
-- **Why:** the split follows how the data is structured, and it scores on "Personal: made for each of them".
-- **Implementation note:** with a shared mic, the agent always says a name before asking ("Timothy, …? And Melanie?"), and the next answer is assigned to that person.
+## D2 · Couples — DECIDED (team, 13/11, after asking the Sherpas mentor; in idea note)
+- In couples, the agent asks each partner. If they agree, the second one just confirms ("I agree").
+- **Individual matters** (each person's retirement account, life cover): each partner gets their own experience.
+- **Joint matters** (house, kids' college, joint accounts, debt): the agent talks with both and helps them agree.
+  It can fully play the advisor's role (the mentor said this is fine).
+- Ruled out: averaging both views (speaks to neither person and hides the disagreement).
+- Implementation hint, not decided: with one shared mic, the model can't tell who speaks, so the agent says a name
+  before each question ("Timothy, …? And Melanie?") and assigns the next answer to that person.
 
-## D3 · Video = browser animation + TTS, not a rendered MP4 (12/11)
-- **Options (estimated, to be measured):**
-  - Browser animation + TTS: ~20–45 s.
-  - Remotion MP4: ~2–4 min of rendering.
-  - Generative video (Sora/Veo-type): not available in the proxy, expensive, and no control over the figures on screen.
-- **Decision:** browser animation; narration with `eleven-flash-v2.5`, one clip per scene, max 4 in parallel; playback starts as soon as scene 1 is ready.
-- **Why:** low latency, near-zero cost, and the figures on screen come straight from the data.
+## D3 · Video rendered in the browser — PROVISIONAL (13/11)
+- Browser animation + TTS narration (`eleven-flash-v2.5`), no MP4 render. Estimated ~20–45 s to generate vs 2–4 min
+  for Remotion. Generative video (Sora/Veo type) is not in the proxy, is expensive and can't control on-screen figures.
+- **Condition:** the team accepted generating the video during the conversation "if it's feasible". If browser
+  animation can't reach the look we want (D10), revisit with the team.
 
-## D4 · Build the video while they talk (12/11)
-- **Decision:**
-  - Base scenes are filled from the case JSON **without AI**, before the conversation starts.
-  - During the conversation, a profile fills up as answers come in (`{ detail, risk: {person: level}, top_worry, … }`).
-  - At the end, one `gpt-5-mini` call orders the scenes and writes the narration for that profile, without touching the numbers.
-- **Why:** no wait at the end and no filler talk. If there is idle time, use it for something useful: confirm the goal, or ask the other partner.
-- **Open question (first spike):** can the voice model save profile data through function calling while it talks? The fallback is to send each turn's transcript to `gpt-5-mini` for extraction. `gpt-live-1` uses another protocol; the realtime models use the OpenAI Realtime protocol.
+## D4 · Build the video while they talk — PROVISIONAL (13/11)
+- Base scenes are filled from the case JSON **without AI** before the conversation starts.
+- During the conversation, a profile fills up as answers come in (detail level, risk per person, top worry, …).
+- At the end, one `gpt-5-mini` call orders the scenes and writes the narration for that profile. It never touches numbers.
+- So there's no waiting at the end and no filler talk (the team first thought of chatting to fill the wait; this
+  replaced it). Any idle moment is used for something useful: confirm the goal, ask the other partner.
+- **Condition:** depends on the voice spike (open question Q-VOICE): can the voice model save profile fields through
+  function calling while it talks, or do we extract them from each turn's transcript with `gpt-5-mini`?
 
-## D5 · "Have vs need" visuals, not "2 houses vs half a house" (13/11)
-- **Context:** the team wanted "your life if you act" vs "if you don't". The data only has a status-quo yearly projection plus before/after score deltas per recommendation, with no wealth projection for acting.
-- **Decision:** draw the real ratio X/Y of each have-vs-need pair; the shaded part is the gap. The "acting" side is the gap closed, since closing it is what each recommendation is for.
-  - Johnson: $250K of $1.6M life cover.
-  - Weah: $0 of ~$113K saved for college.
-  - Carter: savings run out at 85, while the plan runs to 91.
-- **Ruled out:** multiples of the goal ("2 houses") and any future wealth figure on the "act" side, because both would need our own calculation.
+## D5 · There is no "if you act" projection — FACT (checked 13/11 in all 4 cases)
+- Each case has **one** yearly projection (`projections.yearly`): the **status quo**, with their goals included
+  (e.g. Carter's debt jumps to $466K in 2027 = the mortgage). Also in today's dollars (`net_worth_todays_dollars`).
+- Inflation 3 % (`generalInflation`), average return ~7.6–7.8 % (`averagePerformance`), already applied.
+  Samantha has `averagePerformance: 0` (possible data error, see open questions).
+- What the plan does quantify for acting: score before → after per recommendation (`score.top_moves`,
+  `combined_moves`), extra savings needed (`requiredExtraSavings`), costs avoided (e.g. Weah $3,240/yr card interest),
+  and "have vs need" pairs (e.g. Johnson life cover $250K of $1.6M+).
+- Consequence: we can't show "with the plan you'd have 2 houses" without building our own model, which breaks the
+  no-invented-figures rule. **How the video shows "act vs don't act" is still open** (Q-VIDEO-ACT).
 
-## D6 · Game progress = the plan's own score improvements (13/11)
-- **Decision:** each step in the path uses the plan's `score_before → score_after` and the money it saves, e.g. "pay the card → score 60→62, stop losing $X/yr". The progress bar is the Sherpas score.
-- **Constraint:** improvements don't add up (Weah: card alone 60→62, insurance alone →60, both 60→73). Use only the combinations the plan gives.
+## D6 · Improvements come from the plan — DECIDED (idea note) + FACT
+- Everything we show as an improvement comes from the plan: how much the score goes up, how much money they stop
+  losing, which gap closes. Goal amounts use the prices the family gave (e.g. the house they want).
+- FACT: score improvements **don't add up**. Weah: card alone 60→62, life cover alone 60→60, both 60→73, all three 78.
+  Use only the combinations the plan provides.
+- The game has a progress bar (D11). Not decided: what it measures (Sherpas score, share of steps done, or both).
+
+## D7 · How the team works — DECIDED (team, 13/11)
+- We're at home on different schedules. Last hackathon we failed by working apart.
+- Solo tasks only gather information (`docs/tasks.md`). Anything that needs a decision goes to `docs/open-questions.md`.
+- Decisions and building happen in joint Discord sessions (one person shares the Claude Code screen).
+- Claude Code proposes options; it doesn't decide product, design or architecture.
+
+## D8 · A Sherpas mascot leads the conversation — DECIDED (team, 13/11; in idea note)
+- An animated **mascot character for Sherpas**, big on screen, leads the conversation and is later the voice
+  assistant inside the game. The goal: a warm chat that invites people to stay, not a cold Q&A.
+- It doesn't jump into questions. Like a good advisor's call: it breaks the ice, says it will ask a few short
+  questions to understand their situation, and explains why honest answers matter.
+- Ruled out: abstract orb / waveform (looked like Spotify's AI DJ in the first wireframe, 15/11), plain chat screen.
+- For the MVP, reacting to the voice (moving with audio volume) is enough; real lip-sync is not required.
+- Open: what it looks like, its name, how it's animated (Q-MASCOT).
+
+## D9 · Sherpas brand — DECIDED (team, 15/11)
+- The web uses Sherpas' logo, colors and typography and must look like it can be integrated directly into
+  Sherpas' existing product.
+- Assets only from official sources → `assets/brand/` + `docs/brand.md`. Never invented.
+
+## D10 · Video format — DECIDED (team, 12/11 + 15/11)
+- A short **animated explainer with voice narration**, like the shorts of **En Plata** (YouTube @EnPlata_es,
+  TikTok @enplata.tv) and **Punto Ciego** (YouTube @PuntoCiegoEconomia). It's the first thing the family sees, so it
+  must hook and be about them: personalised to their goals and preferences.
+- It tells the story of **their life**: where they are and where they're heading, measured in their goals
+  (e.g. their house), not in raw dollars.
+- **Visual style, from the references (desktop Claude watched them on 15/11):**
+  - Vertical 9:16, about 1 minute, fast pace: one idea per beat, a new element every few seconds.
+  - Warm cream / paper background. Flat illustrated icons and simple charts with thick dark outlines and a slight
+    drop shadow, like stickers. Objects can have tiny friendly faces (Punto Ciego's smiling boxes).
+  - A simple character labeled "TÚ" ("YOU") stands for the viewer inside the scene.
+  - Big heavy black headline at the top with the key word on a colored highlight block; stamp-style labels
+    (e.g. a tilted red "NOT THE STORE" stamp, red "– warehouses" tags) pop in.
+  - Captions word by word in sync with the narration, key words highlighted.
+  - Elements animate in sync with the voice: pop/scale in, bars grow, grids fill, counters tick.
+  - Real numbers on screen, always sourced. Ends on a hook/question.
+  - Our version swaps their palette for the Sherpas brand (D9) and speaks English.
+- **Not** the stories format (no story progress bars, tap-through cards, static slides with captions). Rejected 15/11.
+- This style is flat 2D shapes + text + timing, so it can be built in the browser (D3).
+- The "if you act" scene: see D14.
+
+## D11 · The game: missions toward their goal — DECIDED (team, 12/11–15/11)
+- After the video they enter a game they can come back to day after day.
+- **Each step of the plan to reach their goal is a level of the game**, presented as a **mission**. Big actions
+  are split into small steps. Completing a step is a **checkpoint**: the progress bar updates.
+- There is a **progress bar** toward their goal. The house that builds piece by piece is **removed** (15/11).
+- It must look and feel like a game: very visual, mission format, rewards, the urge to keep levelling up to reach
+  the goal. At the same time it keeps the Sherpas brand and a serious tone (it's their money).
+- The mascot answers questions by voice. Reminders/notifications so they act.
+- Ruled out: a video per step (levels are shorter, interactive, cheaper); a leaderboard between families (privacy);
+  a checklist / to-do list with a score ring (first wireframe, 15/11: doesn't hook); the house that builds (15/11).
+- Open: what the progress bar measures (Q-PROGRESS); how a real-world action is confirmed (Q-CONFIRM).
+
+## D12 · Tone: honest reality, in their goals — DECIDED (team, 12/11)
+- We explain the reality of their situation and that following the plan makes it better. No fear tactics, no
+  exaggeration, no invented data.
+- Big numbers mean nothing to them; their goals do. Goal comparisons use the prices in their own plan.
+
+## D13 · The demo — DECIDED (team, 15/11)
+- We demo with **a couple**. They agree on almost everything except one or two details, and the demo shows the
+  mascot mediating until they reach an agreement (D2).
+- **Couple: the Johnsons** (Dani, 15/11). Data-backed difference: Daniel is Growth, Emily is Moderate; their central
+  question is "college or retirement first?". Case id `daniel-emily-johnson`.
+- Open: which one or two details they disagree on in the demo script (Q-DEMO-SCRIPT).
+
+## D14 · The "if you act" scene — DECIDED (Dani, 15/11)
+- The video tells what happens if they act using **what the plan gives** (D5, D6): the gaps that close (e.g. Johnson
+  life cover $250K of $1.6M+ → covered), the score that goes up (only plan combinations), the money they stop losing.
+- No future wealth figure and no "2 houses" multiples on the act side: we don't have that data and we don't build it.
+- Nothing more to it: say what will happen if they act, with the plan's own effects.
