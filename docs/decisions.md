@@ -159,6 +159,13 @@ favourite-character narrator, video per step, leaderboard) and why: `docs/idea-n
 - It is **always available**: the family can ask it questions at any point of the experience, not only in the game.
 - **At every completed level** (checkpoint, D11) the mascot appears with a **short line** that encourages them to keep
   completing levels and shows them they are **closer to their goal**.
+- **Checkpoint lines adapt to the person's profile** (team, via Dani, 15/11): a more **analytical** person gets
+  progress data (e.g. % of the way, how the score rises); a more **emotional** person gets motivational lines.
+  So the conversation must also capture analytical vs emotional as a profile field (D4). Data lines still follow
+  D6 (only score combinations the plan gives) and Q-PROGRESS (what "% of the way" means).
+- **Availability during the video — PROVISIONAL** (team, via Dani, 15/11): if letting them ask the mascot while the
+  video plays complicates the build, the mascot becomes available only after the video, in the game.
+  Condition: decided when we build the video player.
 - Still open (Q-MASCOT, to be agreed on 16/11): its exact look, name and how it's animated.
 - Constraint from the hard rules, not a new decision: any figure in those checkpoint lines must come from the case
   data (D5, D6). How "closer to the goal" is measured depends on Q-PROGRESS.
