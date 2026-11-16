@@ -9,8 +9,9 @@ import { readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WebSocket, WebSocketServer } from 'ws';
-import { connectMcp, createCaseSource } from './src/case-source.mjs';
+import { connectMcp, createCaseSource, withReconnect } from './src/case-source.mjs';
 import { createSession, isAllowedCase } from './src/session.mjs';
+import { isAllowedOrigin } from './src/origin.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(here, '..');
@@ -29,7 +30,7 @@ if (missing.length) {
   process.exit(1);
 }
 
-const mcp = await connectMcp(MCP_URL, MCP_TOKEN);
+const mcp = withReconnect(() => connectMcp(MCP_URL, MCP_TOKEN));
 const source = createCaseSource(mcp);
 const caseIds = await source.listCaseIds(); // cached: the allow-list for /voice
 
@@ -63,7 +64,12 @@ const server = createServer((req, res) => {
   }
 });
 
-const wss = new WebSocketServer({ server, path: '/voice' });
+const wss = new WebSocketServer({
+  server,
+  path: '/voice',
+  maxPayload: 1024 * 1024,
+  verifyClient: ({ origin }) => isAllowedOrigin(origin, PORT),
+});
 wss.on('connection', (browser, req) => {
   const caseId = new URL(req.url, 'http://localhost').searchParams.get('case');
   // Refuse before any MCP or file access.
@@ -93,7 +99,7 @@ wss.on('connection', (browser, req) => {
   });
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, '127.0.0.1', () => {
   console.log(`Sherpy on http://localhost:${PORT}  (model ${MODEL}, ${caseIds.length} cases from MCP)`);
 });
 

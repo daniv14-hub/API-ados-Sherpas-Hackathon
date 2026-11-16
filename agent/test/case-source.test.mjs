@@ -69,3 +69,33 @@ test("getPart throws CaseSourceError when the MCP reply has isError", async () =
   const src = createCaseSource({ callTool: async () => ({ isError: true, content: [{ text: "case not found" }] }) });
   await assert.rejects(src.getPart("x", "persona"), CaseSourceError);
 });
+
+test("withReconnect retries once after a transport error", async () => {
+  const { withReconnect } = await import("../src/case-source.mjs");
+  let connects = 0;
+  const closed = [];
+  const w = withReconnect(async () => {
+    const n = ++connects;
+    return {
+      callTool: async () => {
+        if (n === 1) throw new Error("transport down");
+        return reply("ok");
+      },
+      close: async () => closed.push(n),
+    };
+  });
+  assert.deepEqual(await w.callTool("get_case", {}), reply("ok"));
+  assert.equal(connects, 2);
+  assert.deepEqual(closed, [1]);
+});
+
+test("withReconnect throws after a second failure", async () => {
+  const { withReconnect } = await import("../src/case-source.mjs");
+  let connects = 0;
+  const w = withReconnect(async () => {
+    connects++;
+    return { callTool: async () => { throw new Error("still down"); }, close: async () => {} };
+  });
+  await assert.rejects(() => w.callTool("get_case", {}), /still down/);
+  assert.equal(connects, 2);
+});

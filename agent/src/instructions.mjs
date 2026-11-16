@@ -41,7 +41,7 @@ ${GLOSSARY}`;
 const WORRY_WORDS = {
   retirement: 'having enough for retirement',
   protection: 'protecting the family if something happens, like insurance cover',
-  college: "paying for the children's education",
+  college: "paying for education",
   debt: 'debt',
   home: 'buying a home',
   cash: 'cash reserves',

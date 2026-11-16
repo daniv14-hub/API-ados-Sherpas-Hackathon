@@ -73,3 +73,27 @@ export async function connectMcp(url, token) {
     close: () => mcp.close(),
   };
 }
+
+// Wraps a connect function so a transport error triggers one reconnect and one retry.
+// A second failure is thrown to the caller (case-source turns it into CaseSourceError).
+export function withReconnect(connect) {
+  let current = null;
+  const get = async () => (current ??= await connect());
+  return {
+    async callTool(name, args) {
+      try {
+        return await (await get()).callTool(name, args);
+      } catch {
+        const old = current;
+        current = null;
+        await old?.close().catch(() => {});
+        return (await get()).callTool(name, args);
+      }
+    },
+    async close() {
+      const old = current;
+      current = null;
+      await old?.close();
+    },
+  };
+}

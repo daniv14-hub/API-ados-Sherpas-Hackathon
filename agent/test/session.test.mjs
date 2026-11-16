@@ -341,3 +341,55 @@ test('refuses unknown case', () => {
   assert.equal(isAllowedCase(null, ids), false);
   assert.equal(isAllowedCase(undefined, ids), false);
 });
+
+test('closes upstream when browser closes during a tool call', async () => {
+  let release;
+  const gate = new Promise((r) => { release = r; });
+  const base = fakeSource();
+  const slow = {
+    armed: false,
+    getPart(id, part, section) {
+      return this.armed ? gate : base.getPart(id, part, section);
+    },
+  };
+  const unhandled = [];
+  const onUnhandled = (e) => unhandled.push(e);
+  process.on('unhandledRejection', onUnhandled);
+  try {
+    const { browser, upstream } = await start({ source: slow });
+    slow.armed = true;
+    upstream.emit('message', Buffer.from(functionCallDone('get_plan_section', { part: 'financial-health', section: 'score' })));
+    await new Promise((r) => setTimeout(r, 20));
+    browser.close();
+    assert.equal(upstream.closed, true);
+    release({ ok: true });
+    await new Promise((r) => setTimeout(r, 50));
+    assert.deepEqual(unhandled, []);
+    assert.deepEqual(upstream.sent.map((m) => m.slice(0, 120)), []);
+  } finally {
+    process.off('unhandledRejection', onUnhandled);
+  }
+});
+
+test('strips instructions from session events sent to the page', async () => {
+  const { browser, upstream } = await start();
+  for (const type of ['session.created', 'session.updated']) {
+    upstream.emit('message', Buffer.from(JSON.stringify({ type, session: { id: 's1', instructions: 'SECRET BRIEF', tools: [{ name: 'x' }], model: 'm' } })));
+  }
+  const evs = browser.json();
+  assert.equal(evs.length, 2);
+  for (const ev of evs) {
+    assert.deepEqual(ev.session, { id: 's1', model: 'm' });
+  }
+  assert.ok(!browser.sent.join('').includes('SECRET BRIEF'));
+});
+
+test('ignores function_call without call_id', async () => {
+  const { upstream } = await start();
+  upstream.emit('message', Buffer.from(JSON.stringify({
+    type: 'response.done',
+    response: { id: 'r9', output: [{ type: 'function_call', name: 'get_plan_section', arguments: '{"part":"financial-health"}' }] },
+  })));
+  await new Promise((r) => setTimeout(r, 50));
+  assert.equal(upstream.sent.length, 0);
+});

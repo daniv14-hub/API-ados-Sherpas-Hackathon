@@ -118,6 +118,7 @@ export async function createSession({ browser, upstream, caseId, source, profile
 
   async function runToolCalls(calls) {
     for (const call of calls) {
+      if (ended) return;
       const ctx = { caseId, profile: state.profile, options: state.options, source, profilesDir };
       let result;
       try {
@@ -156,7 +157,12 @@ export async function createSession({ browser, upstream, caseId, source, profile
         writeLine('assistant', transcriptBuf.get(k));
         transcriptBuf.delete(k);
       }
-      const calls = (ev.response?.output ?? []).filter((o) => o?.type === 'function_call');
+      const all = (ev.response?.output ?? []).filter((o) => o?.type === 'function_call');
+      const calls = all.filter((c) => {
+        if (typeof c.call_id === 'string' && c.call_id) return true;
+        log.log(`[${caseId}] function_call without call_id`);
+        return false;
+      });
       if (calls.length && ready) {
         toolChain = toolChain.then(() => runToolCalls(calls)).catch((e) => log.error('tool handling failed:', e?.message));
       }
@@ -175,9 +181,15 @@ export async function createSession({ browser, upstream, caseId, source, profile
   });
   upstream.on('open', flush);
   upstream.on('message', (data) => {
-    const raw = data.toString();
-    if (isOpen(browser)) browser.send(raw);
+    let raw = data.toString();
     const ev = parse(raw);
+    // session.* events echo our instructions and tools: never let them reach the page.
+    if (ev && typeof ev.type === 'string' && ev.type.startsWith('session.') && ev.session && typeof ev.session === 'object') {
+      delete ev.session.instructions;
+      delete ev.session.tools;
+      raw = JSON.stringify(ev);
+    }
+    if (isOpen(browser)) browser.send(raw);
     if (ev) onUpstreamEvent(ev);
   });
   upstream.on('close', () => {
