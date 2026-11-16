@@ -57,12 +57,12 @@ async function until(cond, ms = 2000) {
   }
 }
 
-async function start({ source = fakeSource(), profilesDir, transcriptsDir, finishGraceMs } = {}) {
+async function start({ source = fakeSource(), profilesDir, transcriptsDir, finishGraceMs, closingWaitMs } = {}) {
   const browser = new FakeSocket();
   const upstream = new FakeSocket();
   profilesDir ??= await tmp('profiles-');
   transcriptsDir ??= await tmp('transcripts-');
-  await createSession({ browser, upstream, caseId: ID, source, profilesDir, transcriptsDir, log, finishGraceMs });
+  await createSession({ browser, upstream, caseId: ID, source, profilesDir, transcriptsDir, log, finishGraceMs, closingWaitMs });
   upstream.sent.length = 0; // drop the server's own initial session.update (tested separately)
   return { browser, upstream, profilesDir, transcriptsDir };
 }
@@ -447,7 +447,7 @@ async function completeProfileButDetail(profilesDir) {
 test('tells the page when the conversation is finished, without asking for another response', async () => {
   const profilesDir = await tmp('profiles-');
   await completeProfileButDetail(profilesDir);
-  const { browser, upstream } = await start({ profilesDir, finishGraceMs: 5000 });
+  const { browser, upstream } = await start({ profilesDir, finishGraceMs: 5000, closingWaitMs: 30 });
   upstream.emit('message', Buffer.from((functionCallDone('save_answer', { question: 'detail_level', person: 'household', value: 'low' }))));
   await until(() => upstream.json().some((e) => e.type === 'response.create'));
   upstream.sent.length = 0;
@@ -466,4 +466,27 @@ test('closes upstream after the finish grace period', async () => {
   upstream.emit('message', Buffer.from((functionCallDone('save_answer', { question: 'detail_level', person: 'household', value: 'low' }))));
   upstream.emit('message', Buffer.from((functionCallDone('finish_conversation', {}, 'call_9'))));
   await until(() => upstream.closed);
+});
+
+test('waits for the closing reply before telling the page', async () => {
+  const profilesDir = await tmp('profiles-');
+  await completeProfileButDetail(profilesDir);
+  const { browser, upstream } = await start({ profilesDir, finishGraceMs: 5000, closingWaitMs: 2000 });
+  upstream.emit('message', Buffer.from(functionCallDone('save_answer', { question: 'detail_level', person: 'household', value: 'low' })));
+  await until(() => upstream.json().some((e) => e.type === 'response.create'));
+  upstream.emit('message', Buffer.from(functionCallDone('finish_conversation', {}, 'call_9')));
+  await until(() => upstream.json().some((e) => e.item?.call_id === 'call_9'));
+  await new Promise((r) => setTimeout(r, 50));
+  assert.ok(!browser.json().some((e) => e.type === 'sherpy.conversation_done'), 'too early: closing line not spoken yet');
+  upstream.emit('message', Buffer.from(JSON.stringify({ type: 'response.done', response: { id: 'resp_2', output: [] } })));
+  await until(() => browser.json().some((e) => e.type === 'sherpy.conversation_done'));
+});
+
+test('tells the page after a short wait if no closing reply comes', async () => {
+  const profilesDir = await tmp('profiles-');
+  await completeProfileButDetail(profilesDir);
+  const { browser, upstream } = await start({ profilesDir, finishGraceMs: 5000, closingWaitMs: 40 });
+  upstream.emit('message', Buffer.from(functionCallDone('save_answer', { question: 'detail_level', person: 'household', value: 'low' })));
+  upstream.emit('message', Buffer.from(functionCallDone('finish_conversation', {}, 'call_9')));
+  await until(() => browser.json().some((e) => e.type === 'sherpy.conversation_done'));
 });
