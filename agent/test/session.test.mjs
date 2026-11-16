@@ -99,7 +99,7 @@ test('injects instructions and tools into page session.update', async () => {
   assert.match(ev.session.instructions, /PHASE ONE/);
   assert.deepEqual(ev.session.tools.map((t) => t.name), ['save_answer', 'get_plan_section']);
   assert.equal(ev.session.tool_choice, 'auto');
-  assert.deepEqual(ev.session.audio, pageUpdate.session.audio);
+  assert.deepEqual(ev.session.audio, { ...pageUpdate.session.audio, output: { ...pageUpdate.session.audio.output, voice: 'Charon' } });
 
   // Everything else passes through untouched.
   const append = JSON.stringify({ type: 'input_audio_buffer.append', audio: 'AAAA' });
@@ -121,7 +121,7 @@ test('queues page messages until upstream is open', async () => {
   assert.equal(upstream.sent.length, 0);
   upstream.readyState = 1;
   upstream.emit('open');
-  await until(() => upstream.sent.length === 1);
+  await until(() => upstream.sent.length >= 1);
   assert.equal(upstream.json()[0].session.tool_choice, 'auto');
 });
 
@@ -316,21 +316,23 @@ test('sends our session.update when the page sends none', async () => {
   browser.emit('message', Buffer.from(JSON.stringify({ type: 'input_audio_buffer.append', audio: 'AAAA' })));
   upstream.readyState = 1;
   upstream.emit('open');
-  await until(() => upstream.sent.length === 2);
-  const [update, append] = upstream.json();
+  await until(() => upstream.sent.length === 4);
+  const [update, kick, kickResponse, append] = upstream.json();
+  assert.equal(kick.type, 'conversation.item.create');
+  assert.equal(kickResponse.type, 'response.create');
   assert.equal(update.type, 'session.update');
   assert.match(update.session.instructions, /You are Sherpy/);
   assert.deepEqual(update.session.tools.map((t) => t.name), ['save_answer', 'get_plan_section']);
   assert.equal(update.session.tool_choice, 'auto');
   assert.deepEqual(update.session.audio, {
     input: { format: { type: 'audio/pcm', rate: 24000 }, turn_detection: { type: 'server_vad', silence_duration_ms: 600 } },
-    output: { format: { type: 'audio/pcm', rate: 24000 } },
+    output: { format: { type: 'audio/pcm', rate: 24000 }, voice: 'Charon' },
   });
   assert.equal(append.type, 'input_audio_buffer.append');
   // A later page session.update is still accepted and rewritten (only one is sent per page message).
   browser.emit('message', Buffer.from(JSON.stringify(pageUpdate)));
-  await until(() => upstream.sent.length === 3);
-  assert.equal(upstream.json()[2].session.tool_choice, 'auto');
+  await until(() => upstream.sent.length === 5);
+  assert.equal(upstream.json()[4].session.tool_choice, 'auto');
 });
 
 test('refuses unknown case', () => {
@@ -393,3 +395,39 @@ test('ignores function_call without call_id', async () => {
   await new Promise((r) => setTimeout(r, 50));
   assert.equal(upstream.sent.length, 0);
 });
+
+test('forces the Charon voice on every session.update', async () => {
+  const fresh = await startRaw();
+  assert.equal(fresh.upstream.json()[0].session.audio.output.voice, 'Charon');
+  const { browser, upstream } = await start();
+  const withVoice = structuredClone(pageUpdate);
+  withVoice.session.audio.output.voice = 'alloy';
+  browser.emit('message', Buffer.from(JSON.stringify(withVoice)));
+  await until(() => upstream.sent.length === 1);
+  const ev = upstream.json()[0];
+  assert.equal(ev.session.audio.output.voice, 'Charon');
+  assert.deepEqual(ev.session.audio.input, pageUpdate.session.audio.input);
+});
+
+test('greets first: one kickoff right after the session config', async () => {
+  const { browser, upstream } = await startRaw();
+  const sent = upstream.json();
+  assert.deepEqual(sent.map((e) => e.type), ['session.update', 'conversation.item.create', 'response.create']);
+  assert.equal(sent[1].item.role, 'user');
+  assert.match(sent[1].item.content[0].text, /joined the call/);
+  browser.emit('message', Buffer.from(JSON.stringify(pageUpdate)));
+  await until(() => upstream.sent.length === 4);
+  assert.equal(upstream.json()[3].type, 'session.update'); // no second kickoff
+  await new Promise((r) => setTimeout(r, 20));
+  assert.equal(upstream.sent.length, 4);
+});
+
+async function startRaw() {
+  const browser = new FakeSocket();
+  const upstream = new FakeSocket();
+  await createSession({
+    browser, upstream, caseId: ID, source: fakeSource(),
+    profilesDir: await tmp('profiles-'), transcriptsDir: await tmp('transcripts-'), log,
+  });
+  return { browser, upstream };
+}

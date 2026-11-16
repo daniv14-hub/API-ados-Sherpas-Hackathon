@@ -24,6 +24,17 @@ const DEFAULT_AUDIO = {
   output: { format: { type: 'audio/pcm', rate: 24000 } },
 };
 const USER_DONE = 'conversation.item.input_audio_transcription.completed';
+// Team choice 16/11 (D16): the proxy honours audio.output.voice for Gemini.
+export const VOICE = 'Charon';
+// Sherpy speaks first, in English, instead of waiting for the first sound (a breath or cough was
+// transcribed as "¿Qué?" and made it start in Spanish, devlog 16/11 21:35).
+const KICKOFF = '(The family has just joined the call. Start the conversation now, in English.)';
+
+function withVoice(audio) {
+  const a = audio && typeof audio === 'object' ? structuredClone(audio) : structuredClone(DEFAULT_AUDIO);
+  a.output = { ...(a.output && typeof a.output === 'object' ? a.output : DEFAULT_AUDIO.output), voice: VOICE };
+  return a;
+}
 
 function parse(raw) {
   try {
@@ -40,6 +51,7 @@ export async function createSession({ browser, upstream, caseId, source, profile
 
   let ready = false;
   let sentSessionUpdate = false;
+  let kickedOff = false;
   let ended = false;
   const pending = []; // page messages waiting for case data and for the upstream socket to open
   const state = { phase: 1, brief: '', options: null, profile: null };
@@ -87,7 +99,7 @@ export async function createSession({ browser, upstream, caseId, source, profile
       case 'session.update': {
         sentSessionUpdate = true;
         const session = { type: 'realtime', ...sessionConfig() };
-        if (ev.session && typeof ev.session === 'object' && ev.session.audio !== undefined) session.audio = ev.session.audio;
+        session.audio = withVoice(ev.session && typeof ev.session === 'object' ? ev.session.audio : undefined);
         return { type: ev.type, session };
       }
       default:
@@ -102,9 +114,23 @@ export async function createSession({ browser, upstream, caseId, source, profile
     // Sherpy never runs without its rules: if the page sent no session.update, send ours first.
     if (!sentSessionUpdate && !queued.some((e) => e.type === 'session.update')) {
       sentSessionUpdate = true;
-      upstream.send(JSON.stringify({ type: 'session.update', session: { type: 'realtime', ...sessionConfig(), audio: DEFAULT_AUDIO } }));
+      upstream.send(JSON.stringify({ type: 'session.update', session: { type: 'realtime', ...sessionConfig(), audio: withVoice() } }));
+      kickoff();
     }
-    for (const e of queued) upstream.send(JSON.stringify(e));
+    for (const e of queued) {
+      upstream.send(JSON.stringify(e));
+      if (e.type === 'session.update') kickoff();
+    }
+  }
+
+  function kickoff() {
+    if (kickedOff) return;
+    kickedOff = true;
+    upstream.send(JSON.stringify({
+      type: 'conversation.item.create',
+      item: { type: 'message', role: 'user', content: [{ type: 'input_text', text: KICKOFF }] },
+    }));
+    upstream.send(JSON.stringify({ type: 'response.create' }));
   }
 
   function writeLine(role, text) {
