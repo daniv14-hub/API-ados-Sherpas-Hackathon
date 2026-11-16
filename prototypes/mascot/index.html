@@ -4,9 +4,67 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sherpas Yak Mascot</title>
-<!-- PROPOSAL v1 (16/11) — pending team approval. Silhouette traced from assets/banner.png (official hackathon banner).
-     Eye and mouth are our additions so the character can talk; they are not part of the original silhouette. -->
-<link rel="stylesheet" href="../../assets/brand/tokens.css">
+<!-- PROPOSAL v2 (16/11) — pending team approval. Suited yak advisor, drawn by us, inspired by the yak on the
+     official hackathon banner (assets/banner.png). Brand tokens are inlined from assets/brand/tokens.css. -->
+<style>/* Sherpas design tokens, copied 15/11/2026 from the client plan app (app.sherpaswealth.com, :root CSS variables)
+   and the marketing site (sherpaswealth.com). Hex values converted from the app's oklch values. Don't invent new ones. */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600&display=swap");
+
+:root {
+  /* Typography: Poppins for big headings, Inter for everything else */
+  --font-heading: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Brand blue */
+  --brand-50:  #eff5ff;
+  --brand-100: #e0e7ff;
+  --brand-200: #c6d2fd;
+  --brand-300: #a4b7fd;
+  --brand-400: #6485fb;
+  --brand-500: #4666d7;  /* --color-brand */
+  --brand-600: #1c45d7;
+  --brand-700: #1738b1;
+  --brand-800: #112980;
+  --brand-900: #0f2267;
+  --brand-950: #0b0f2e;
+  /* Marketing-site CTA gradient (pill buttons) */
+  --brand-gradient: linear-gradient(127deg, #948df7 11%, #4565d6 119%);
+  /* Score hero card background (app) */
+  --hero-gradient: linear-gradient(120deg, rgba(225,232,255,.75) 0%, rgba(199,213,255,.5) 60%, rgba(225,232,255,.75) 100%);
+
+  /* Neutrals (blue-tinted grays) */
+  --gray-100: #eff1f5;
+  --gray-200: #e2e5eb;  /* borders */
+  --gray-300: #d1d4da;
+  --gray-400: #a1a4b3;
+  --gray-500: #5f6480;  /* muted text */
+  --gray-600: #4a4e65;
+  --gray-700: #434759;
+  --gray-800: #2f323e;  /* body text */
+  --gray-900: #15161a;  /* headings, primary */
+  --surface-base: #f3f3f3;
+  --surface-frame: #f8fafd;
+  --surface-raised: #ffffff;  /* cards */
+  --dark-bg: #161827;         /* marketing site dark hero */
+
+  /* Status */
+  --success: #1dae53;  --success-600: #168b41;
+  --warning: #e38f10;  --warning-500: #ed8e00;
+  --error: #f04545;    --error-600: #cd3b3b;  /* score 52 is shown in #cd3b3b-ish red */
+  --priority-high: #cd3b3b; --priority-medium: #f7bb61; --priority-low: #1dae53;
+
+  /* Charts (app order) */
+  --chart-1: #4565d6; --chart-2: #178c42; --chart-3: #cc3a3a; --chart-4: #ed8e00;
+  --chart-5: #5353c8; --chart-6: #2ec4c6; --chart-7: #e8738a; --chart-8: #dbae3a;
+
+  /* Shape */
+  --radius: 10px;        /* default (.625rem) */
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 9999px; /* buttons, chips */
+  --border: 1px solid var(--gray-200);
+}
+</style>
 <style>
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--surface-base); color: var(--gray-900); font-family: var(--font-body); }
@@ -20,9 +78,9 @@
   .card h2 { font-family: var(--font-heading); font-weight: 600; font-size: 16px; margin: 0 0 12px; color: var(--brand-500); }
 
   /* ---------- stage ---------- */
-  .stage { position: relative; border-radius: var(--radius-xl); background: var(--hero-gradient), #fff; height: 330px;
+  .stage { position: relative; border-radius: var(--radius-xl); background: var(--hero-gradient), #fff; height: 380px; border: var(--border);
            display: flex; align-items: flex-end; justify-content: center; overflow: hidden; }
-  .stage.dark { background: var(--brand-950); }
+  .stage.dark { background: var(--brand-950); border-color: var(--brand-950); }
   .bubble { position: absolute; top: 16px; left: 16px; right: 16px; background: #fff; border: var(--border); border-radius: var(--radius-lg);
             padding: 12px 14px; font-size: 15px; line-height: 1.4; box-shadow: 0 6px 20px rgba(21,22,26,.08);
             opacity: 0; transform: translateY(-8px) scale(.96); transition: .25s ease; }
@@ -30,35 +88,26 @@
   .bubble b { font-family: var(--font-heading); font-weight: 600; display: block; margin-bottom: 2px; }
 
   /* ---------- the yak ---------- */
-  .yak { width: 78%; max-width: 300px; margin-bottom: 18px; overflow: visible; }
-  .yak .body { fill: var(--yak-fill, #fff); }
-  .yak .eye  { fill: var(--yak-eye, var(--gray-900)); }
-  .yak .glint { fill: #fff; }
-  .yak .mouth { fill: var(--yak-eye, var(--gray-900)); }
-  .yak .cheek { fill: var(--chart-7); opacity: .35; }
-  .shadow { fill: rgba(21,22,26,.12); }
-  .dark .shadow { fill: rgba(0,0,0,.35); }
-  .yak.on-light { --yak-fill: var(--brand-500); --yak-eye: var(--brand-950); }
-  .yak.on-dark  { --yak-fill: #fff; --yak-eye: var(--brand-950); }
+  .yak { width: 82%; max-width: 300px; overflow: visible; display: block;
+         --ink: var(--gray-900); --suit: var(--brand-800); --lapel: var(--brand-900); --shirt: #fff; --tie: var(--brand-500);
+         --pocket: var(--brand-300); --horn: #f3eadb; --fur: #8a5f40; --fur-dark: #5c3d29; --muzzle: #e2c3a3; --cheek: rgba(232,115,138,.35); }
+  .yak.white { --fur: #ffffff; --fur-dark: #e4e1dc; --muzzle: #f3dfcf; }   /* closer to the white banner yak */
+  .body-rig, .head-rig, .eyes, .mouth-open { transform-box: fill-box; }
+  .head-rig { transform-origin: 50% 90%; }
+  .body-rig { transform-origin: 50% 100%; }
+  .eyes { transform-origin: 50% 50%; animation: blink 4.5s infinite; }
+  .mouth-open { transform-origin: 50% 0%; transform: scaleY(var(--lvl, 0)); transition: transform 60ms linear; }
+  .stage .yak-wrap { transform-origin: 50% 100%; }
 
-  .rig   { transform-box: fill-box; transform-origin: 50% 100%; }
-  .eyeg  { transform-box: fill-box; transform-origin: 50% 50%; animation: blink 4.5s infinite; }
-  .mouth { transform-box: fill-box; transform-origin: 50% 0%; transform: scaleY(calc(.15 + var(--lvl, 0) * 1.1)); transition: transform 60ms linear; }
+  .idle .head-rig { animation: breathe 3.2s ease-in-out infinite; }
+  .listening .head-rig { animation: lean 2.4s ease-in-out infinite; }
+  .talking .head-rig { transform: translateY(calc(var(--lvl, 0) * -5px)) rotate(calc(var(--lvl, 0) * 2deg)); transition: transform 60ms linear; }
+  .celebrate .yak-wrap { animation: hop .7s cubic-bezier(.3,1.6,.5,1) 2; }
+  .celebrate .mouth-open { transform: scaleY(1); }
 
-  /* idle: slow breathing */
-  .idle .rig { animation: breathe 3.2s ease-in-out infinite; }
-  /* listening: lean in towards the user, a tiny nod */
-  .listening .rig { animation: lean 2.4s ease-in-out infinite; }
-  /* talking: bounce driven by voice volume (--lvl, 0..1) */
-  .talking .rig { transform: translateY(calc(var(--lvl, 0) * -6px)) scaleY(calc(1 + var(--lvl, 0) * .03)); transition: transform 60ms linear; }
-  /* checkpoint: a happy hop */
-  .celebrate .rig { animation: hop .7s cubic-bezier(.3,1.6,.5,1) 2; }
-  .celebrate .eyeg { animation: none; }
-  .celebrate .mouth { transform: scaleY(1); }
-
-  @keyframes breathe { 0%,100% { transform: scale(1,1); } 50% { transform: scale(1.012,1.025); } }
-  @keyframes lean { 0%,100% { transform: rotate(-2deg) translateX(-3px); } 50% { transform: rotate(-3.5deg) translate(-5px,2px); } }
-  @keyframes hop { 0% { transform: translateY(0) scale(1.06,.92); } 40% { transform: translateY(-34px) scale(.96,1.05); } 75% { transform: translateY(0) scale(1.06,.93); } 100% { transform: none; } }
+  @keyframes breathe { 0%,100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(2px) rotate(-1deg); } }
+  @keyframes lean { 0%,100% { transform: rotate(-5deg); } 50% { transform: rotate(-7deg) translateY(2px); } }
+  @keyframes hop { 0% { transform: translateY(0) scale(1.04,.95); } 40% { transform: translateY(-30px) scale(.97,1.03); } 75% { transform: translateY(0) scale(1.04,.96); } 100% { transform: none; } }
   @keyframes blink { 0%,94%,100% { transform: scaleY(1); } 96% { transform: scaleY(.1); } }
 
   /* listening rings */
@@ -85,15 +134,15 @@
 
   /* ---------- sizes / in-context ---------- */
   .sizes { display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
-  .chip { display: flex; align-items: center; justify-content: center; border-radius: 50%; }
-  .chip svg { width: 74%; }
+  .chip { display: flex; align-items: flex-end; justify-content: center; border-radius: 50%; overflow: hidden; }
+  .chip svg { width: 92%; margin-top: 8%; }
   .chip.navy { background: var(--brand-950); } .chip.light { background: var(--brand-100); }
   .sizes small { display: block; text-align: center; font-size: 11px; color: var(--gray-500); margin-top: 4px; }
   .phone { position: relative; height: 200px; border-radius: var(--radius-lg); background: var(--surface-frame); border: var(--border); padding: 14px; overflow: hidden; }
   .phone .line { height: 10px; border-radius: 5px; background: var(--gray-200); margin-bottom: 10px; }
   .fab { position: absolute; right: 14px; bottom: 14px; display: flex; align-items: center; gap: 8px; background: var(--brand-950); color: #fff;
          border-radius: var(--radius-pill); padding: 6px 14px 6px 6px; font-size: 13px; font-weight: 600; box-shadow: 0 6px 18px rgba(11,15,46,.25); }
-  .fab .chip { width: 36px; height: 36px; background: #fff2; }
+  .fab .chip { width: 38px; height: 38px; background: var(--brand-100); }
   ul.notes { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.5; color: var(--gray-700); }
 </style>
 </head>
@@ -101,24 +150,65 @@
 <div class="wrap">
   <header>
     <svg width="123" height="30" viewBox="0 0 123 30" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16.4442 1.26842V23.7916H21.1364V14.6158C21.1364 11.7626 22.679 10.0441 25.0251 10.0441C27.1141 10.0441 28.0461 11.3411 28.0461 13.9674V23.7916H32.7383V13.1568C32.7383 8.71479 30.2958 5.89397 26.3749 5.89397C24.286 5.89397 22.4541 6.67213 21.1364 7.93664V0L16.4442 1.26842Z" fill="currentColor"/><path d="M7.1114 24.3104C11.5143 24.3104 14.4068 21.9759 14.4068 18.4094C14.4068 14.2086 10.9081 13.5687 8.10458 13.0559L7.94699 13.0271C6.14725 12.7029 4.66889 12.411 4.66889 11.2438C4.66889 10.2387 5.53663 9.59022 6.98285 9.59022C8.54286 9.59022 9.49148 10.207 9.60706 11.4686L13.9238 10.3017C13.2747 7.56314 10.7207 5.7967 7.1114 5.7967C2.93343 5.7967 0.137402 8.09875 0.137402 11.4059C0.137402 15.5237 3.67261 16.2694 6.4365 16.7558C8.26838 17.0476 9.77888 17.4042 9.77888 18.6039C9.77888 19.7711 8.58976 20.3872 7.30423 20.3872C5.71586 20.3872 4.56297 19.6842 4.42501 18.2784L0 19.4745C0.651655 22.4097 3.35016 24.3104 7.1114 24.3104Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M43.7726 5.7967C49.1075 5.7967 52.7713 9.94688 52.7713 15.0049C52.7713 15.4588 52.7391 15.9128 52.6749 16.3667H39.5303C39.9481 18.766 41.4908 20.0954 43.7726 20.0954C45.2999 20.0954 46.5762 19.4196 47.3151 18.3043L51.7757 19.5101C50.2338 22.4855 47.2806 24.3104 43.7726 24.3104C38.6626 24.3104 34.7739 20.2899 34.7739 15.0373C34.7739 9.78476 38.6305 5.7967 43.7726 5.7967ZM48.0791 13.1568C47.4042 11.0168 45.8937 9.84961 43.7726 9.84961C41.6836 9.84961 40.2052 11.0817 39.6589 13.1568H48.0791Z" fill="currentColor"/><path d="M63.8796 6.18578C61.6299 6.18578 60.0873 6.89909 58.8339 8.45541L57.9983 6.28305H55.0095V23.7916H59.7016V14.7131C59.7016 11.8599 60.7301 10.6602 63.3654 10.6602H65.4222V6.18578H63.8796Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M71.3793 7.90421C72.8577 6.57486 74.786 5.7967 76.9392 5.7967C82.1778 5.7967 86.0344 9.75234 86.0344 15.0373C86.0344 20.3548 82.1778 24.3428 76.9392 24.3428C75.1395 24.3428 73.5004 23.7916 72.1828 22.8513V28.7316L67.4906 30V6.28305H70.5759L71.3793 7.90421ZM71.8293 15.0373C71.8293 17.7933 73.8218 19.836 76.5536 19.836C79.2853 19.836 81.2779 17.7933 81.2779 15.0373C81.2779 12.3138 79.2853 10.2387 76.5536 10.2387C73.8218 10.2387 71.8293 12.3138 71.8293 15.0373Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M102.932 6.28305L102.45 7.93664C100.939 6.60728 98.9787 5.7967 96.7291 5.7967C91.5227 5.7967 87.6339 9.75234 87.6339 15.0373C87.6339 20.3223 91.5227 24.3104 96.7291 24.3104C98.9466 24.3104 100.875 23.5322 102.353 22.2029L102.771 23.7916H106.435V6.28305H102.932ZM97.1147 19.836C94.383 19.836 92.3904 17.7609 92.3904 15.0373C92.3904 12.2814 94.383 10.2387 97.1147 10.2387C99.8465 10.2387 101.839 12.2814 101.839 15.0373C101.839 17.7933 99.8465 19.836 97.1147 19.836Z" fill="currentColor"/><path d="M123 18.4094C123 21.9759 120.108 24.3104 115.705 24.3104C111.934 24.3104 109.231 22.4 108.588 19.452L113.016 18.2551C113.144 19.6765 114.3 20.3872 115.897 20.3872C117.183 20.3872 118.372 19.7711 118.372 18.6039C118.372 17.4042 116.862 17.0476 115.03 16.7558C112.266 16.2694 108.731 15.5237 108.731 11.4059C108.731 8.09875 111.527 5.7967 115.705 5.7967C119.304 5.7967 121.854 7.5535 122.512 10.2792L118.198 11.4453C118.073 10.1994 117.126 9.59022 115.576 9.59022C114.13 9.59022 113.262 10.2387 113.262 11.2438C113.262 12.411 114.74 12.7029 116.54 13.0271L116.698 13.0559C119.501 13.5687 123 14.2086 123 18.4094Z" fill="currentColor"/></svg>
-    <span class="tag">Proposal v1 · not approved</span>
+    <span class="tag">Proposal v2 · not approved</span>
   </header>
   <h1>Our advisor mascot</h1>
-  <p class="lead">Built on the yak silhouette from the Sherpas hackathon banner. We only added an eye and a mouth so it can talk. Try its four states below.</p>
+  <p class="lead">A friendly yak in a suit and tie, inspired by the yak on the Sherpas hackathon banner. Try its four states below.</p>
 
   <div class="card">
     <div class="switch">
-      <button id="v-dark" class="active">On navy</button>
-      <button id="v-light">On light app</button>
+      <button id="v-light" class="active">Light app</button>
+      <button id="v-dark">Navy</button>
     </div>
-    <div class="stage dark idle" id="stage">
+    <div class="switch">
+      <button id="f-brown" class="active">Brown fur</button>
+      <button id="f-white">White fur (banner)</button>
+    </div>
+    <div class="stage idle" id="stage">
       <div class="bubble" id="bubble"></div>
-      <svg id="yak" class="yak on-dark" viewBox="104 100 416 352" aria-label="Sherpas yak mascot" role="img"><ellipse class="shadow" cx="312" cy="443" rx="165" ry="7"/>
-<g class="rig">
-<path class="body" fill-rule="evenodd" d="M401.0,439.5 C397.0,439.7 388.4,439.2 385.0,438.5 C381.6,437.8 379.5,440.3 380.5,435.0 C381.5,429.7 395.2,410.9 391.0,406.5 C386.8,402.1 362.5,408.3 355.0,408.5 C347.5,408.7 350.0,408.5 346.0,407.5 C342.0,406.5 333.8,403.1 331.0,402.5 C328.2,401.9 329.8,402.2 329.5,404.0 C329.2,405.8 328.8,409.3 329.5,413.0 C330.2,416.7 332.8,422.8 333.5,426.0 C334.2,429.2 334.6,429.9 333.5,432.0 C332.4,434.1 329.8,437.2 327.0,438.5 C324.2,439.8 320.8,439.5 317.0,439.5 C313.2,439.5 306.9,439.4 304.0,438.5 C301.1,437.6 300.2,435.6 299.5,434.0 C298.8,432.4 298.0,432.5 299.5,429.0 C301.0,425.5 306.9,416.9 308.5,413.0 C310.1,409.1 313.4,406.4 309.0,405.5 C304.6,404.6 288.0,408.0 282.0,407.5 C276.0,407.0 277.2,403.7 273.0,402.5 C268.8,401.3 260.2,400.8 257.0,400.5 C253.8,400.2 254.1,398.9 253.5,401.0 C252.9,403.1 252.8,409.0 253.5,413.0 C254.2,417.0 257.0,421.5 257.5,425.0 C258.0,428.5 257.2,431.9 256.5,434.0 C255.8,436.1 254.8,436.6 253.0,437.5 C251.2,438.4 250.5,439.5 246.0,439.5 C241.5,439.5 229.9,438.8 226.0,437.5 C222.1,436.2 221.6,435.8 222.5,432.0 C223.4,428.2 229.5,420.2 231.5,415.0 C233.5,409.8 235.4,403.6 234.5,401.0 C233.6,398.4 229.1,400.6 226.0,399.5 C222.9,398.4 220.1,397.6 216.0,394.5 C211.9,391.4 204.4,384.4 201.5,381.0 C198.6,377.6 199.4,378.9 198.5,374.0 C197.6,369.1 199.1,354.6 196.0,351.5 C192.9,348.4 184.2,355.0 180.0,355.5 C175.8,356.0 174.7,355.7 171.0,354.5 C167.3,353.3 161.6,351.4 158.0,348.5 C154.4,345.6 151.1,341.2 149.5,337.0 C147.9,332.8 147.8,327.7 148.5,323.0 C149.2,318.3 152.2,314.7 153.5,309.0 C154.8,303.3 156.0,295.2 156.5,289.0 C157.0,282.8 156.8,276.5 156.5,272.0 C156.2,267.5 155.5,265.0 154.5,262.0 C153.5,259.0 152.2,256.4 150.5,254.0 C148.8,251.6 147.1,249.8 144.0,247.5 C140.9,245.2 136.1,243.8 132.0,240.5 C127.9,237.2 122.8,232.8 119.5,228.0 C116.2,223.2 113.8,216.5 112.5,212.0 C111.2,207.5 110.5,202.0 111.5,201.0 C112.5,200.0 115.1,202.4 118.5,206.0 C121.9,209.6 128.6,219.2 132.0,222.5 C135.4,225.8 136.3,225.0 139.0,225.5 C141.7,226.0 145.5,226.0 148.0,225.5 C150.5,225.0 150.2,225.7 154.0,222.5 C157.8,219.3 164.3,210.8 171.0,206.5 C177.7,202.2 187.4,201.8 194.0,196.5 C200.6,191.2 204.4,181.6 210.5,175.0 C216.6,168.4 225.7,162.8 230.5,157.0 C235.3,151.2 236.8,144.2 239.5,140.0 C242.2,135.8 243.9,133.8 247.0,131.5 C250.1,129.2 253.7,127.8 258.0,126.5 C262.3,125.2 267.3,124.0 273.0,123.5 C278.7,123.0 284.8,122.7 292.0,123.5 C299.2,124.3 305.8,125.0 316.0,128.5 C326.2,132.0 344.5,141.3 353.0,144.5 C361.5,147.7 355.8,146.8 367.0,147.5 C378.2,148.2 408.2,148.0 420.0,148.5 C431.8,149.0 432.7,149.5 438.0,150.5 C443.3,151.5 447.5,152.7 452.0,154.5 C456.5,156.3 460.1,157.1 465.0,161.5 C469.9,165.9 476.6,173.4 481.5,181.0 C486.4,188.6 490.8,198.3 494.5,207.0 C498.2,215.7 500.8,222.7 503.5,233.0 C506.2,243.3 509.2,258.8 510.5,269.0 C511.8,279.2 511.7,286.8 511.5,294.0 C511.3,301.2 511.5,303.3 509.5,312.0 C507.5,320.7 501.9,340.2 499.5,346.0 C497.1,351.8 496.5,345.8 495.0,346.5 C493.5,347.2 491.9,347.6 490.5,350.0 C489.1,352.4 488.0,359.2 486.5,361.0 C485.0,362.8 483.2,359.0 481.5,361.0 C479.8,363.0 477.3,368.7 476.5,373.0 C475.7,377.3 477.5,382.5 476.5,387.0 C475.5,391.5 471.2,393.2 470.5,400.0 C469.8,406.8 472.7,422.3 472.5,428.0 C472.3,433.7 471.2,432.2 469.5,434.0 C467.8,435.8 466.8,437.8 462.0,438.5 C457.2,439.2 445.2,439.1 441.0,438.5 C436.8,437.9 437.1,436.8 436.5,435.0 C435.9,433.2 435.8,432.0 437.5,428.0 C439.2,424.0 444.7,415.2 446.5,411.0 C448.3,406.8 448.5,406.8 448.5,403.0 C448.5,399.2 447.2,391.5 446.5,388.0 C445.8,384.5 445.2,383.2 444.5,382.0 C443.8,380.8 444.6,378.8 442.0,380.5 C439.4,382.2 433.2,389.8 429.0,392.5 C424.8,395.2 418.9,395.6 416.5,397.0 C414.1,398.4 414.5,397.2 414.5,401.0 C414.5,404.8 416.3,415.2 416.5,420.0 C416.7,424.8 416.8,427.1 415.5,430.0 C414.2,432.9 411.4,435.9 409.0,437.5 C406.6,439.1 405.0,439.3 401.0,439.5Z M252.5,249.0 C256.0,248.5 259.1,247.6 262.0,246.5 C264.9,245.4 266.2,245.2 270.0,242.5 C273.8,239.8 280.2,234.9 284.5,230.0 C288.8,225.1 293.0,217.8 295.5,213.0 C298.0,208.2 298.8,204.4 299.5,201.0 C300.2,197.6 300.4,193.9 300.0,192.5 C299.6,191.1 299.1,190.2 297.0,192.5 C294.9,194.8 291.8,201.2 287.5,206.0 C283.2,210.8 275.8,218.1 271.0,221.5 C266.2,224.9 264.3,225.5 259.0,226.5 C253.7,227.5 243.1,226.9 239.0,227.5 C234.9,228.1 235.4,229.1 234.5,230.0 C233.6,230.9 233.5,230.7 233.5,233.0 C233.5,235.3 233.2,241.2 234.5,244.0 C235.8,246.8 238.0,248.7 241.0,249.5 C244.0,250.3 249.0,249.5 252.5,249.0Z"/>
-<g class="eyeg"><circle class="eye" cx="193" cy="279" r="8.5"/><circle class="glint" cx="196" cy="276" r="2.6"/></g>
-<ellipse class="mouth" cx="166" cy="334" rx="8" ry="7"/>
-</g></svg>
+      <div class="yak-wrap"><svg id="yak" class="yak" viewBox="20 40 280 336" role="img" aria-label="Sherpas yak advisor mascot">
+<g class="body-rig">
+  <!-- suit -->
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--suit)" d="M28,372 C32,318 52,288 96,272 L224,272 C268,288 288,318 292,372 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--shirt)" d="M124,272 L196,272 L160,346 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--tie)" d="M148,280 L172,280 L166,296 L176,350 L160,368 L144,350 L154,296 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--lapel)" d="M96,272 L124,272 L160,346 L132,322 L112,300 L122,292 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--lapel)" d="M224,272 L196,272 L160,346 L188,322 L208,300 L198,292 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--pocket)" d="M224,318 L250,318 L246,330 L240,322 L234,330 L228,322 Z"/>
+  <line stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" x1="220" y1="330" x2="256" y2="330"/>
+</g>
+<g class="head-rig">
+  <!-- horns -->
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--horn)" d="M82,118 C58,112 36,92 30,58 C46,78 66,88 92,92 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--horn)" d="M238,118 C262,112 284,92 290,58 C274,78 254,88 228,92 Z"/>
+  <!-- shaggy head and beard -->
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur-dark)" d="M264.0,158.0 Q278.5,174.9 258.9,186.4 Q266.9,207.0 244.1,212.1 Q244.9,234.4 221.1,232.4 Q214.5,254.2 192.1,245.5 Q178.8,264.7 160.0,250.0 Q141.2,264.7 127.9,245.5 Q105.5,254.2 98.9,232.4 Q75.1,234.4 75.9,212.1 Q53.1,207.0 61.1,186.4 Q41.5,174.9 56.0,158.0 Q41.5,141.1 61.1,129.6 Q53.1,109.0 75.9,103.9 Q75.1,81.6 98.9,83.6 Q105.5,61.8 127.9,70.5 Q141.2,51.3 160.0,66.0 Q178.8,51.3 192.1,70.5 Q214.5,61.8 221.1,83.6 Q244.9,81.6 244.1,103.9 Q266.9,109.0 258.9,129.6 Q278.5,141.1 264.0,158.0Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur-dark)" d="M215.2,243.4 Q222.2,254.3 206.8,250.3 Q210.2,262.9 195.6,255.9 Q195.2,269.5 182.2,259.7 Q178.1,273.6 167.6,261.7 Q160.0,275.0 152.4,261.7 Q141.9,273.6 137.8,259.7 Q124.8,269.5 124.4,255.9 Q109.8,262.9 113.2,250.3 Q97.8,254.3 104.8,243.4"/>
+  <!-- ears -->
+  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur)" cx="62" cy="150" rx="22" ry="12" transform="rotate(-18 62 150)"/>
+  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur)" cx="258" cy="150" rx="22" ry="12" transform="rotate(18 258 150)"/>
+  <!-- face -->
+  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur)" cx="160" cy="170" rx="72" ry="74"/>
+  <ellipse fill="var(--cheek)" cx="112" cy="196" rx="13" ry="8"/>
+  <ellipse fill="var(--cheek)" cx="208" cy="196" rx="13" ry="8"/>
+  <!-- eyes -->
+  <g class="eyes">
+    <ellipse fill="var(--ink)" cx="130" cy="162" rx="10" ry="12"/>
+    <ellipse fill="var(--ink)" cx="190" cy="162" rx="10" ry="12"/>
+    <circle fill="#fff" cx="134" cy="157" r="3.6"/>
+    <circle fill="#fff" cx="194" cy="157" r="3.6"/>
+  </g>
+  <!-- fringe over the forehead -->
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur-dark)" d="M225.9,120.9 Q235.0,127.1 218.1,126.6 Q219.2,136.9 199.7,131.2 Q192.6,143.6 174.1,133.7 Q160.0,146.0 145.9,133.7 Q127.4,143.6 120.3,131.2 Q100.8,136.9 101.9,126.6 Q85.0,127.1 94.1,120.9 C96,64 224,64 225.9,120.9Z"/>
+  <!-- muzzle -->
+  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--muzzle)" cx="160" cy="214" rx="46" ry="30"/>
+  <ellipse fill="var(--ink)" cx="145" cy="206" rx="6" ry="4.5"/>
+  <ellipse fill="var(--ink)" cx="175" cy="206" rx="6" ry="4.5"/>
+  <g class="mouth-rig">
+    <path class="mouth-open" fill="var(--ink)" d="M144,224 Q160,226 176,224 Q174,246 160,248 Q146,246 144,224 Z"/>
+    <path class="smile" fill="none" stroke="var(--ink)" stroke-width="4.5" stroke-linecap="round" d="M144,224 Q160,236 176,224"/>
+  </g>
+</g></svg></div>
       <div class="rings"><i></i><i></i><i></i></div>
     </div>
     <div class="controls">
@@ -136,11 +226,48 @@
     <div class="phone">
       <div class="line" style="width:60%"></div><div class="line" style="width:85%"></div><div class="line" style="width:40%"></div>
       <div class="line" style="width:75%"></div>
-      <div class="fab"><span class="chip"><svg class="yak on-dark" style="width:74%;margin:0" viewBox="104 100 416 352" aria-label="Sherpas yak mascot" role="img"><ellipse class="shadow" cx="312" cy="443" rx="165" ry="7"/>
-<g class="rig">
-<path class="body" fill-rule="evenodd" d="M401.0,439.5 C397.0,439.7 388.4,439.2 385.0,438.5 C381.6,437.8 379.5,440.3 380.5,435.0 C381.5,429.7 395.2,410.9 391.0,406.5 C386.8,402.1 362.5,408.3 355.0,408.5 C347.5,408.7 350.0,408.5 346.0,407.5 C342.0,406.5 333.8,403.1 331.0,402.5 C328.2,401.9 329.8,402.2 329.5,404.0 C329.2,405.8 328.8,409.3 329.5,413.0 C330.2,416.7 332.8,422.8 333.5,426.0 C334.2,429.2 334.6,429.9 333.5,432.0 C332.4,434.1 329.8,437.2 327.0,438.5 C324.2,439.8 320.8,439.5 317.0,439.5 C313.2,439.5 306.9,439.4 304.0,438.5 C301.1,437.6 300.2,435.6 299.5,434.0 C298.8,432.4 298.0,432.5 299.5,429.0 C301.0,425.5 306.9,416.9 308.5,413.0 C310.1,409.1 313.4,406.4 309.0,405.5 C304.6,404.6 288.0,408.0 282.0,407.5 C276.0,407.0 277.2,403.7 273.0,402.5 C268.8,401.3 260.2,400.8 257.0,400.5 C253.8,400.2 254.1,398.9 253.5,401.0 C252.9,403.1 252.8,409.0 253.5,413.0 C254.2,417.0 257.0,421.5 257.5,425.0 C258.0,428.5 257.2,431.9 256.5,434.0 C255.8,436.1 254.8,436.6 253.0,437.5 C251.2,438.4 250.5,439.5 246.0,439.5 C241.5,439.5 229.9,438.8 226.0,437.5 C222.1,436.2 221.6,435.8 222.5,432.0 C223.4,428.2 229.5,420.2 231.5,415.0 C233.5,409.8 235.4,403.6 234.5,401.0 C233.6,398.4 229.1,400.6 226.0,399.5 C222.9,398.4 220.1,397.6 216.0,394.5 C211.9,391.4 204.4,384.4 201.5,381.0 C198.6,377.6 199.4,378.9 198.5,374.0 C197.6,369.1 199.1,354.6 196.0,351.5 C192.9,348.4 184.2,355.0 180.0,355.5 C175.8,356.0 174.7,355.7 171.0,354.5 C167.3,353.3 161.6,351.4 158.0,348.5 C154.4,345.6 151.1,341.2 149.5,337.0 C147.9,332.8 147.8,327.7 148.5,323.0 C149.2,318.3 152.2,314.7 153.5,309.0 C154.8,303.3 156.0,295.2 156.5,289.0 C157.0,282.8 156.8,276.5 156.5,272.0 C156.2,267.5 155.5,265.0 154.5,262.0 C153.5,259.0 152.2,256.4 150.5,254.0 C148.8,251.6 147.1,249.8 144.0,247.5 C140.9,245.2 136.1,243.8 132.0,240.5 C127.9,237.2 122.8,232.8 119.5,228.0 C116.2,223.2 113.8,216.5 112.5,212.0 C111.2,207.5 110.5,202.0 111.5,201.0 C112.5,200.0 115.1,202.4 118.5,206.0 C121.9,209.6 128.6,219.2 132.0,222.5 C135.4,225.8 136.3,225.0 139.0,225.5 C141.7,226.0 145.5,226.0 148.0,225.5 C150.5,225.0 150.2,225.7 154.0,222.5 C157.8,219.3 164.3,210.8 171.0,206.5 C177.7,202.2 187.4,201.8 194.0,196.5 C200.6,191.2 204.4,181.6 210.5,175.0 C216.6,168.4 225.7,162.8 230.5,157.0 C235.3,151.2 236.8,144.2 239.5,140.0 C242.2,135.8 243.9,133.8 247.0,131.5 C250.1,129.2 253.7,127.8 258.0,126.5 C262.3,125.2 267.3,124.0 273.0,123.5 C278.7,123.0 284.8,122.7 292.0,123.5 C299.2,124.3 305.8,125.0 316.0,128.5 C326.2,132.0 344.5,141.3 353.0,144.5 C361.5,147.7 355.8,146.8 367.0,147.5 C378.2,148.2 408.2,148.0 420.0,148.5 C431.8,149.0 432.7,149.5 438.0,150.5 C443.3,151.5 447.5,152.7 452.0,154.5 C456.5,156.3 460.1,157.1 465.0,161.5 C469.9,165.9 476.6,173.4 481.5,181.0 C486.4,188.6 490.8,198.3 494.5,207.0 C498.2,215.7 500.8,222.7 503.5,233.0 C506.2,243.3 509.2,258.8 510.5,269.0 C511.8,279.2 511.7,286.8 511.5,294.0 C511.3,301.2 511.5,303.3 509.5,312.0 C507.5,320.7 501.9,340.2 499.5,346.0 C497.1,351.8 496.5,345.8 495.0,346.5 C493.5,347.2 491.9,347.6 490.5,350.0 C489.1,352.4 488.0,359.2 486.5,361.0 C485.0,362.8 483.2,359.0 481.5,361.0 C479.8,363.0 477.3,368.7 476.5,373.0 C475.7,377.3 477.5,382.5 476.5,387.0 C475.5,391.5 471.2,393.2 470.5,400.0 C469.8,406.8 472.7,422.3 472.5,428.0 C472.3,433.7 471.2,432.2 469.5,434.0 C467.8,435.8 466.8,437.8 462.0,438.5 C457.2,439.2 445.2,439.1 441.0,438.5 C436.8,437.9 437.1,436.8 436.5,435.0 C435.9,433.2 435.8,432.0 437.5,428.0 C439.2,424.0 444.7,415.2 446.5,411.0 C448.3,406.8 448.5,406.8 448.5,403.0 C448.5,399.2 447.2,391.5 446.5,388.0 C445.8,384.5 445.2,383.2 444.5,382.0 C443.8,380.8 444.6,378.8 442.0,380.5 C439.4,382.2 433.2,389.8 429.0,392.5 C424.8,395.2 418.9,395.6 416.5,397.0 C414.1,398.4 414.5,397.2 414.5,401.0 C414.5,404.8 416.3,415.2 416.5,420.0 C416.7,424.8 416.8,427.1 415.5,430.0 C414.2,432.9 411.4,435.9 409.0,437.5 C406.6,439.1 405.0,439.3 401.0,439.5Z M252.5,249.0 C256.0,248.5 259.1,247.6 262.0,246.5 C264.9,245.4 266.2,245.2 270.0,242.5 C273.8,239.8 280.2,234.9 284.5,230.0 C288.8,225.1 293.0,217.8 295.5,213.0 C298.0,208.2 298.8,204.4 299.5,201.0 C300.2,197.6 300.4,193.9 300.0,192.5 C299.6,191.1 299.1,190.2 297.0,192.5 C294.9,194.8 291.8,201.2 287.5,206.0 C283.2,210.8 275.8,218.1 271.0,221.5 C266.2,224.9 264.3,225.5 259.0,226.5 C253.7,227.5 243.1,226.9 239.0,227.5 C234.9,228.1 235.4,229.1 234.5,230.0 C233.6,230.9 233.5,230.7 233.5,233.0 C233.5,235.3 233.2,241.2 234.5,244.0 C235.8,246.8 238.0,248.7 241.0,249.5 C244.0,250.3 249.0,249.5 252.5,249.0Z"/>
-<g class="eyeg"><circle class="eye" cx="193" cy="279" r="8.5"/><circle class="glint" cx="196" cy="276" r="2.6"/></g>
-<ellipse class="mouth" cx="166" cy="334" rx="8" ry="7"/>
+      <div class="fab"><span class="chip"><svg class="yak" viewBox="20 40 280 336" role="img" aria-label="Sherpas yak advisor mascot">
+<g class="body-rig">
+  <!-- suit -->
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--suit)" d="M28,372 C32,318 52,288 96,272 L224,272 C268,288 288,318 292,372 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--shirt)" d="M124,272 L196,272 L160,346 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--tie)" d="M148,280 L172,280 L166,296 L176,350 L160,368 L144,350 L154,296 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--lapel)" d="M96,272 L124,272 L160,346 L132,322 L112,300 L122,292 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--lapel)" d="M224,272 L196,272 L160,346 L188,322 L208,300 L198,292 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--pocket)" d="M224,318 L250,318 L246,330 L240,322 L234,330 L228,322 Z"/>
+  <line stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" x1="220" y1="330" x2="256" y2="330"/>
+</g>
+<g class="head-rig">
+  <!-- horns -->
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--horn)" d="M82,118 C58,112 36,92 30,58 C46,78 66,88 92,92 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--horn)" d="M238,118 C262,112 284,92 290,58 C274,78 254,88 228,92 Z"/>
+  <!-- shaggy head and beard -->
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur-dark)" d="M264.0,158.0 Q278.5,174.9 258.9,186.4 Q266.9,207.0 244.1,212.1 Q244.9,234.4 221.1,232.4 Q214.5,254.2 192.1,245.5 Q178.8,264.7 160.0,250.0 Q141.2,264.7 127.9,245.5 Q105.5,254.2 98.9,232.4 Q75.1,234.4 75.9,212.1 Q53.1,207.0 61.1,186.4 Q41.5,174.9 56.0,158.0 Q41.5,141.1 61.1,129.6 Q53.1,109.0 75.9,103.9 Q75.1,81.6 98.9,83.6 Q105.5,61.8 127.9,70.5 Q141.2,51.3 160.0,66.0 Q178.8,51.3 192.1,70.5 Q214.5,61.8 221.1,83.6 Q244.9,81.6 244.1,103.9 Q266.9,109.0 258.9,129.6 Q278.5,141.1 264.0,158.0Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur-dark)" d="M215.2,243.4 Q222.2,254.3 206.8,250.3 Q210.2,262.9 195.6,255.9 Q195.2,269.5 182.2,259.7 Q178.1,273.6 167.6,261.7 Q160.0,275.0 152.4,261.7 Q141.9,273.6 137.8,259.7 Q124.8,269.5 124.4,255.9 Q109.8,262.9 113.2,250.3 Q97.8,254.3 104.8,243.4"/>
+  <!-- ears -->
+  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur)" cx="62" cy="150" rx="22" ry="12" transform="rotate(-18 62 150)"/>
+  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur)" cx="258" cy="150" rx="22" ry="12" transform="rotate(18 258 150)"/>
+  <!-- face -->
+  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur)" cx="160" cy="170" rx="72" ry="74"/>
+  <ellipse fill="var(--cheek)" cx="112" cy="196" rx="13" ry="8"/>
+  <ellipse fill="var(--cheek)" cx="208" cy="196" rx="13" ry="8"/>
+  <!-- eyes -->
+  <g class="eyes">
+    <ellipse fill="var(--ink)" cx="130" cy="162" rx="10" ry="12"/>
+    <ellipse fill="var(--ink)" cx="190" cy="162" rx="10" ry="12"/>
+    <circle fill="#fff" cx="134" cy="157" r="3.6"/>
+    <circle fill="#fff" cx="194" cy="157" r="3.6"/>
+  </g>
+  <!-- fringe over the forehead -->
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur-dark)" d="M225.9,120.9 Q235.0,127.1 218.1,126.6 Q219.2,136.9 199.7,131.2 Q192.6,143.6 174.1,133.7 Q160.0,146.0 145.9,133.7 Q127.4,143.6 120.3,131.2 Q100.8,136.9 101.9,126.6 Q85.0,127.1 94.1,120.9 C96,64 224,64 225.9,120.9Z"/>
+  <!-- muzzle -->
+  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--muzzle)" cx="160" cy="214" rx="46" ry="30"/>
+  <ellipse fill="var(--ink)" cx="145" cy="206" rx="6" ry="4.5"/>
+  <ellipse fill="var(--ink)" cx="175" cy="206" rx="6" ry="4.5"/>
+  <g class="mouth-rig">
+    <path class="mouth-open" fill="var(--ink)" d="M144,224 Q160,226 176,224 Q174,246 160,248 Q146,246 144,224 Z"/>
+    <path class="smile" fill="none" stroke="var(--ink)" stroke-width="4.5" stroke-linecap="round" d="M144,224 Q160,236 176,224"/>
+  </g>
 </g></svg></span>Ask me</div>
     </div>
     <p class="hint">A small button on every screen to ask the mascot by voice. The label "Ask me" is a placeholder.</p>
@@ -149,29 +276,177 @@
   <div class="card">
     <h2>Sizes</h2>
     <div class="sizes">
-      <div><div class="chip navy" style="width:96px;height:96px"><svg class="yak on-dark" style="width:74%;margin:0" viewBox="104 100 416 352" aria-label="Sherpas yak mascot" role="img"><ellipse class="shadow" cx="312" cy="443" rx="165" ry="7"/>
-<g class="rig">
-<path class="body" fill-rule="evenodd" d="M401.0,439.5 C397.0,439.7 388.4,439.2 385.0,438.5 C381.6,437.8 379.5,440.3 380.5,435.0 C381.5,429.7 395.2,410.9 391.0,406.5 C386.8,402.1 362.5,408.3 355.0,408.5 C347.5,408.7 350.0,408.5 346.0,407.5 C342.0,406.5 333.8,403.1 331.0,402.5 C328.2,401.9 329.8,402.2 329.5,404.0 C329.2,405.8 328.8,409.3 329.5,413.0 C330.2,416.7 332.8,422.8 333.5,426.0 C334.2,429.2 334.6,429.9 333.5,432.0 C332.4,434.1 329.8,437.2 327.0,438.5 C324.2,439.8 320.8,439.5 317.0,439.5 C313.2,439.5 306.9,439.4 304.0,438.5 C301.1,437.6 300.2,435.6 299.5,434.0 C298.8,432.4 298.0,432.5 299.5,429.0 C301.0,425.5 306.9,416.9 308.5,413.0 C310.1,409.1 313.4,406.4 309.0,405.5 C304.6,404.6 288.0,408.0 282.0,407.5 C276.0,407.0 277.2,403.7 273.0,402.5 C268.8,401.3 260.2,400.8 257.0,400.5 C253.8,400.2 254.1,398.9 253.5,401.0 C252.9,403.1 252.8,409.0 253.5,413.0 C254.2,417.0 257.0,421.5 257.5,425.0 C258.0,428.5 257.2,431.9 256.5,434.0 C255.8,436.1 254.8,436.6 253.0,437.5 C251.2,438.4 250.5,439.5 246.0,439.5 C241.5,439.5 229.9,438.8 226.0,437.5 C222.1,436.2 221.6,435.8 222.5,432.0 C223.4,428.2 229.5,420.2 231.5,415.0 C233.5,409.8 235.4,403.6 234.5,401.0 C233.6,398.4 229.1,400.6 226.0,399.5 C222.9,398.4 220.1,397.6 216.0,394.5 C211.9,391.4 204.4,384.4 201.5,381.0 C198.6,377.6 199.4,378.9 198.5,374.0 C197.6,369.1 199.1,354.6 196.0,351.5 C192.9,348.4 184.2,355.0 180.0,355.5 C175.8,356.0 174.7,355.7 171.0,354.5 C167.3,353.3 161.6,351.4 158.0,348.5 C154.4,345.6 151.1,341.2 149.5,337.0 C147.9,332.8 147.8,327.7 148.5,323.0 C149.2,318.3 152.2,314.7 153.5,309.0 C154.8,303.3 156.0,295.2 156.5,289.0 C157.0,282.8 156.8,276.5 156.5,272.0 C156.2,267.5 155.5,265.0 154.5,262.0 C153.5,259.0 152.2,256.4 150.5,254.0 C148.8,251.6 147.1,249.8 144.0,247.5 C140.9,245.2 136.1,243.8 132.0,240.5 C127.9,237.2 122.8,232.8 119.5,228.0 C116.2,223.2 113.8,216.5 112.5,212.0 C111.2,207.5 110.5,202.0 111.5,201.0 C112.5,200.0 115.1,202.4 118.5,206.0 C121.9,209.6 128.6,219.2 132.0,222.5 C135.4,225.8 136.3,225.0 139.0,225.5 C141.7,226.0 145.5,226.0 148.0,225.5 C150.5,225.0 150.2,225.7 154.0,222.5 C157.8,219.3 164.3,210.8 171.0,206.5 C177.7,202.2 187.4,201.8 194.0,196.5 C200.6,191.2 204.4,181.6 210.5,175.0 C216.6,168.4 225.7,162.8 230.5,157.0 C235.3,151.2 236.8,144.2 239.5,140.0 C242.2,135.8 243.9,133.8 247.0,131.5 C250.1,129.2 253.7,127.8 258.0,126.5 C262.3,125.2 267.3,124.0 273.0,123.5 C278.7,123.0 284.8,122.7 292.0,123.5 C299.2,124.3 305.8,125.0 316.0,128.5 C326.2,132.0 344.5,141.3 353.0,144.5 C361.5,147.7 355.8,146.8 367.0,147.5 C378.2,148.2 408.2,148.0 420.0,148.5 C431.8,149.0 432.7,149.5 438.0,150.5 C443.3,151.5 447.5,152.7 452.0,154.5 C456.5,156.3 460.1,157.1 465.0,161.5 C469.9,165.9 476.6,173.4 481.5,181.0 C486.4,188.6 490.8,198.3 494.5,207.0 C498.2,215.7 500.8,222.7 503.5,233.0 C506.2,243.3 509.2,258.8 510.5,269.0 C511.8,279.2 511.7,286.8 511.5,294.0 C511.3,301.2 511.5,303.3 509.5,312.0 C507.5,320.7 501.9,340.2 499.5,346.0 C497.1,351.8 496.5,345.8 495.0,346.5 C493.5,347.2 491.9,347.6 490.5,350.0 C489.1,352.4 488.0,359.2 486.5,361.0 C485.0,362.8 483.2,359.0 481.5,361.0 C479.8,363.0 477.3,368.7 476.5,373.0 C475.7,377.3 477.5,382.5 476.5,387.0 C475.5,391.5 471.2,393.2 470.5,400.0 C469.8,406.8 472.7,422.3 472.5,428.0 C472.3,433.7 471.2,432.2 469.5,434.0 C467.8,435.8 466.8,437.8 462.0,438.5 C457.2,439.2 445.2,439.1 441.0,438.5 C436.8,437.9 437.1,436.8 436.5,435.0 C435.9,433.2 435.8,432.0 437.5,428.0 C439.2,424.0 444.7,415.2 446.5,411.0 C448.3,406.8 448.5,406.8 448.5,403.0 C448.5,399.2 447.2,391.5 446.5,388.0 C445.8,384.5 445.2,383.2 444.5,382.0 C443.8,380.8 444.6,378.8 442.0,380.5 C439.4,382.2 433.2,389.8 429.0,392.5 C424.8,395.2 418.9,395.6 416.5,397.0 C414.1,398.4 414.5,397.2 414.5,401.0 C414.5,404.8 416.3,415.2 416.5,420.0 C416.7,424.8 416.8,427.1 415.5,430.0 C414.2,432.9 411.4,435.9 409.0,437.5 C406.6,439.1 405.0,439.3 401.0,439.5Z M252.5,249.0 C256.0,248.5 259.1,247.6 262.0,246.5 C264.9,245.4 266.2,245.2 270.0,242.5 C273.8,239.8 280.2,234.9 284.5,230.0 C288.8,225.1 293.0,217.8 295.5,213.0 C298.0,208.2 298.8,204.4 299.5,201.0 C300.2,197.6 300.4,193.9 300.0,192.5 C299.6,191.1 299.1,190.2 297.0,192.5 C294.9,194.8 291.8,201.2 287.5,206.0 C283.2,210.8 275.8,218.1 271.0,221.5 C266.2,224.9 264.3,225.5 259.0,226.5 C253.7,227.5 243.1,226.9 239.0,227.5 C234.9,228.1 235.4,229.1 234.5,230.0 C233.6,230.9 233.5,230.7 233.5,233.0 C233.5,235.3 233.2,241.2 234.5,244.0 C235.8,246.8 238.0,248.7 241.0,249.5 C244.0,250.3 249.0,249.5 252.5,249.0Z"/>
-<g class="eyeg"><circle class="eye" cx="193" cy="279" r="8.5"/><circle class="glint" cx="196" cy="276" r="2.6"/></g>
-<ellipse class="mouth" cx="166" cy="334" rx="8" ry="7"/>
+      <div><div class="chip navy" style="width:96px;height:96px"><svg class="yak" viewBox="20 40 280 336" role="img" aria-label="Sherpas yak advisor mascot">
+<g class="body-rig">
+  <!-- suit -->
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--suit)" d="M28,372 C32,318 52,288 96,272 L224,272 C268,288 288,318 292,372 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--shirt)" d="M124,272 L196,272 L160,346 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--tie)" d="M148,280 L172,280 L166,296 L176,350 L160,368 L144,350 L154,296 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--lapel)" d="M96,272 L124,272 L160,346 L132,322 L112,300 L122,292 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--lapel)" d="M224,272 L196,272 L160,346 L188,322 L208,300 L198,292 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--pocket)" d="M224,318 L250,318 L246,330 L240,322 L234,330 L228,322 Z"/>
+  <line stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" x1="220" y1="330" x2="256" y2="330"/>
+</g>
+<g class="head-rig">
+  <!-- horns -->
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--horn)" d="M82,118 C58,112 36,92 30,58 C46,78 66,88 92,92 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--horn)" d="M238,118 C262,112 284,92 290,58 C274,78 254,88 228,92 Z"/>
+  <!-- shaggy head and beard -->
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur-dark)" d="M264.0,158.0 Q278.5,174.9 258.9,186.4 Q266.9,207.0 244.1,212.1 Q244.9,234.4 221.1,232.4 Q214.5,254.2 192.1,245.5 Q178.8,264.7 160.0,250.0 Q141.2,264.7 127.9,245.5 Q105.5,254.2 98.9,232.4 Q75.1,234.4 75.9,212.1 Q53.1,207.0 61.1,186.4 Q41.5,174.9 56.0,158.0 Q41.5,141.1 61.1,129.6 Q53.1,109.0 75.9,103.9 Q75.1,81.6 98.9,83.6 Q105.5,61.8 127.9,70.5 Q141.2,51.3 160.0,66.0 Q178.8,51.3 192.1,70.5 Q214.5,61.8 221.1,83.6 Q244.9,81.6 244.1,103.9 Q266.9,109.0 258.9,129.6 Q278.5,141.1 264.0,158.0Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur-dark)" d="M215.2,243.4 Q222.2,254.3 206.8,250.3 Q210.2,262.9 195.6,255.9 Q195.2,269.5 182.2,259.7 Q178.1,273.6 167.6,261.7 Q160.0,275.0 152.4,261.7 Q141.9,273.6 137.8,259.7 Q124.8,269.5 124.4,255.9 Q109.8,262.9 113.2,250.3 Q97.8,254.3 104.8,243.4"/>
+  <!-- ears -->
+  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur)" cx="62" cy="150" rx="22" ry="12" transform="rotate(-18 62 150)"/>
+  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur)" cx="258" cy="150" rx="22" ry="12" transform="rotate(18 258 150)"/>
+  <!-- face -->
+  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur)" cx="160" cy="170" rx="72" ry="74"/>
+  <ellipse fill="var(--cheek)" cx="112" cy="196" rx="13" ry="8"/>
+  <ellipse fill="var(--cheek)" cx="208" cy="196" rx="13" ry="8"/>
+  <!-- eyes -->
+  <g class="eyes">
+    <ellipse fill="var(--ink)" cx="130" cy="162" rx="10" ry="12"/>
+    <ellipse fill="var(--ink)" cx="190" cy="162" rx="10" ry="12"/>
+    <circle fill="#fff" cx="134" cy="157" r="3.6"/>
+    <circle fill="#fff" cx="194" cy="157" r="3.6"/>
+  </g>
+  <!-- fringe over the forehead -->
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur-dark)" d="M225.9,120.9 Q235.0,127.1 218.1,126.6 Q219.2,136.9 199.7,131.2 Q192.6,143.6 174.1,133.7 Q160.0,146.0 145.9,133.7 Q127.4,143.6 120.3,131.2 Q100.8,136.9 101.9,126.6 Q85.0,127.1 94.1,120.9 C96,64 224,64 225.9,120.9Z"/>
+  <!-- muzzle -->
+  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--muzzle)" cx="160" cy="214" rx="46" ry="30"/>
+  <ellipse fill="var(--ink)" cx="145" cy="206" rx="6" ry="4.5"/>
+  <ellipse fill="var(--ink)" cx="175" cy="206" rx="6" ry="4.5"/>
+  <g class="mouth-rig">
+    <path class="mouth-open" fill="var(--ink)" d="M144,224 Q160,226 176,224 Q174,246 160,248 Q146,246 144,224 Z"/>
+    <path class="smile" fill="none" stroke="var(--ink)" stroke-width="4.5" stroke-linecap="round" d="M144,224 Q160,236 176,224"/>
+  </g>
 </g></svg></div><small>96 · navy</small></div>
-      <div><div class="chip light" style="width:96px;height:96px"><svg class="yak on-light" style="width:74%;margin:0" viewBox="104 100 416 352" aria-label="Sherpas yak mascot" role="img"><ellipse class="shadow" cx="312" cy="443" rx="165" ry="7"/>
-<g class="rig">
-<path class="body" fill-rule="evenodd" d="M401.0,439.5 C397.0,439.7 388.4,439.2 385.0,438.5 C381.6,437.8 379.5,440.3 380.5,435.0 C381.5,429.7 395.2,410.9 391.0,406.5 C386.8,402.1 362.5,408.3 355.0,408.5 C347.5,408.7 350.0,408.5 346.0,407.5 C342.0,406.5 333.8,403.1 331.0,402.5 C328.2,401.9 329.8,402.2 329.5,404.0 C329.2,405.8 328.8,409.3 329.5,413.0 C330.2,416.7 332.8,422.8 333.5,426.0 C334.2,429.2 334.6,429.9 333.5,432.0 C332.4,434.1 329.8,437.2 327.0,438.5 C324.2,439.8 320.8,439.5 317.0,439.5 C313.2,439.5 306.9,439.4 304.0,438.5 C301.1,437.6 300.2,435.6 299.5,434.0 C298.8,432.4 298.0,432.5 299.5,429.0 C301.0,425.5 306.9,416.9 308.5,413.0 C310.1,409.1 313.4,406.4 309.0,405.5 C304.6,404.6 288.0,408.0 282.0,407.5 C276.0,407.0 277.2,403.7 273.0,402.5 C268.8,401.3 260.2,400.8 257.0,400.5 C253.8,400.2 254.1,398.9 253.5,401.0 C252.9,403.1 252.8,409.0 253.5,413.0 C254.2,417.0 257.0,421.5 257.5,425.0 C258.0,428.5 257.2,431.9 256.5,434.0 C255.8,436.1 254.8,436.6 253.0,437.5 C251.2,438.4 250.5,439.5 246.0,439.5 C241.5,439.5 229.9,438.8 226.0,437.5 C222.1,436.2 221.6,435.8 222.5,432.0 C223.4,428.2 229.5,420.2 231.5,415.0 C233.5,409.8 235.4,403.6 234.5,401.0 C233.6,398.4 229.1,400.6 226.0,399.5 C222.9,398.4 220.1,397.6 216.0,394.5 C211.9,391.4 204.4,384.4 201.5,381.0 C198.6,377.6 199.4,378.9 198.5,374.0 C197.6,369.1 199.1,354.6 196.0,351.5 C192.9,348.4 184.2,355.0 180.0,355.5 C175.8,356.0 174.7,355.7 171.0,354.5 C167.3,353.3 161.6,351.4 158.0,348.5 C154.4,345.6 151.1,341.2 149.5,337.0 C147.9,332.8 147.8,327.7 148.5,323.0 C149.2,318.3 152.2,314.7 153.5,309.0 C154.8,303.3 156.0,295.2 156.5,289.0 C157.0,282.8 156.8,276.5 156.5,272.0 C156.2,267.5 155.5,265.0 154.5,262.0 C153.5,259.0 152.2,256.4 150.5,254.0 C148.8,251.6 147.1,249.8 144.0,247.5 C140.9,245.2 136.1,243.8 132.0,240.5 C127.9,237.2 122.8,232.8 119.5,228.0 C116.2,223.2 113.8,216.5 112.5,212.0 C111.2,207.5 110.5,202.0 111.5,201.0 C112.5,200.0 115.1,202.4 118.5,206.0 C121.9,209.6 128.6,219.2 132.0,222.5 C135.4,225.8 136.3,225.0 139.0,225.5 C141.7,226.0 145.5,226.0 148.0,225.5 C150.5,225.0 150.2,225.7 154.0,222.5 C157.8,219.3 164.3,210.8 171.0,206.5 C177.7,202.2 187.4,201.8 194.0,196.5 C200.6,191.2 204.4,181.6 210.5,175.0 C216.6,168.4 225.7,162.8 230.5,157.0 C235.3,151.2 236.8,144.2 239.5,140.0 C242.2,135.8 243.9,133.8 247.0,131.5 C250.1,129.2 253.7,127.8 258.0,126.5 C262.3,125.2 267.3,124.0 273.0,123.5 C278.7,123.0 284.8,122.7 292.0,123.5 C299.2,124.3 305.8,125.0 316.0,128.5 C326.2,132.0 344.5,141.3 353.0,144.5 C361.5,147.7 355.8,146.8 367.0,147.5 C378.2,148.2 408.2,148.0 420.0,148.5 C431.8,149.0 432.7,149.5 438.0,150.5 C443.3,151.5 447.5,152.7 452.0,154.5 C456.5,156.3 460.1,157.1 465.0,161.5 C469.9,165.9 476.6,173.4 481.5,181.0 C486.4,188.6 490.8,198.3 494.5,207.0 C498.2,215.7 500.8,222.7 503.5,233.0 C506.2,243.3 509.2,258.8 510.5,269.0 C511.8,279.2 511.7,286.8 511.5,294.0 C511.3,301.2 511.5,303.3 509.5,312.0 C507.5,320.7 501.9,340.2 499.5,346.0 C497.1,351.8 496.5,345.8 495.0,346.5 C493.5,347.2 491.9,347.6 490.5,350.0 C489.1,352.4 488.0,359.2 486.5,361.0 C485.0,362.8 483.2,359.0 481.5,361.0 C479.8,363.0 477.3,368.7 476.5,373.0 C475.7,377.3 477.5,382.5 476.5,387.0 C475.5,391.5 471.2,393.2 470.5,400.0 C469.8,406.8 472.7,422.3 472.5,428.0 C472.3,433.7 471.2,432.2 469.5,434.0 C467.8,435.8 466.8,437.8 462.0,438.5 C457.2,439.2 445.2,439.1 441.0,438.5 C436.8,437.9 437.1,436.8 436.5,435.0 C435.9,433.2 435.8,432.0 437.5,428.0 C439.2,424.0 444.7,415.2 446.5,411.0 C448.3,406.8 448.5,406.8 448.5,403.0 C448.5,399.2 447.2,391.5 446.5,388.0 C445.8,384.5 445.2,383.2 444.5,382.0 C443.8,380.8 444.6,378.8 442.0,380.5 C439.4,382.2 433.2,389.8 429.0,392.5 C424.8,395.2 418.9,395.6 416.5,397.0 C414.1,398.4 414.5,397.2 414.5,401.0 C414.5,404.8 416.3,415.2 416.5,420.0 C416.7,424.8 416.8,427.1 415.5,430.0 C414.2,432.9 411.4,435.9 409.0,437.5 C406.6,439.1 405.0,439.3 401.0,439.5Z M252.5,249.0 C256.0,248.5 259.1,247.6 262.0,246.5 C264.9,245.4 266.2,245.2 270.0,242.5 C273.8,239.8 280.2,234.9 284.5,230.0 C288.8,225.1 293.0,217.8 295.5,213.0 C298.0,208.2 298.8,204.4 299.5,201.0 C300.2,197.6 300.4,193.9 300.0,192.5 C299.6,191.1 299.1,190.2 297.0,192.5 C294.9,194.8 291.8,201.2 287.5,206.0 C283.2,210.8 275.8,218.1 271.0,221.5 C266.2,224.9 264.3,225.5 259.0,226.5 C253.7,227.5 243.1,226.9 239.0,227.5 C234.9,228.1 235.4,229.1 234.5,230.0 C233.6,230.9 233.5,230.7 233.5,233.0 C233.5,235.3 233.2,241.2 234.5,244.0 C235.8,246.8 238.0,248.7 241.0,249.5 C244.0,250.3 249.0,249.5 252.5,249.0Z"/>
-<g class="eyeg"><circle class="eye" cx="193" cy="279" r="8.5"/><circle class="glint" cx="196" cy="276" r="2.6"/></g>
-<ellipse class="mouth" cx="166" cy="334" rx="8" ry="7"/>
+      <div><div class="chip light" style="width:96px;height:96px"><svg class="yak" viewBox="20 40 280 336" role="img" aria-label="Sherpas yak advisor mascot">
+<g class="body-rig">
+  <!-- suit -->
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--suit)" d="M28,372 C32,318 52,288 96,272 L224,272 C268,288 288,318 292,372 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--shirt)" d="M124,272 L196,272 L160,346 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--tie)" d="M148,280 L172,280 L166,296 L176,350 L160,368 L144,350 L154,296 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--lapel)" d="M96,272 L124,272 L160,346 L132,322 L112,300 L122,292 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--lapel)" d="M224,272 L196,272 L160,346 L188,322 L208,300 L198,292 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--pocket)" d="M224,318 L250,318 L246,330 L240,322 L234,330 L228,322 Z"/>
+  <line stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" x1="220" y1="330" x2="256" y2="330"/>
+</g>
+<g class="head-rig">
+  <!-- horns -->
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--horn)" d="M82,118 C58,112 36,92 30,58 C46,78 66,88 92,92 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--horn)" d="M238,118 C262,112 284,92 290,58 C274,78 254,88 228,92 Z"/>
+  <!-- shaggy head and beard -->
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur-dark)" d="M264.0,158.0 Q278.5,174.9 258.9,186.4 Q266.9,207.0 244.1,212.1 Q244.9,234.4 221.1,232.4 Q214.5,254.2 192.1,245.5 Q178.8,264.7 160.0,250.0 Q141.2,264.7 127.9,245.5 Q105.5,254.2 98.9,232.4 Q75.1,234.4 75.9,212.1 Q53.1,207.0 61.1,186.4 Q41.5,174.9 56.0,158.0 Q41.5,141.1 61.1,129.6 Q53.1,109.0 75.9,103.9 Q75.1,81.6 98.9,83.6 Q105.5,61.8 127.9,70.5 Q141.2,51.3 160.0,66.0 Q178.8,51.3 192.1,70.5 Q214.5,61.8 221.1,83.6 Q244.9,81.6 244.1,103.9 Q266.9,109.0 258.9,129.6 Q278.5,141.1 264.0,158.0Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur-dark)" d="M215.2,243.4 Q222.2,254.3 206.8,250.3 Q210.2,262.9 195.6,255.9 Q195.2,269.5 182.2,259.7 Q178.1,273.6 167.6,261.7 Q160.0,275.0 152.4,261.7 Q141.9,273.6 137.8,259.7 Q124.8,269.5 124.4,255.9 Q109.8,262.9 113.2,250.3 Q97.8,254.3 104.8,243.4"/>
+  <!-- ears -->
+  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur)" cx="62" cy="150" rx="22" ry="12" transform="rotate(-18 62 150)"/>
+  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur)" cx="258" cy="150" rx="22" ry="12" transform="rotate(18 258 150)"/>
+  <!-- face -->
+  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur)" cx="160" cy="170" rx="72" ry="74"/>
+  <ellipse fill="var(--cheek)" cx="112" cy="196" rx="13" ry="8"/>
+  <ellipse fill="var(--cheek)" cx="208" cy="196" rx="13" ry="8"/>
+  <!-- eyes -->
+  <g class="eyes">
+    <ellipse fill="var(--ink)" cx="130" cy="162" rx="10" ry="12"/>
+    <ellipse fill="var(--ink)" cx="190" cy="162" rx="10" ry="12"/>
+    <circle fill="#fff" cx="134" cy="157" r="3.6"/>
+    <circle fill="#fff" cx="194" cy="157" r="3.6"/>
+  </g>
+  <!-- fringe over the forehead -->
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur-dark)" d="M225.9,120.9 Q235.0,127.1 218.1,126.6 Q219.2,136.9 199.7,131.2 Q192.6,143.6 174.1,133.7 Q160.0,146.0 145.9,133.7 Q127.4,143.6 120.3,131.2 Q100.8,136.9 101.9,126.6 Q85.0,127.1 94.1,120.9 C96,64 224,64 225.9,120.9Z"/>
+  <!-- muzzle -->
+  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--muzzle)" cx="160" cy="214" rx="46" ry="30"/>
+  <ellipse fill="var(--ink)" cx="145" cy="206" rx="6" ry="4.5"/>
+  <ellipse fill="var(--ink)" cx="175" cy="206" rx="6" ry="4.5"/>
+  <g class="mouth-rig">
+    <path class="mouth-open" fill="var(--ink)" d="M144,224 Q160,226 176,224 Q174,246 160,248 Q146,246 144,224 Z"/>
+    <path class="smile" fill="none" stroke="var(--ink)" stroke-width="4.5" stroke-linecap="round" d="M144,224 Q160,236 176,224"/>
+  </g>
 </g></svg></div><small>96 · light</small></div>
-      <div><div class="chip navy" style="width:48px;height:48px"><svg class="yak on-dark" style="width:74%;margin:0" viewBox="104 100 416 352" aria-label="Sherpas yak mascot" role="img"><ellipse class="shadow" cx="312" cy="443" rx="165" ry="7"/>
-<g class="rig">
-<path class="body" fill-rule="evenodd" d="M401.0,439.5 C397.0,439.7 388.4,439.2 385.0,438.5 C381.6,437.8 379.5,440.3 380.5,435.0 C381.5,429.7 395.2,410.9 391.0,406.5 C386.8,402.1 362.5,408.3 355.0,408.5 C347.5,408.7 350.0,408.5 346.0,407.5 C342.0,406.5 333.8,403.1 331.0,402.5 C328.2,401.9 329.8,402.2 329.5,404.0 C329.2,405.8 328.8,409.3 329.5,413.0 C330.2,416.7 332.8,422.8 333.5,426.0 C334.2,429.2 334.6,429.9 333.5,432.0 C332.4,434.1 329.8,437.2 327.0,438.5 C324.2,439.8 320.8,439.5 317.0,439.5 C313.2,439.5 306.9,439.4 304.0,438.5 C301.1,437.6 300.2,435.6 299.5,434.0 C298.8,432.4 298.0,432.5 299.5,429.0 C301.0,425.5 306.9,416.9 308.5,413.0 C310.1,409.1 313.4,406.4 309.0,405.5 C304.6,404.6 288.0,408.0 282.0,407.5 C276.0,407.0 277.2,403.7 273.0,402.5 C268.8,401.3 260.2,400.8 257.0,400.5 C253.8,400.2 254.1,398.9 253.5,401.0 C252.9,403.1 252.8,409.0 253.5,413.0 C254.2,417.0 257.0,421.5 257.5,425.0 C258.0,428.5 257.2,431.9 256.5,434.0 C255.8,436.1 254.8,436.6 253.0,437.5 C251.2,438.4 250.5,439.5 246.0,439.5 C241.5,439.5 229.9,438.8 226.0,437.5 C222.1,436.2 221.6,435.8 222.5,432.0 C223.4,428.2 229.5,420.2 231.5,415.0 C233.5,409.8 235.4,403.6 234.5,401.0 C233.6,398.4 229.1,400.6 226.0,399.5 C222.9,398.4 220.1,397.6 216.0,394.5 C211.9,391.4 204.4,384.4 201.5,381.0 C198.6,377.6 199.4,378.9 198.5,374.0 C197.6,369.1 199.1,354.6 196.0,351.5 C192.9,348.4 184.2,355.0 180.0,355.5 C175.8,356.0 174.7,355.7 171.0,354.5 C167.3,353.3 161.6,351.4 158.0,348.5 C154.4,345.6 151.1,341.2 149.5,337.0 C147.9,332.8 147.8,327.7 148.5,323.0 C149.2,318.3 152.2,314.7 153.5,309.0 C154.8,303.3 156.0,295.2 156.5,289.0 C157.0,282.8 156.8,276.5 156.5,272.0 C156.2,267.5 155.5,265.0 154.5,262.0 C153.5,259.0 152.2,256.4 150.5,254.0 C148.8,251.6 147.1,249.8 144.0,247.5 C140.9,245.2 136.1,243.8 132.0,240.5 C127.9,237.2 122.8,232.8 119.5,228.0 C116.2,223.2 113.8,216.5 112.5,212.0 C111.2,207.5 110.5,202.0 111.5,201.0 C112.5,200.0 115.1,202.4 118.5,206.0 C121.9,209.6 128.6,219.2 132.0,222.5 C135.4,225.8 136.3,225.0 139.0,225.5 C141.7,226.0 145.5,226.0 148.0,225.5 C150.5,225.0 150.2,225.7 154.0,222.5 C157.8,219.3 164.3,210.8 171.0,206.5 C177.7,202.2 187.4,201.8 194.0,196.5 C200.6,191.2 204.4,181.6 210.5,175.0 C216.6,168.4 225.7,162.8 230.5,157.0 C235.3,151.2 236.8,144.2 239.5,140.0 C242.2,135.8 243.9,133.8 247.0,131.5 C250.1,129.2 253.7,127.8 258.0,126.5 C262.3,125.2 267.3,124.0 273.0,123.5 C278.7,123.0 284.8,122.7 292.0,123.5 C299.2,124.3 305.8,125.0 316.0,128.5 C326.2,132.0 344.5,141.3 353.0,144.5 C361.5,147.7 355.8,146.8 367.0,147.5 C378.2,148.2 408.2,148.0 420.0,148.5 C431.8,149.0 432.7,149.5 438.0,150.5 C443.3,151.5 447.5,152.7 452.0,154.5 C456.5,156.3 460.1,157.1 465.0,161.5 C469.9,165.9 476.6,173.4 481.5,181.0 C486.4,188.6 490.8,198.3 494.5,207.0 C498.2,215.7 500.8,222.7 503.5,233.0 C506.2,243.3 509.2,258.8 510.5,269.0 C511.8,279.2 511.7,286.8 511.5,294.0 C511.3,301.2 511.5,303.3 509.5,312.0 C507.5,320.7 501.9,340.2 499.5,346.0 C497.1,351.8 496.5,345.8 495.0,346.5 C493.5,347.2 491.9,347.6 490.5,350.0 C489.1,352.4 488.0,359.2 486.5,361.0 C485.0,362.8 483.2,359.0 481.5,361.0 C479.8,363.0 477.3,368.7 476.5,373.0 C475.7,377.3 477.5,382.5 476.5,387.0 C475.5,391.5 471.2,393.2 470.5,400.0 C469.8,406.8 472.7,422.3 472.5,428.0 C472.3,433.7 471.2,432.2 469.5,434.0 C467.8,435.8 466.8,437.8 462.0,438.5 C457.2,439.2 445.2,439.1 441.0,438.5 C436.8,437.9 437.1,436.8 436.5,435.0 C435.9,433.2 435.8,432.0 437.5,428.0 C439.2,424.0 444.7,415.2 446.5,411.0 C448.3,406.8 448.5,406.8 448.5,403.0 C448.5,399.2 447.2,391.5 446.5,388.0 C445.8,384.5 445.2,383.2 444.5,382.0 C443.8,380.8 444.6,378.8 442.0,380.5 C439.4,382.2 433.2,389.8 429.0,392.5 C424.8,395.2 418.9,395.6 416.5,397.0 C414.1,398.4 414.5,397.2 414.5,401.0 C414.5,404.8 416.3,415.2 416.5,420.0 C416.7,424.8 416.8,427.1 415.5,430.0 C414.2,432.9 411.4,435.9 409.0,437.5 C406.6,439.1 405.0,439.3 401.0,439.5Z M252.5,249.0 C256.0,248.5 259.1,247.6 262.0,246.5 C264.9,245.4 266.2,245.2 270.0,242.5 C273.8,239.8 280.2,234.9 284.5,230.0 C288.8,225.1 293.0,217.8 295.5,213.0 C298.0,208.2 298.8,204.4 299.5,201.0 C300.2,197.6 300.4,193.9 300.0,192.5 C299.6,191.1 299.1,190.2 297.0,192.5 C294.9,194.8 291.8,201.2 287.5,206.0 C283.2,210.8 275.8,218.1 271.0,221.5 C266.2,224.9 264.3,225.5 259.0,226.5 C253.7,227.5 243.1,226.9 239.0,227.5 C234.9,228.1 235.4,229.1 234.5,230.0 C233.6,230.9 233.5,230.7 233.5,233.0 C233.5,235.3 233.2,241.2 234.5,244.0 C235.8,246.8 238.0,248.7 241.0,249.5 C244.0,250.3 249.0,249.5 252.5,249.0Z"/>
-<g class="eyeg"><circle class="eye" cx="193" cy="279" r="8.5"/><circle class="glint" cx="196" cy="276" r="2.6"/></g>
-<ellipse class="mouth" cx="166" cy="334" rx="8" ry="7"/>
+      <div><div class="chip navy" style="width:48px;height:48px"><svg class="yak" viewBox="20 40 280 336" role="img" aria-label="Sherpas yak advisor mascot">
+<g class="body-rig">
+  <!-- suit -->
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--suit)" d="M28,372 C32,318 52,288 96,272 L224,272 C268,288 288,318 292,372 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--shirt)" d="M124,272 L196,272 L160,346 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--tie)" d="M148,280 L172,280 L166,296 L176,350 L160,368 L144,350 L154,296 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--lapel)" d="M96,272 L124,272 L160,346 L132,322 L112,300 L122,292 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--lapel)" d="M224,272 L196,272 L160,346 L188,322 L208,300 L198,292 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--pocket)" d="M224,318 L250,318 L246,330 L240,322 L234,330 L228,322 Z"/>
+  <line stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" x1="220" y1="330" x2="256" y2="330"/>
+</g>
+<g class="head-rig">
+  <!-- horns -->
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--horn)" d="M82,118 C58,112 36,92 30,58 C46,78 66,88 92,92 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--horn)" d="M238,118 C262,112 284,92 290,58 C274,78 254,88 228,92 Z"/>
+  <!-- shaggy head and beard -->
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur-dark)" d="M264.0,158.0 Q278.5,174.9 258.9,186.4 Q266.9,207.0 244.1,212.1 Q244.9,234.4 221.1,232.4 Q214.5,254.2 192.1,245.5 Q178.8,264.7 160.0,250.0 Q141.2,264.7 127.9,245.5 Q105.5,254.2 98.9,232.4 Q75.1,234.4 75.9,212.1 Q53.1,207.0 61.1,186.4 Q41.5,174.9 56.0,158.0 Q41.5,141.1 61.1,129.6 Q53.1,109.0 75.9,103.9 Q75.1,81.6 98.9,83.6 Q105.5,61.8 127.9,70.5 Q141.2,51.3 160.0,66.0 Q178.8,51.3 192.1,70.5 Q214.5,61.8 221.1,83.6 Q244.9,81.6 244.1,103.9 Q266.9,109.0 258.9,129.6 Q278.5,141.1 264.0,158.0Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur-dark)" d="M215.2,243.4 Q222.2,254.3 206.8,250.3 Q210.2,262.9 195.6,255.9 Q195.2,269.5 182.2,259.7 Q178.1,273.6 167.6,261.7 Q160.0,275.0 152.4,261.7 Q141.9,273.6 137.8,259.7 Q124.8,269.5 124.4,255.9 Q109.8,262.9 113.2,250.3 Q97.8,254.3 104.8,243.4"/>
+  <!-- ears -->
+  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur)" cx="62" cy="150" rx="22" ry="12" transform="rotate(-18 62 150)"/>
+  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur)" cx="258" cy="150" rx="22" ry="12" transform="rotate(18 258 150)"/>
+  <!-- face -->
+  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur)" cx="160" cy="170" rx="72" ry="74"/>
+  <ellipse fill="var(--cheek)" cx="112" cy="196" rx="13" ry="8"/>
+  <ellipse fill="var(--cheek)" cx="208" cy="196" rx="13" ry="8"/>
+  <!-- eyes -->
+  <g class="eyes">
+    <ellipse fill="var(--ink)" cx="130" cy="162" rx="10" ry="12"/>
+    <ellipse fill="var(--ink)" cx="190" cy="162" rx="10" ry="12"/>
+    <circle fill="#fff" cx="134" cy="157" r="3.6"/>
+    <circle fill="#fff" cx="194" cy="157" r="3.6"/>
+  </g>
+  <!-- fringe over the forehead -->
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur-dark)" d="M225.9,120.9 Q235.0,127.1 218.1,126.6 Q219.2,136.9 199.7,131.2 Q192.6,143.6 174.1,133.7 Q160.0,146.0 145.9,133.7 Q127.4,143.6 120.3,131.2 Q100.8,136.9 101.9,126.6 Q85.0,127.1 94.1,120.9 C96,64 224,64 225.9,120.9Z"/>
+  <!-- muzzle -->
+  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--muzzle)" cx="160" cy="214" rx="46" ry="30"/>
+  <ellipse fill="var(--ink)" cx="145" cy="206" rx="6" ry="4.5"/>
+  <ellipse fill="var(--ink)" cx="175" cy="206" rx="6" ry="4.5"/>
+  <g class="mouth-rig">
+    <path class="mouth-open" fill="var(--ink)" d="M144,224 Q160,226 176,224 Q174,246 160,248 Q146,246 144,224 Z"/>
+    <path class="smile" fill="none" stroke="var(--ink)" stroke-width="4.5" stroke-linecap="round" d="M144,224 Q160,236 176,224"/>
+  </g>
 </g></svg></div><small>48</small></div>
-      <div><div class="chip light" style="width:32px;height:32px"><svg class="yak on-light" style="width:74%;margin:0" viewBox="104 100 416 352" aria-label="Sherpas yak mascot" role="img"><ellipse class="shadow" cx="312" cy="443" rx="165" ry="7"/>
-<g class="rig">
-<path class="body" fill-rule="evenodd" d="M401.0,439.5 C397.0,439.7 388.4,439.2 385.0,438.5 C381.6,437.8 379.5,440.3 380.5,435.0 C381.5,429.7 395.2,410.9 391.0,406.5 C386.8,402.1 362.5,408.3 355.0,408.5 C347.5,408.7 350.0,408.5 346.0,407.5 C342.0,406.5 333.8,403.1 331.0,402.5 C328.2,401.9 329.8,402.2 329.5,404.0 C329.2,405.8 328.8,409.3 329.5,413.0 C330.2,416.7 332.8,422.8 333.5,426.0 C334.2,429.2 334.6,429.9 333.5,432.0 C332.4,434.1 329.8,437.2 327.0,438.5 C324.2,439.8 320.8,439.5 317.0,439.5 C313.2,439.5 306.9,439.4 304.0,438.5 C301.1,437.6 300.2,435.6 299.5,434.0 C298.8,432.4 298.0,432.5 299.5,429.0 C301.0,425.5 306.9,416.9 308.5,413.0 C310.1,409.1 313.4,406.4 309.0,405.5 C304.6,404.6 288.0,408.0 282.0,407.5 C276.0,407.0 277.2,403.7 273.0,402.5 C268.8,401.3 260.2,400.8 257.0,400.5 C253.8,400.2 254.1,398.9 253.5,401.0 C252.9,403.1 252.8,409.0 253.5,413.0 C254.2,417.0 257.0,421.5 257.5,425.0 C258.0,428.5 257.2,431.9 256.5,434.0 C255.8,436.1 254.8,436.6 253.0,437.5 C251.2,438.4 250.5,439.5 246.0,439.5 C241.5,439.5 229.9,438.8 226.0,437.5 C222.1,436.2 221.6,435.8 222.5,432.0 C223.4,428.2 229.5,420.2 231.5,415.0 C233.5,409.8 235.4,403.6 234.5,401.0 C233.6,398.4 229.1,400.6 226.0,399.5 C222.9,398.4 220.1,397.6 216.0,394.5 C211.9,391.4 204.4,384.4 201.5,381.0 C198.6,377.6 199.4,378.9 198.5,374.0 C197.6,369.1 199.1,354.6 196.0,351.5 C192.9,348.4 184.2,355.0 180.0,355.5 C175.8,356.0 174.7,355.7 171.0,354.5 C167.3,353.3 161.6,351.4 158.0,348.5 C154.4,345.6 151.1,341.2 149.5,337.0 C147.9,332.8 147.8,327.7 148.5,323.0 C149.2,318.3 152.2,314.7 153.5,309.0 C154.8,303.3 156.0,295.2 156.5,289.0 C157.0,282.8 156.8,276.5 156.5,272.0 C156.2,267.5 155.5,265.0 154.5,262.0 C153.5,259.0 152.2,256.4 150.5,254.0 C148.8,251.6 147.1,249.8 144.0,247.5 C140.9,245.2 136.1,243.8 132.0,240.5 C127.9,237.2 122.8,232.8 119.5,228.0 C116.2,223.2 113.8,216.5 112.5,212.0 C111.2,207.5 110.5,202.0 111.5,201.0 C112.5,200.0 115.1,202.4 118.5,206.0 C121.9,209.6 128.6,219.2 132.0,222.5 C135.4,225.8 136.3,225.0 139.0,225.5 C141.7,226.0 145.5,226.0 148.0,225.5 C150.5,225.0 150.2,225.7 154.0,222.5 C157.8,219.3 164.3,210.8 171.0,206.5 C177.7,202.2 187.4,201.8 194.0,196.5 C200.6,191.2 204.4,181.6 210.5,175.0 C216.6,168.4 225.7,162.8 230.5,157.0 C235.3,151.2 236.8,144.2 239.5,140.0 C242.2,135.8 243.9,133.8 247.0,131.5 C250.1,129.2 253.7,127.8 258.0,126.5 C262.3,125.2 267.3,124.0 273.0,123.5 C278.7,123.0 284.8,122.7 292.0,123.5 C299.2,124.3 305.8,125.0 316.0,128.5 C326.2,132.0 344.5,141.3 353.0,144.5 C361.5,147.7 355.8,146.8 367.0,147.5 C378.2,148.2 408.2,148.0 420.0,148.5 C431.8,149.0 432.7,149.5 438.0,150.5 C443.3,151.5 447.5,152.7 452.0,154.5 C456.5,156.3 460.1,157.1 465.0,161.5 C469.9,165.9 476.6,173.4 481.5,181.0 C486.4,188.6 490.8,198.3 494.5,207.0 C498.2,215.7 500.8,222.7 503.5,233.0 C506.2,243.3 509.2,258.8 510.5,269.0 C511.8,279.2 511.7,286.8 511.5,294.0 C511.3,301.2 511.5,303.3 509.5,312.0 C507.5,320.7 501.9,340.2 499.5,346.0 C497.1,351.8 496.5,345.8 495.0,346.5 C493.5,347.2 491.9,347.6 490.5,350.0 C489.1,352.4 488.0,359.2 486.5,361.0 C485.0,362.8 483.2,359.0 481.5,361.0 C479.8,363.0 477.3,368.7 476.5,373.0 C475.7,377.3 477.5,382.5 476.5,387.0 C475.5,391.5 471.2,393.2 470.5,400.0 C469.8,406.8 472.7,422.3 472.5,428.0 C472.3,433.7 471.2,432.2 469.5,434.0 C467.8,435.8 466.8,437.8 462.0,438.5 C457.2,439.2 445.2,439.1 441.0,438.5 C436.8,437.9 437.1,436.8 436.5,435.0 C435.9,433.2 435.8,432.0 437.5,428.0 C439.2,424.0 444.7,415.2 446.5,411.0 C448.3,406.8 448.5,406.8 448.5,403.0 C448.5,399.2 447.2,391.5 446.5,388.0 C445.8,384.5 445.2,383.2 444.5,382.0 C443.8,380.8 444.6,378.8 442.0,380.5 C439.4,382.2 433.2,389.8 429.0,392.5 C424.8,395.2 418.9,395.6 416.5,397.0 C414.1,398.4 414.5,397.2 414.5,401.0 C414.5,404.8 416.3,415.2 416.5,420.0 C416.7,424.8 416.8,427.1 415.5,430.0 C414.2,432.9 411.4,435.9 409.0,437.5 C406.6,439.1 405.0,439.3 401.0,439.5Z M252.5,249.0 C256.0,248.5 259.1,247.6 262.0,246.5 C264.9,245.4 266.2,245.2 270.0,242.5 C273.8,239.8 280.2,234.9 284.5,230.0 C288.8,225.1 293.0,217.8 295.5,213.0 C298.0,208.2 298.8,204.4 299.5,201.0 C300.2,197.6 300.4,193.9 300.0,192.5 C299.6,191.1 299.1,190.2 297.0,192.5 C294.9,194.8 291.8,201.2 287.5,206.0 C283.2,210.8 275.8,218.1 271.0,221.5 C266.2,224.9 264.3,225.5 259.0,226.5 C253.7,227.5 243.1,226.9 239.0,227.5 C234.9,228.1 235.4,229.1 234.5,230.0 C233.6,230.9 233.5,230.7 233.5,233.0 C233.5,235.3 233.2,241.2 234.5,244.0 C235.8,246.8 238.0,248.7 241.0,249.5 C244.0,250.3 249.0,249.5 252.5,249.0Z"/>
-<g class="eyeg"><circle class="eye" cx="193" cy="279" r="8.5"/><circle class="glint" cx="196" cy="276" r="2.6"/></g>
-<ellipse class="mouth" cx="166" cy="334" rx="8" ry="7"/>
+      <div><div class="chip light" style="width:32px;height:32px"><svg class="yak" viewBox="20 40 280 336" role="img" aria-label="Sherpas yak advisor mascot">
+<g class="body-rig">
+  <!-- suit -->
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--suit)" d="M28,372 C32,318 52,288 96,272 L224,272 C268,288 288,318 292,372 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--shirt)" d="M124,272 L196,272 L160,346 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--tie)" d="M148,280 L172,280 L166,296 L176,350 L160,368 L144,350 L154,296 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--lapel)" d="M96,272 L124,272 L160,346 L132,322 L112,300 L122,292 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--lapel)" d="M224,272 L196,272 L160,346 L188,322 L208,300 L198,292 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--pocket)" d="M224,318 L250,318 L246,330 L240,322 L234,330 L228,322 Z"/>
+  <line stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" x1="220" y1="330" x2="256" y2="330"/>
+</g>
+<g class="head-rig">
+  <!-- horns -->
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--horn)" d="M82,118 C58,112 36,92 30,58 C46,78 66,88 92,92 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--horn)" d="M238,118 C262,112 284,92 290,58 C274,78 254,88 228,92 Z"/>
+  <!-- shaggy head and beard -->
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur-dark)" d="M264.0,158.0 Q278.5,174.9 258.9,186.4 Q266.9,207.0 244.1,212.1 Q244.9,234.4 221.1,232.4 Q214.5,254.2 192.1,245.5 Q178.8,264.7 160.0,250.0 Q141.2,264.7 127.9,245.5 Q105.5,254.2 98.9,232.4 Q75.1,234.4 75.9,212.1 Q53.1,207.0 61.1,186.4 Q41.5,174.9 56.0,158.0 Q41.5,141.1 61.1,129.6 Q53.1,109.0 75.9,103.9 Q75.1,81.6 98.9,83.6 Q105.5,61.8 127.9,70.5 Q141.2,51.3 160.0,66.0 Q178.8,51.3 192.1,70.5 Q214.5,61.8 221.1,83.6 Q244.9,81.6 244.1,103.9 Q266.9,109.0 258.9,129.6 Q278.5,141.1 264.0,158.0Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur-dark)" d="M215.2,243.4 Q222.2,254.3 206.8,250.3 Q210.2,262.9 195.6,255.9 Q195.2,269.5 182.2,259.7 Q178.1,273.6 167.6,261.7 Q160.0,275.0 152.4,261.7 Q141.9,273.6 137.8,259.7 Q124.8,269.5 124.4,255.9 Q109.8,262.9 113.2,250.3 Q97.8,254.3 104.8,243.4"/>
+  <!-- ears -->
+  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur)" cx="62" cy="150" rx="22" ry="12" transform="rotate(-18 62 150)"/>
+  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur)" cx="258" cy="150" rx="22" ry="12" transform="rotate(18 258 150)"/>
+  <!-- face -->
+  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur)" cx="160" cy="170" rx="72" ry="74"/>
+  <ellipse fill="var(--cheek)" cx="112" cy="196" rx="13" ry="8"/>
+  <ellipse fill="var(--cheek)" cx="208" cy="196" rx="13" ry="8"/>
+  <!-- eyes -->
+  <g class="eyes">
+    <ellipse fill="var(--ink)" cx="130" cy="162" rx="10" ry="12"/>
+    <ellipse fill="var(--ink)" cx="190" cy="162" rx="10" ry="12"/>
+    <circle fill="#fff" cx="134" cy="157" r="3.6"/>
+    <circle fill="#fff" cx="194" cy="157" r="3.6"/>
+  </g>
+  <!-- fringe over the forehead -->
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur-dark)" d="M225.9,120.9 Q235.0,127.1 218.1,126.6 Q219.2,136.9 199.7,131.2 Q192.6,143.6 174.1,133.7 Q160.0,146.0 145.9,133.7 Q127.4,143.6 120.3,131.2 Q100.8,136.9 101.9,126.6 Q85.0,127.1 94.1,120.9 C96,64 224,64 225.9,120.9Z"/>
+  <!-- muzzle -->
+  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--muzzle)" cx="160" cy="214" rx="46" ry="30"/>
+  <ellipse fill="var(--ink)" cx="145" cy="206" rx="6" ry="4.5"/>
+  <ellipse fill="var(--ink)" cx="175" cy="206" rx="6" ry="4.5"/>
+  <g class="mouth-rig">
+    <path class="mouth-open" fill="var(--ink)" d="M144,224 Q160,226 176,224 Q174,246 160,248 Q146,246 144,224 Z"/>
+    <path class="smile" fill="none" stroke="var(--ink)" stroke-width="4.5" stroke-linecap="round" d="M144,224 Q160,236 176,224"/>
+  </g>
 </g></svg></div><small>32</small></div>
     </div>
   </div>
@@ -180,9 +455,9 @@
     <h2>To decide together</h2>
     <ul class="notes">
       <li>Name (not chosen; no name used here).</li>
-      <li>Default color: white on navy (like the banner) or brand blue on the light app.</li>
-      <li>Eye and mouth: keep, change or remove. The original silhouette has no face.</li>
-      <li>Advisor touch (e.g. an accessory) or keep it pure yak.</li>
+      <li>Fur colour: brown (reads better) or white (like the banner yak). Fur colours are ours, not Sherpas brand colours.</li>
+      <li>Suit and tie use the Sherpas blues from the brand tokens.</li>
+      <li>Accessories (glasses, briefcase…) or keep it simple.</li>
       <li>Checkpoint lines here are placeholders without figures. Real ones come from the plan (D6, D15).</li>
     </ul>
   </div>
@@ -265,8 +540,11 @@ function celebrate() {
 }
 
 buttons.forEach(b => b.addEventListener('click', () => setState(b.dataset.state)));
-document.getElementById('v-dark').onclick = e => { stage.classList.add('dark'); yak.classList.replace('on-light', 'on-dark'); e.target.classList.add('active'); document.getElementById('v-light').classList.remove('active'); };
-document.getElementById('v-light').onclick = e => { stage.classList.remove('dark'); yak.classList.replace('on-dark', 'on-light'); e.target.classList.add('active'); document.getElementById('v-dark').classList.remove('active'); };
+function pair(a, b, on) { document.getElementById(a).onclick = () => { on(true); document.getElementById(a).classList.add('active'); document.getElementById(b).classList.remove('active'); }; }
+pair('v-dark', 'v-light', () => stage.classList.add('dark'));
+pair('v-light', 'v-dark', () => stage.classList.remove('dark'));
+pair('f-white', 'f-brown', () => document.querySelectorAll('.yak').forEach(y => y.classList.add('white')));
+pair('f-brown', 'f-white', () => document.querySelectorAll('.yak').forEach(y => y.classList.remove('white')));
 </script>
 </body>
 </html>

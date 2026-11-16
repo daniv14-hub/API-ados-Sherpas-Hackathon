@@ -28,3 +28,4 @@ Timestamped entries (Europe/Madrid). Milestones, blockers, surprises and pivots,
 
 ### Mon 16/11
 - **17:55** — Team switched the mascot look to the yak from the hackathon banner. Traced the silhouette from `assets/banner.png` (scikit-image contours → SVG, scratchpad venv), added an eye and a mouth, and built `prototypes/mascot/index.html`: idle / listening / talking (TTS demo or real mic volume) / checkpoint states, navy and light variants, sizes, "Ask me" button. Proposal v1, pending team review.
+- **18:15** — v1 was unreadable in Safari: it opened via `file://`, Safari didn't load `../../assets/brand/tokens.css`, so every `var()` failed (white yak on white). Only checked in Chrome before. Fix: brand tokens inlined in the page. Team asked for a personified executive yak in suit and tie → v2 drawn as a bust (thick dark outlines, D10 sticker style), brown or white fur, suit/tie in Sherpas blues. Checked in headless Chrome: idle and talking states render.
