@@ -31,9 +31,11 @@
 ## Last Claude Code session
 (Claude Code updates this block before ending each session.)
 - 15/11: brainstorm produced the flow-v1 wireframe (rejected, see above). No code written.
-- 15/11 (evening): logged team decision D15 in `decisions.md` (mascot = virtual financial advisor, 2D avatar,
-  protagonist, always available; short line at every checkpoint, data-driven for analytical profiles and
-  motivational for emotional ones; asking during the video is PROVISIONAL, dropped if it complicates the build).
-  No code written.
-- Needs from the desktop Claude: narrow Q-MASCOT in `open-questions.md` to look, name and animation (to agree 16/11);
-  note that "analytical vs emotional" is a new profile field the conversation must capture (D4).
+- 16/11: mascot Sherpy approved (D15, `assets/mascot/sherpy.svg`). Voice agent designed (D16–D18, spec in
+  `docs/superpowers/specs/`) and built on branch `feat/sherpy-voice-agent` (not pushed, not merged): `agent/` Node
+  backend + page, Gemini (`gemini-3.8-live`) via the proxy, data via the MCP, 77 tests green, every task reviewed.
+  Findings: `gpt-realtime-2.1-mini` returns `expired_secret_key` on the proxy (tell Sherpas); the proxy ignores a
+  mid-session `session.update`, so one session covers both phases (D18).
+- Half-done: plan Task 8 needs the team: live voice test with the Johnsons, grounding check on its transcript,
+  `/security-review`, README "Run Sherpy", screenshot. Then merge decision.
+- Needs from the desktop Claude: close Q-MASCOT and Q-VOICE in `open-questions.md`; D15–D18 are in `decisions.md`.
