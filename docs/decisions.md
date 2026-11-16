@@ -197,5 +197,13 @@ favourite-character narrator, video per step, leaderboard) and why: `docs/idea-n
 - Phase-1 questions are **closed and specific**, so answers can be evaluated without ambiguity.
 - Updated live by the voice model through function calling, if the spike confirms it (Q-VOICE); fallback: `gpt-5-mini`
   extracts fields from each turn's transcript.
-- Open: the exact question list and answer options (draft proposed 16/11, pending the team).
+- **Question list APPROVED (team, 16/11).** Options come from each family's data:
+  0. Ice-breaker: who is present (`household`).
+  1. Main goal now → options from `goals.goalsSummary` (Johnson: retirement / college / vacation).
+  2. Top worry → options from persona objective concerns (Johnson: retirement / protection / college / debt / none).
+  3. Per person: "investments drop 20% in a year: sell, wait or buy more?" → conservative / moderate / growth.
+  4. Per person: "numbers or what it means for your family?" → analytical / emotional (feeds D15 checkpoint lines).
+  5. Detail level: big picture / key numbers / everything → low / medium / high.
+  The save function only accepts these values; unclear answers are re-asked with the options; partner disagreement
+  on 1–2 is stored per person and mediated (D2, D13).
 
