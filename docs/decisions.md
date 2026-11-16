@@ -30,6 +30,7 @@ Rewritten 15/11 after reviewing every planning conversation. IDs are stable; don
 | D16 | Voice | Live agent = realtime speech-to-speech model; demo video = scripted, ElevenLabs voices | DECIDED |
 | D17 | Conversation | Profile file per family (JSON); closed, specific phase-1 questions | DECIDED |
 | D18 | Agent | Design approved: no calculations, data via the MCP at runtime | DECIDED |
+| D19 | Conversation | Natural conversation with a fixed agenda; mediate whenever needed; close and show the video | DECIDED |
 
 What we ruled out at idea stage (questionnaire, NotebookLM-style menu, expert dashboard, generic video,
 favourite-character narrator, video per step, leaderboard) and why: `docs/idea-note.md`.
@@ -224,4 +225,15 @@ favourite-character narrator, video per step, leaderboard) and why: `docs/idea-n
   Ruled out: reconnecting for phase 2 (1–2 s cut, loses the conversation), rules as a conversation item (unverified).
 - The pitch is a presentation; the MVP is not shown live. **The jury won't run the MVP**: it is only shown in the
   demo video. So no fallback to `cases/` files; if the MCP fails, Sherpy says it can't reach the plan right now.
+
+## D19 · How Sherpy talks (after the first live test) — DECIDED (team, via Dani, 16/11)
+- First live test failed (devlog 16/11 20:50). The team's direction:
+- **It must feel like talking to a real person** who understands your problems. Sherpy knows clearly which questions
+  it has to cover (the D17 agenda), but it is intelligent: after an answer it responds to what they said, mediates
+  when partners disagree **on any topic** (e.g. risk: Daniel buy more vs Emily sell), or whatever is needed, and
+  only moves to the next question when everything is clear. Replaces the rigid closed-question script of D17
+  (the saved values stay validated against the options).
+- **Closing:** Sherpy closes clearly, like "I've got everything I need. I'm putting together your video now.", and
+  when the conversation ends **the video appears on screen**. No jump into Q&A right after the questions.
+- The current conversation page (`agent/public/`) is a test bench, not the product screen; the team doesn't like it.
 
