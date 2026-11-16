@@ -28,6 +28,7 @@ Rewritten 15/11 after reviewing every planning conversation. IDs are stable; don
 | D14 | Video | The "if you act" scene uses what the plan gives | DECIDED |
 | D15 | Mascot | Sherpy: suited yak advisor, always available, cheers at checkpoints | DECIDED |
 | D16 | Voice | Live agent = realtime speech-to-speech model; demo video = scripted, ElevenLabs voices | DECIDED |
+| D17 | Conversation | Profile file per family (JSON); closed, specific phase-1 questions | DECIDED |
 
 What we ruled out at idea stage (questionnaire, NotebookLM-style menu, expert dashboard, generic video,
 favourite-character narrator, video per step, leaderboard) and why: `docs/idea-note.md`.
@@ -188,4 +189,13 @@ favourite-character narrator, video per step, leaderboard) and why: `docs/idea-n
 - Agent behaviour ("hybrid", team's words): phase 1 = advisor role with predetermined questions to break the ice and
   fill the video profile; phase 2 = connected to the Sherpas context, freer to reason, without hallucinating.
   Context management design in progress (brainstorm 16/11).
+
+## D17 · The conversation profile — DECIDED (team, via Dani, 16/11)
+- What Sherpy learns in phase 1 is saved as a **JSON profile file per family on the backend** (git-ignored).
+  Ruled out for now: SQLite (more work), browser storage (one device only; partners would get different profiles).
+- The **video is built from this profile file plus `persona.md`** (and the case JSON for every figure, D5/D6).
+- Phase-1 questions are **closed and specific**, so answers can be evaluated without ambiguity.
+- Updated live by the voice model through function calling, if the spike confirms it (Q-VOICE); fallback: `gpt-5-mini`
+  extracts fields from each turn's transcript.
+- Open: the exact question list and answer options (draft proposed 16/11, pending the team).
 
