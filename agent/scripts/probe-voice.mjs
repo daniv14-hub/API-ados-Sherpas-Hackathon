@@ -39,7 +39,7 @@ function done(why) {
 }
 setTimeout(() => done("timeout"), mode === "silence" ? 32000 : 20000).unref();
 
-const audioCfg = { input: { format: { type: "audio/pcm", rate: 24000 }, turn_detection: { type: "server_vad", silence_duration_ms: 600 } },
+const audioCfg = { input: { format: { type: "audio/pcm", rate: 24000 }, turn_detection: process.env.PROBE_TD ? JSON.parse(process.env.PROBE_TD) : { type: "server_vad", silence_duration_ms: 600 } },
   output: { format: { type: "audio/pcm", rate: 24000 }, ...(mode === "voice" ? { voice: arg } : {}) } };
 
 ws.on("unexpected-response", (_q, res) => { console.log(`refused HTTP ${res.statusCode}`); done("refused"); });
