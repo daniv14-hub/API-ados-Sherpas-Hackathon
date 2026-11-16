@@ -21,9 +21,9 @@ if (!isSafeCaseId(caseId)) {
 }
 
 const sentenceOf = (text, index) => {
-  const start = Math.max(text.lastIndexOf('. ', index) + 2, text.lastIndexOf('? ', index) + 2, text.lastIndexOf('! ', index) + 2, 0);
-  const rest = text.slice(index);
-  const end = rest.search(/[.?!](\s|$)/);
+  let start = 0;
+  for (const m of text.slice(0, index).matchAll(/[.?!]\s+/g)) start = m.index + m[0].length;
+  const end = text.slice(index).search(/[.?!](\s|$)/);
   return text.slice(start, end < 0 ? text.length : index + end + 1).trim();
 };
 
@@ -42,7 +42,7 @@ try {
     for (const m of extractMentions(row.text)) {
       if (isGrounded(m, set)) continue;
       flagged++;
-      console.log(`NOT IN CASE: ${m.raw} (${m.value}${m.percent ? '%' : ''})  [${row.t}]\n  "${sentenceOf(row.text, row.text.indexOf(m.raw))}"`);
+      console.log(`NOT IN CASE: ${m.raw} (${m.value}${m.percent ? '%' : ''})  [${row.t}]\n  "${sentenceOf(row.text, m.index)}"`);
     }
   }
 } finally {

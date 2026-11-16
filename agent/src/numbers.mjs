@@ -20,8 +20,11 @@ export function extractMentions(text) {
     const percent = suffix === '%' || suffix === 'percent';
     if (!suffix && /^(19|20)\d{2}$/.test(digits) && value >= 1900 && value <= 2100
       && YEAR_CONTEXT.test(String(text).slice(0, m.index))) continue;
-    if (MULT[suffix]) value *= MULT[suffix];
-    out.push({ value: norm(value), percent, raw: raw.trim() });
+    const spoken = value;
+    const scale = MULT[suffix] ?? 1;
+    value *= scale;
+    const decimals = (digits.split('.')[1] ?? '').length;
+    out.push({ value: norm(value), percent, raw: raw.trim(), index: m.index + raw.indexOf(digits), spoken, scale, decimals });
   }
   return out;
 }
@@ -35,24 +38,27 @@ function collect(node, add) {
   else if (node && typeof node === 'object') Object.values(node).forEach((n) => collect(n, add));
 }
 
-// Every number in the sources, plus K/M rounded forms (1,632,000 also matches "$1.6 million",
-// 251,400 also matches "251K"). Rounding is only to 1 decimal in millions / whole thousands.
+// Every number in the sources, as raw absolute values. No rounded forms are precomputed:
+// rounding slack is applied per mention in isGrounded.
 export function caseNumbers(fh, ia, personaMd) {
   const set = new Set();
-  const add = (v) => {
-    const a = Math.abs(v);
-    set.add(norm(a));
-    if (a >= 1e6) set.add(norm(Math.round(a / 1e5) / 10 * 1e6));
-    if (a >= 1e3) set.add(norm(Math.round(a / 1e3) * 1e3));
-  };
+  const add = (v) => set.add(norm(Math.abs(v)));
   collect(fh, add);
   collect(ia, add);
   collect(personaMd, add);
   return set;
 }
 
-// A percent p matches a data value p or p/100 (rates stored as 0.249).
-export function isGrounded(mention, set) {
-  if (set.has(mention.value)) return true;
-  return mention.percent && set.has(norm(mention.value / 100));
+// A mention is grounded if some case value v, rounded to the precision the mention was spoken in
+// (in units of its K/M scale), equals the spoken number. Unsuffixed "$34,000" therefore needs
+// an exact (integer-rounded) value; "1.6 million" needs round(v/1e5)/10 === 1.6; "250K" needs
+// round(v/1e3) === 250. A percent p also matches a rate v < 1 with v*100 at the same precision.
+export function isGrounded(m, set) {
+  const f = 10 ** m.decimals;
+  const hit = (v) => norm(Math.round((v / m.scale) * f) / f) === norm(m.spoken);
+  for (const v of set) {
+    if (hit(v)) return true;
+    if (m.percent && v < 1 && hit(v * 100)) return true;
+  }
+  return false;
 }
