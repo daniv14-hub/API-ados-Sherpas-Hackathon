@@ -29,6 +29,7 @@ Rewritten 15/11 after reviewing every planning conversation. IDs are stable; don
 | D15 | Mascot | Sherpy: suited yak advisor, always available, cheers at checkpoints | DECIDED |
 | D16 | Voice | Live agent = realtime speech-to-speech model; demo video = scripted, ElevenLabs voices | DECIDED |
 | D17 | Conversation | Profile file per family (JSON); closed, specific phase-1 questions | DECIDED |
+| D18 | Agent | Design approved: no calculations, data via the MCP at runtime | DECIDED |
 
 What we ruled out at idea stage (questionnaire, NotebookLM-style menu, expert dashboard, generic video,
 favourite-character narrator, video per step, leaderboard) and why: `docs/idea-note.md`.
@@ -207,4 +208,12 @@ favourite-character narrator, video per step, leaderboard) and why: `docs/idea-n
   5. Detail level: big picture / key numbers / everything → low / medium / high.
   The save function only accepts these values; unclear answers are re-asked with the options; partner disagreement
   on 1–2 is stored per person and mediated (D2, D13).
+
+## D18 · Voice agent design — DECIDED (team, via Dani, 16/11)
+- Design approved: `docs/superpowers/specs/2026-11-16-voice-agent-design.md` (two phases, four context layers,
+  validated `save_answer`, grounding check).
+- **Sherpy never calculates.** It only says figures exactly as they appear in the data.
+- **Data comes from the Sherpas MCP at runtime**, not from `cases/` ("they give it to us for a reason; they want us to
+  use it"). Accepted costs: 72 h token renewal, MCP access ends 21/11, network round trip per lookup.
+- The pitch is a presentation; the MVP is not shown live.
 

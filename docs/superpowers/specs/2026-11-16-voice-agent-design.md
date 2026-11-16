@@ -1,7 +1,7 @@
 # Sherpy voice agent — design
 
-Status: **draft for team approval** (brainstorm 16/11, Dani + team). Related decisions: D1, D2, D4, D5, D6, D8, D12,
-D13, D15, D16, D17 in `docs/decisions.md`. Items marked **[Claude's call]** were not discussed with the team; check them.
+Status: **approved by the team 16/11**. Brainstorm 16/11, Dani + team. Related decisions: D1, D2, D4, D5, D6, D8, D12,
+D13, D15, D16, D17 in `docs/decisions.md`. Items marked **[Claude's call]** were proposed by Claude and approved by the team on 16/11 unless noted.
 
 ## 1. Intent
 
@@ -37,7 +37,7 @@ The team calls this a "hybrid" agent: scripted where we need clean data, free wh
 
 ## 3. Constraints
 
-- **Data source = the Sherpas cases only** (MCP `get_case` / identical JSON in `cases/<id>/`). No other "Sherpas
+- **Data source = the Sherpas cases only, read through the MCP** (`get_case`). No other "Sherpas
   knowledge": if it's not in the data, Sherpy says so (team, 16/11).
 - No "if you act" projection exists (D5); score improvements only from the plan's own combinations (D6).
 - Budget $50 shared; voice billed per session and recorded on close → always close sessions. 4 concurrent sessions,
@@ -53,7 +53,7 @@ browser (mic, speaker, Sherpy animation)
    ⇄ WebSocket ⇄  our backend (Node)  ⇄  wss://llm-hackathon.sherpaswealth.com/v1/realtime?model=…
                      │  builds instructions (layers 1, 2, 4)
                      │  executes tool calls (layer 3, save_answer)
-                     ├─ reads cases/<id>/*.json
+                     ├─ calls the Sherpas MCP (get_case)
                      └─ reads/writes data/profiles/<caseId>.json   (git-ignored)
 ```
 
@@ -63,9 +63,11 @@ browser (mic, speaker, Sherpy animation)
   Decided by the voice spike (Q-VOICE). The design assumes the OpenAI Realtime protocol (`session.update`,
   function calling); if `gpt-live-1` wins, the adapter changes, not the design.
 - Sherpy's mouth/bounce driven by the output audio volume, as in `prototypes/mascot/` (approved).
-- **[Claude's call]** Data read from `cases/` JSON files, not the MCP at runtime: same data, but the MCP token expires
-  every 72 h and the README recommends the files if the MVP must keep working after delivery. A small data module
-  hides the source so we can switch to the MCP (e.g. for the pitch) by config.
+- **Data source: the Sherpas MCP at runtime** (team, 16/11: "they give it to us for a reason"). The backend calls
+  `get_case` with `MCP_TOKEN` from `.env` (`@modelcontextprotocol/sdk`). A small data module wraps it so the rest of
+  the code doesn't depend on the source. Known costs, accepted: the token lasts 72 h (someone must log in again and
+  update `.env`), MCP access ends 21/11, and every phase-2 lookup adds a network round trip. Fetch only the sections
+  needed (parts can be tens of thousands of tokens).
 
 ## 5. Context: four layers
 
@@ -95,8 +97,8 @@ session, no hang-up).
 
 ## 6. Anti-hallucination rules (layer 1 + backend)
 
-1. Sherpy only says a figure that appears in the brief or in a tool result in this session. **[Claude's call]** It
-   doesn't calculate new figures (no subtracting, adding or projecting), because a derived number is a number the
+1. Sherpy only says a figure that appears in the brief or in a tool result in this session. **Team decision (16/11): it
+   never calculates.** It doesn't calculate new figures (no subtracting, adding or projecting), because a derived number is a number the
    plan doesn't contain. It can quote the plan's own gaps (e.g. "you have $250K of cover; the plan recommends
    $1.6M+").
 2. If the answer isn't in the data: "That isn't in your plan, so I don't want to guess. Your advisor can help with
