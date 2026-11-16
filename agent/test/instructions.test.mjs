@@ -46,7 +46,7 @@ test('phase 1 instructions list Johnson goals and worries', () => {
   assert.ok(text.includes('"household"'));
 });
 
-test('combined instructions contain the question script, the advisor guidance and the mid-interview line', () => {
+test('conversation instructions: natural agenda, mediation, confirm before saving, closing', () => {
   const { options, brief, profile } = setup();
   const text = sherpyInstructions({ brief, profile, options }); // phase derived from the incomplete profile
   assert.equal(text, sherpyInstructions({ phase: 1, brief, profile, options }));
@@ -55,19 +55,23 @@ test('combined instructions contain the question script, the advisor guidance an
     assert.ok(i >= 0, `missing: ${s}`);
     return i;
   };
-  const order = [
-    at(SHERPY_RULES),
-    at('PHASE ONE: GETTING TO KNOW THE FAMILY'),
-    at('Some answers may already be saved in the profile below.'),
-    at('Once save_answer returns phase1Complete true, thank them and from then on act as their advisor:'),
-    at('call get_plan_section to look it up before answering'),
-    at('FAMILY BRIEF'),
-    at(JSON.stringify(profile, null, 2)),
-  ];
+  const order = [at(SHERPY_RULES), at('THE CONVERSATION'), at('FAMILY BRIEF'), at(JSON.stringify(profile, null, 2))];
   assert.deepEqual(order, [...order].sort((a, b) => a - b));
-  at('If they ask about their plan in the middle of the questions, answer it using the brief or get_plan_section, then return to the next unanswered question.');
-  at('dropped 20% in a year');
-  at('detail_level "low"');
+  at('This is a real conversation, not a questionnaire.');
+  at('never read them out as a list');
+  at('If the partners disagree on any topic, mediate');
+  at('confirm it in one short sentence');
+  at("I've got everything I need. I'm putting together your video now.");
+  at('finish_conversation');
+  at("Never answer for the family");
+  at('right after their video');
+  assert.ok(!text.includes('get_plan_section'), 'plan lookups belong after the video');
+  assert.ok(!text.includes('PHASE TWO'));
+});
+
+test('rules never make Sherpy describe its own looks', () => {
+  assert.ok(!/yak in a suit/.test(SHERPY_RULES));
+  assert.match(SHERPY_RULES, /Never describe what you look like\./);
 });
 
 test('complete profile gets advisor instructions only by default', () => {
@@ -82,7 +86,7 @@ test('phase 1 instructions for a single adult save joint answers as household', 
   const { options, brief, profile } = setup('michael-carter');
   assert.equal(options.present.length, 1);
   const text = sherpyInstructions({ phase: 1, brief, profile, options });
-  assert.ok(/main goal and top worry directly with person "household"/i.test(text), text);
+  assert.ok(/main goal and the worry directly with person "household"/i.test(text), text);
   assert.ok(!/disagree/i.test(text));
 });
 
@@ -92,7 +96,7 @@ test('phase 1 instructions resume from a partial profile', () => {
   p = applyAnswer(p, { question: 'main_goal', person: 'household', value: 'college' }, options).profile;
   const text = sherpyInstructions({ phase: 1, brief, profile: p, options });
   assert.ok(text.includes(JSON.stringify(p, null, 2)));
-  assert.ok(text.includes('Some answers may already be saved in the profile below. Skip questions already answered and resume at the first missing one.'));
+  assert.ok(text.includes('Some answers may already be saved in the profile below. Skip topics already answered and continue with the first missing one.'));
 });
 
 test('phase 2 instructions include profile and not the question script', () => {

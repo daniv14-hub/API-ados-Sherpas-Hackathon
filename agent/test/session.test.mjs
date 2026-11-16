@@ -57,12 +57,12 @@ async function until(cond, ms = 2000) {
   }
 }
 
-async function start({ source = fakeSource(), profilesDir, transcriptsDir } = {}) {
+async function start({ source = fakeSource(), profilesDir, transcriptsDir, finishGraceMs } = {}) {
   const browser = new FakeSocket();
   const upstream = new FakeSocket();
   profilesDir ??= await tmp('profiles-');
   transcriptsDir ??= await tmp('transcripts-');
-  await createSession({ browser, upstream, caseId: ID, source, profilesDir, transcriptsDir, log });
+  await createSession({ browser, upstream, caseId: ID, source, profilesDir, transcriptsDir, log, finishGraceMs });
   upstream.sent.length = 0; // drop the server's own initial session.update (tested separately)
   return { browser, upstream, profilesDir, transcriptsDir };
 }
@@ -96,8 +96,8 @@ test('injects instructions and tools into page session.update', async () => {
   const ev = upstream.json()[0];
   assert.equal(ev.type, 'session.update');
   assert.match(ev.session.instructions, /You are Sherpy/);
-  assert.match(ev.session.instructions, /PHASE ONE/);
-  assert.deepEqual(ev.session.tools.map((t) => t.name), ['save_answer', 'get_plan_section']);
+  assert.match(ev.session.instructions, /THE CONVERSATION/);
+  assert.deepEqual(ev.session.tools.map((t) => t.name), ['save_answer', 'finish_conversation']);
   assert.equal(ev.session.tool_choice, 'auto');
   assert.deepEqual(ev.session.audio, { ...pageUpdate.session.audio, output: { ...pageUpdate.session.audio.output, voice: 'Charon' } });
 
@@ -170,14 +170,15 @@ test('does not send a second session.update after phase 1 completes', async () =
   assert.ok(!upstream.json().some((e) => e.type === 'session.update'));
 });
 
-test('incomplete profile exposes both tools', async () => {
+test('incomplete profile exposes save_answer and finish_conversation', async () => {
   const { browser, upstream } = await start();
   browser.emit('message', Buffer.from(JSON.stringify(pageUpdate)));
   await until(() => upstream.sent.length === 1);
   const ev = upstream.json()[0];
-  assert.deepEqual(ev.session.tools.map((t) => t.name), ['save_answer', 'get_plan_section']);
-  assert.match(ev.session.instructions, /PHASE ONE/);
-  assert.match(ev.session.instructions, /act as their advisor/);
+  assert.deepEqual(ev.session.tools.map((t) => t.name), ['save_answer', 'finish_conversation']);
+  assert.match(ev.session.instructions, /THE CONVERSATION/);
+  assert.doesNotMatch(ev.session.instructions, /act as their advisor/);
+  assert.doesNotMatch(ev.session.instructions, /accounts:/); // short interview brief in phase 1
 });
 
 test('starts in phase 2 when profile is complete', async () => {
@@ -300,7 +301,7 @@ test('escaped session.update still gets our instructions', async () => {
   const ev = upstream.json()[0];
   assert.equal(ev.type, 'session.update');
   assert.match(ev.session.instructions, /You are Sherpy/);
-  assert.deepEqual(ev.session.tools.map((t) => t.name), ['save_answer', 'get_plan_section']);
+  assert.deepEqual(ev.session.tools.map((t) => t.name), ['save_answer', 'finish_conversation']);
   assert.equal(ev.session.tool_choice, 'auto');
   assert.deepEqual(Object.keys(ev.session).sort(), ['audio', 'instructions', 'tool_choice', 'tools', 'type']);
 });
@@ -322,7 +323,7 @@ test('sends our session.update when the page sends none', async () => {
   assert.equal(kickResponse.type, 'response.create');
   assert.equal(update.type, 'session.update');
   assert.match(update.session.instructions, /You are Sherpy/);
-  assert.deepEqual(update.session.tools.map((t) => t.name), ['save_answer', 'get_plan_section']);
+  assert.deepEqual(update.session.tools.map((t) => t.name), ['save_answer', 'finish_conversation']);
   assert.equal(update.session.tool_choice, 'auto');
   assert.deepEqual(update.session.audio, {
     input: { format: { type: 'audio/pcm', rate: 24000 }, turn_detection: { type: 'server_vad', silence_duration_ms: 600 } },
@@ -431,3 +432,38 @@ async function startRaw() {
   });
   return { browser, upstream };
 }
+
+async function completeProfileButDetail(profilesDir) {
+  const opts = options();
+  let p = newProfile(ID, opts.present);
+  const { applyAnswer } = await import('../src/profile.mjs');
+  for (const [question, person, value] of [
+    ['present', 'household', 'Daniel, Emily'], ['main_goal', 'household', 'college'], ['top_worry', 'household', 'protection'],
+    ['risk', 'Daniel', 'growth'], ['risk', 'Emily', 'moderate'], ['style', 'Daniel', 'analytical'], ['style', 'Emily', 'emotional'],
+  ]) p = applyAnswer(p, { question, person, value }, opts).profile;
+  await saveProfile(profilesDir, p);
+}
+
+test('tells the page when the conversation is finished, without asking for another response', async () => {
+  const profilesDir = await tmp('profiles-');
+  await completeProfileButDetail(profilesDir);
+  const { browser, upstream } = await start({ profilesDir, finishGraceMs: 5000 });
+  upstream.emit('message', Buffer.from((functionCallDone('save_answer', { question: 'detail_level', person: 'household', value: 'low' }))));
+  await until(() => upstream.json().some((e) => e.type === 'response.create'));
+  upstream.sent.length = 0;
+  upstream.emit('message', Buffer.from((functionCallDone('finish_conversation', {}, 'call_9'))));
+  await until(() => browser.json().some((e) => e.type === 'sherpy.conversation_done'));
+  const up = upstream.json();
+  assert.deepEqual(up.map((e) => e.type), ['conversation.item.create']);
+  assert.equal(JSON.parse(up[0].item.output).finished, true);
+  assert.equal(upstream.closed, false);
+});
+
+test('closes upstream after the finish grace period', async () => {
+  const profilesDir = await tmp('profiles-');
+  await completeProfileButDetail(profilesDir);
+  const { upstream } = await start({ profilesDir, finishGraceMs: 30 });
+  upstream.emit('message', Buffer.from((functionCallDone('save_answer', { question: 'detail_level', person: 'household', value: 'low' }))));
+  upstream.emit('message', Buffer.from((functionCallDone('finish_conversation', {}, 'call_9'))));
+  await until(() => upstream.closed);
+});

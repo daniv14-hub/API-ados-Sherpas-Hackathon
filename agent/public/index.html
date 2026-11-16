@@ -163,6 +163,10 @@
     <p class="hint">Use headphones if you can: if the speaker leaks into the microphone, Sherpy may interrupt itself.</p>
   </div>
 
+  <div class="card" id="videoSlot" hidden>
+    <b>Your video will appear here</b>
+    <p class="hint">Sherpy is putting together your personal video. (Placeholder: the video is not built yet.)</p>
+  </div>
   <div class="card"><div id="chat"></div></div>
   <div class="card">
     <details><summary>Events</summary><div id="log"></div></details>
@@ -174,6 +178,7 @@ const $ = (id) => document.getElementById(id);
 let ws = null, ctx = null, micStream = null, micNode = null, analyser = null, MODEL = "";
 let playHead = 0, playing = [], current = null, lastReply = null, userBubble = null;
 let pttDown = false, listening = false, lvl = 0;
+let finished = false; // set when Sherpy ends the conversation (sherpy.conversation_done)
 const OPENAI = () => MODEL.startsWith("gpt-");
 
 fetch("/config").then((r) => r.json()).then((cfg) => {
@@ -266,6 +271,17 @@ function onEvent(ev) {
     setState("error: " + msg); return;
   }
   if (t === "session.created" || t === "session.updated") setState("connected, talk whenever you like");
+  if (t === "sherpy.conversation_done") {
+    // D19: let the closing line finish playing, then hang up and show where the video will go.
+    finished = true; setState("conversation finished");
+    const wait = setInterval(() => {
+      if (audioPending()) return;
+      clearInterval(wait);
+      $("videoSlot").hidden = false;
+      ws?.close();
+    }, 200);
+    return;
+  }
   if (t === "input_audio_buffer.speech_started") { listening = true; cutReply(); }
   if (t === "input_audio_buffer.speech_stopped") listening = false;
   if (t.includes("input_audio_transcription")) {
@@ -300,6 +316,7 @@ function onEvent(ev) {
 async function connect() {
   if (!$("case").value) { setState("choose a family first"); return; }
   $("connect").disabled = true; setState("asking for the microphone…");
+  finished = false; $("videoSlot").hidden = true;
   try {
     ctx = new AudioContext({ sampleRate: 24000 }); // the browser resamples the mic to 24 kHz for us
     analyser = ctx.createAnalyser(); analyser.fftSize = 1024; analyser.connect(ctx.destination);
@@ -314,7 +331,7 @@ async function connect() {
   ws = new WebSocket(`${location.origin.replace(/^http/, "ws")}/voice?${new URLSearchParams({ case: $("case").value })}`);
   ws.onopen = () => { ws.send(JSON.stringify(sessionUpdate())); setState("connecting…"); };
   ws.onmessage = (m) => { try { onEvent(JSON.parse(m.data)); } catch (e) { log("bad event " + e.message); } };
-  ws.onclose = (e) => { if (!$("state").textContent.startsWith("error")) setState(e.code === 1008 ? "unknown family" : "not connected"); cleanup(); };
+  ws.onclose = (e) => { if (!finished && !$("state").textContent.startsWith("error")) setState(e.code === 1008 ? "unknown family" : "not connected"); cleanup(); };
   micNode.port.onmessage = (e) => {
     const frame = new Int16Array(e.data);
     let sum = 0; for (let i = 0; i < frame.length; i++) sum += frame[i] * frame[i];

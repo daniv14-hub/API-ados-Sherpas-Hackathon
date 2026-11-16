@@ -4,7 +4,7 @@
 // profile, because the proxy ignores a mid-session session.update (scripts/check-phase-switch.mjs).
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { buildBrief } from './brief.mjs';
+import { buildBrief, buildInterviewBrief } from './brief.mjs';
 import { buildOptions } from './options.mjs';
 import { isSafeCaseId, loadProfile } from './profile.mjs';
 import { sherpyInstructions } from './instructions.mjs';
@@ -45,7 +45,7 @@ function parse(raw) {
   }
 }
 
-export async function createSession({ browser, upstream, caseId, source, profilesDir, transcriptsDir, log = console }) {
+export async function createSession({ browser, upstream, caseId, source, profilesDir, transcriptsDir, log = console, finishGraceMs = 20000 }) {
   const startISO = new Date().toISOString();
   const transcriptFile = path.join(transcriptsDir, `${caseId}-${startISO.replace(/[:.]/g, '-')}.jsonl`);
 
@@ -143,6 +143,7 @@ export async function createSession({ browser, upstream, caseId, source, profile
   }
 
   async function runToolCalls(calls) {
+    let finished = false;
     for (const call of calls) {
       if (ended) return;
       const ctx = { caseId, profile: state.profile, options: state.options, source, profilesDir };
@@ -159,6 +160,15 @@ export async function createSession({ browser, upstream, caseId, source, profile
         type: 'conversation.item.create',
         item: { type: 'function_call_output', call_id: call.call_id, output: JSON.stringify(result.output) },
       });
+      if (result.finished) finished = true;
+    }
+    if (finished) {
+      // D19: the conversation is over. The page lets the closing line finish playing, shows the video and
+      // hangs up; if it doesn't, we close the paid voice session ourselves after a grace period.
+      if (isOpen(browser)) browser.send(JSON.stringify({ type: 'sherpy.conversation_done' }));
+      log.log(`[${caseId}] conversation finished`);
+      setTimeout(() => closeIfOpen(upstream), finishGraceMs).unref?.();
+      return;
     }
     // Gemini continues on its own and the proxy drops this; OpenAI models need it.
     sendUp({ type: 'response.create' });
@@ -233,10 +243,11 @@ export async function createSession({ browser, upstream, caseId, source, profile
       source.getPart(caseId, 'financial-health'),
       source.getPart(caseId, 'persona'),
     ]);
-    state.brief = buildBrief(fh, personaMd);
     state.options = buildOptions(fh, personaMd);
     state.profile = await loadProfile(profilesDir, caseId, state.options.present);
     state.phase = state.profile.phase1Complete ? 2 : 1;
+    // The getting-to-know-you conversation only needs the short brief (D19); it also costs less per turn.
+    state.brief = state.phase === 1 ? buildInterviewBrief(fh, personaMd) : buildBrief(fh, personaMd);
   } catch (e) {
     // Log only the error, never case data or tokens.
     log.error(`[${caseId}] case data failed:`, e?.name, e?.message);

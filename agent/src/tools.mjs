@@ -1,4 +1,4 @@
-import { applyAnswer, saveProfile } from './profile.mjs';
+import { applyAnswer, missingTopics, saveProfile } from './profile.mjs';
 
 // Whitelisted plan lookups. Empty list = the whole part, no section.
 export const SECTIONS = {
@@ -69,10 +69,17 @@ function planSectionTool() {
   };
 }
 
-// phase 1 = profile incomplete: one session covers the questions and plan lookups (R10).
-// phase 2 = profile complete: plan lookups only.
+const FINISH_TOOL = {
+  type: 'function',
+  name: 'finish_conversation',
+  description: 'Call this once, right after saying the closing line, when every topic is saved. It ends the call and shows the family their video.',
+  parameters: { type: 'object', properties: {} },
+};
+
+// phase 1 = profile incomplete: the getting-to-know-you conversation, which ends with the video (D19).
+// phase 2 = profile complete: plan lookups only (after the video).
 export function toolDefinitions(phase, options) {
-  if (phase === 1) return [saveAnswerTool(options), planSectionTool()];
+  if (phase === 1) return [saveAnswerTool(options), FINISH_TOOL];
   if (phase === 2) return [planSectionTool()];
   throw new Error(`unknown phase: ${phase}`);
 }
@@ -138,5 +145,10 @@ export async function handleToolCall(name, argsJson, ctx) {
   const args = parseArgs(argsJson);
   if (name === 'save_answer') return saveAnswer(args, ctx);
   if (name === 'get_plan_section') return getPlanSection(args, ctx);
+  if (name === 'finish_conversation') {
+    const missing = missingTopics(ctx.profile);
+    if (missing.length) return { output: { ok: false, error: 'not_finished', missing } };
+    return { output: { ok: true, finished: true }, finished: true };
+  }
   return { output: { error: `unknown_tool: ${name}` } };
 }

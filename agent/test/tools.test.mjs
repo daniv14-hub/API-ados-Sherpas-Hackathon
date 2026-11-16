@@ -6,7 +6,7 @@ import path from 'node:path';
 import { toolDefinitions, handleToolCall, SECTIONS } from '../src/tools.mjs';
 import { CaseSourceError } from '../src/case-source.mjs';
 import { buildOptions } from '../src/options.mjs';
-import { newProfile } from '../src/profile.mjs';
+import { newProfile, applyAnswer } from '../src/profile.mjs';
 import { loadCase } from './fixtures.mjs';
 
 const ID = 'daniel-emily-johnson';
@@ -18,10 +18,10 @@ async function ctx(source = {}) {
 }
 const args = (o) => JSON.stringify(o);
 
-test('incomplete profile exposes both tools', async () => {
+test('incomplete profile exposes save_answer and finish_conversation', async () => {
   const { options } = await ctx();
   const defs = toolDefinitions(1, options);
-  assert.deepEqual(defs.map((d) => d.name), ['save_answer', 'get_plan_section']);
+  assert.deepEqual(defs.map((d) => d.name), ['save_answer', 'finish_conversation']);
   const d = defs[0];
   assert.equal(d.type, 'function');
   assert.deepEqual(d.parameters.properties.question.enum,
@@ -117,4 +117,30 @@ test('unknown tool → error output', async () => {
   const r = await handleToolCall('rm_rf', '{}', c);
   assert.equal(typeof r.output.error, 'string');
   assert.equal(r.profile, undefined);
+});
+
+test('finish_conversation refuses while topics are missing', async () => {
+  const c = await ctx();
+  const r = await handleToolCall('finish_conversation', '{}', c);
+  assert.equal(r.output.ok, false);
+  assert.equal(r.output.error, 'not_finished');
+  assert.ok(r.output.missing.includes('present'));
+  assert.ok(r.output.missing.includes('risk:Daniel'));
+  assert.ok(!r.finished);
+});
+
+test('finish_conversation finishes once phase 1 is complete', async () => {
+  const c = await ctx();
+  const answers = [
+    ['present', 'household', 'Daniel, Emily'], ['main_goal', 'household', 'college'], ['top_worry', 'household', 'protection'],
+    ['risk', 'Daniel', 'growth'], ['risk', 'Emily', 'moderate'], ['style', 'Daniel', 'analytical'],
+    ['style', 'Emily', 'emotional'], ['detail_level', 'household', 'low'],
+  ];
+  for (const [question, person, value] of answers) {
+    c.profile = applyAnswer(c.profile, { question, person, value }, c.options).profile;
+  }
+  assert.equal(c.profile.phase1Complete, true);
+  const r = await handleToolCall('finish_conversation', '{}', c);
+  assert.deepEqual(r.output, { ok: true, finished: true });
+  assert.equal(r.finished, true);
 });

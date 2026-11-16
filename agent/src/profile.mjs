@@ -26,6 +26,19 @@ export function isPhase1Complete(p) {
   return p.present.every((n) => p.people?.[n]?.risk && p.people?.[n]?.style);
 }
 
+// What is still missing before phase 1 is complete, e.g. ["present", "risk:Daniel"].
+// Before "present" is saved, every adult in the profile counts.
+export function missingTopics(p) {
+  const out = [];
+  if (!p.present?.length) out.push('present');
+  if (!p.main_goal?.agreed) out.push('main_goal');
+  if (!p.top_worry?.agreed) out.push('top_worry');
+  const people = p.present?.length ? p.present : Object.keys(p.people ?? {});
+  for (const k of ['risk', 'style']) for (const n of people) if (!p.people?.[n]?.[k]) out.push(`${k}:${n}`);
+  if (!p.detail_level) out.push('detail_level');
+  return out;
+}
+
 function allowed(question, options) {
   const list = options[question] ?? [];
   return list.map((o) => (typeof o === 'object' ? o.value : o));
