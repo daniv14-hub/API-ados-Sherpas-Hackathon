@@ -67,10 +67,26 @@ function fileFor(dir, caseId) {
   return path.join(dir, `${caseId}.json`);
 }
 
+const isObj = (x) => x !== null && typeof x === 'object' && !Array.isArray(x);
+
+function isValidProfile(p, caseId) {
+  return (
+    isObj(p) &&
+    p.caseId === caseId &&
+    Array.isArray(p.present) &&
+    isObj(p.people) &&
+    isObj(p.main_goal) && isObj(p.main_goal.byPerson) &&
+    isObj(p.top_worry) && isObj(p.top_worry.byPerson) &&
+    (p.detail_level === null || typeof p.detail_level === 'string') &&
+    typeof p.phase1Complete === 'boolean'
+  );
+}
+
 export async function loadProfile(dir, caseId, adults) {
   const file = fileFor(dir, caseId);
   try {
-    return JSON.parse(await fs.readFile(file, 'utf8'));
+    const parsed = JSON.parse(await fs.readFile(file, 'utf8'));
+    return isValidProfile(parsed, caseId) ? parsed : newProfile(caseId, adults);
   } catch {
     return newProfile(caseId, adults);
   }

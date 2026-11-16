@@ -108,3 +108,14 @@ test('save then load round-trips', async () => {
   assert.deepEqual(back, r.profile);
   assert.deepEqual(await fs.readdir(dir), [`${ID}.json`]);
 });
+
+test('loadProfile returns fresh profile on wrong-shape file', async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'prof-'));
+  const other = { ...newProfile('other-case', ['Daniel']) };
+  for (const bad of ['{}', 'null', '[]', '42', JSON.stringify(other)]) {
+    await fs.writeFile(path.join(dir, `${ID}.json`), bad);
+    const p = await loadProfile(dir, ID, ['Daniel', 'Emily']);
+    assert.equal(p.caseId, ID, bad);
+    assert.deepEqual(p.people, { Daniel: {}, Emily: {} }, bad);
+  }
+});
