@@ -94,8 +94,9 @@ Session start **[Claude's call]**: if the profile has `phase1Complete: true`, th
 otherwise in phase 1. One shared session per family for the MVP (the demo couple talks together, D13); per-partner
 sessions for individual matters (D2) come later with the platform.
 
-Phase switch: when phase 1 ends, the backend sends a new `session.update` with the phase-2 instructions (same
-session, no hang-up).
+Phase switch — **changed 16/11 (D18):** the proxy/Gemini ignore a mid-session `session.update`, so a session with an
+incomplete profile gets both phases' instructions and both tools from the start (questions first, plan questions
+answered any time). A complete profile starts with phase-2 instructions only.
 
 ## 6. Anti-hallucination rules (layer 1 + backend)
 

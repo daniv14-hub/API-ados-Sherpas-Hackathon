@@ -217,6 +217,11 @@ favourite-character narrator, video per step, leaderboard) and why: `docs/idea-n
 - **Sherpy never calculates.** It only says figures exactly as they appear in the data.
 - **Data comes from the Sherpas MCP at runtime**, not from `cases/` ("they give it to us for a reason; they want us to
   use it"). Accepted costs: 72 h token renewal, MCP access ends 21/11, network round trip per lookup.
+- **One session, both phases (team, via Dani, 16/11):** the proxy/Gemini ignore a mid-session `session.update` (tested:
+  instructions ALPHA→BRAVO kept answering ALPHA). So Sherpy gets both phases' instructions and both tools
+  (`save_answer`, `get_plan_section`) from the start; it asks the phase-1 questions first and can still answer plan
+  questions at any moment. A returning family with a complete profile starts with phase-2 instructions only.
+  Ruled out: reconnecting for phase 2 (1–2 s cut, loses the conversation), rules as a conversation item (unverified).
 - The pitch is a presentation; the MVP is not shown live. **The jury won't run the MVP**: it is only shown in the
   demo video. So no fallback to `cases/` files; if the MCP fails, Sherpy says it can't reach the plan right now.
 
