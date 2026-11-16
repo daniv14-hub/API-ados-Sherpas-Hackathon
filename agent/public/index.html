@@ -250,7 +250,6 @@ function cutReply() {
 // The server replaces instructions and tools with Sherpy's own; the page only sets up audio.
 function sessionUpdate() {
   const ptt = $("mode").value === "ptt";
-  const gate = createSpeechGate();
   const input = { format: { type: "audio/pcm", rate: 24000 },
     turn_detection: ptt ? null : { type: "server_vad", silence_duration_ms: 600 } };
   if (OPENAI()) input.transcription = { model: "gpt-4o-mini-transcribe" };
@@ -311,6 +310,7 @@ async function connect() {
     srcNode.connect(micNode);
   } catch (e) { setState("no microphone: " + e.message); cleanup(); return; }
   const ptt = $("mode").value === "ptt";
+  const gate = createSpeechGate(); // one per call: it keeps a short audio history
   ws = new WebSocket(`${location.origin.replace(/^http/, "ws")}/voice?${new URLSearchParams({ case: $("case").value })}`);
   ws.onopen = () => { ws.send(JSON.stringify(sessionUpdate())); setState("connecting…"); };
   ws.onmessage = (m) => { try { onEvent(JSON.parse(m.data)); } catch (e) { log("bad event " + e.message); } };
@@ -323,6 +323,10 @@ async function connect() {
     if (ptt && !pttDown) return; // push to talk: nothing is sent while the button is up
     // Open mic: breaths and coughs are replaced by silence before they reach the model (speech-gate.mjs).
     const out = ptt ? frame : gate.push(frame);
+    // Lightweight counters to check the mic path in tests and in the console (no audio is kept).
+    const d = (window.sherpyMic ??= { frames: 0, sentVoice: 0, peak: 0 });
+    d.frames++; if (out.some((v) => v !== 0)) d.sentVoice++;
+    for (let i = 0; i < frame.length; i += 16) d.peak = Math.max(d.peak, Math.abs(frame[i]));
     ws.send(JSON.stringify({ type: "input_audio_buffer.append", audio: b64(out.buffer) }));
   };
   $("ptt").style.display = ptt ? "block" : "none";
