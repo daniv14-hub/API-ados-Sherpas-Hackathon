@@ -17,6 +17,10 @@ export function isAllowedCase(id, ids) {
 
 const ASSISTANT_DELTA = new Set(['response.output_audio_transcript.delta', 'response.audio_transcript.delta']);
 const ASSISTANT_DONE = new Set(['response.output_audio_transcript.done', 'response.audio_transcript.done']);
+const DEFAULT_AUDIO = {
+  input: { format: { type: 'audio/pcm', rate: 24000 }, turn_detection: { type: 'server_vad', silence_duration_ms: 600 } },
+  output: { format: { type: 'audio/pcm', rate: 24000 } },
+};
 const USER_DONE = 'conversation.item.input_audio_transcription.completed';
 
 function parse(raw) {
@@ -33,6 +37,7 @@ export async function createSession({ browser, upstream, caseId, source, profile
   const transcriptFile = path.join(transcriptsDir, `${caseId}-${startISO.replace(/[:.]/g, '-')}.jsonl`);
 
   let ready = false;
+  let sentSessionUpdate = false;
   let ended = false;
   const pending = []; // page messages waiting for case data and for the upstream socket to open
   const state = { phase: 1, brief: '', options: null, profile: null };
@@ -59,17 +64,45 @@ export async function createSession({ browser, upstream, caseId, source, profile
     };
   }
 
+  // Page events are parsed and rebuilt from an allow-list: the page can never send its own
+  // instructions, tools, system items or fake tool outputs to the model.
   function fromPage(raw) {
-    if (!raw.includes('"session.update"')) return raw;
     const ev = parse(raw);
-    if (!ev || ev.type !== 'session.update') return raw;
-    ev.session = { ...(ev.session ?? {}), ...sessionConfig() };
-    return JSON.stringify(ev);
+    if (!ev || typeof ev.type !== 'string') {
+      log.log(`[${caseId}] dropped unparsable page message`);
+      return null;
+    }
+    switch (ev.type) {
+      case 'input_audio_buffer.append':
+        return typeof ev.audio === 'string' ? { type: ev.type, audio: ev.audio } : null;
+      case 'input_audio_buffer.commit':
+      case 'input_audio_buffer.clear':
+      case 'response.cancel':
+      case 'response.create':
+        return { type: ev.type };
+      case 'conversation.item.truncate':
+        return { type: ev.type, item_id: ev.item_id, content_index: ev.content_index, audio_end_ms: ev.audio_end_ms };
+      case 'session.update': {
+        sentSessionUpdate = true;
+        const session = { type: 'realtime', ...sessionConfig() };
+        if (ev.session && typeof ev.session === 'object' && ev.session.audio !== undefined) session.audio = ev.session.audio;
+        return { type: ev.type, session };
+      }
+      default:
+        log.log(`[${caseId}] dropped page event ${String(ev.type).slice(0, 80)}`);
+        return null;
+    }
   }
 
   function flush() {
     if (!ready || !isOpen(upstream)) return;
-    for (const m of pending.splice(0)) upstream.send(fromPage(m));
+    const queued = pending.splice(0).map(fromPage).filter(Boolean);
+    // Sherpy never runs without its rules: if the page sent no session.update, send ours first.
+    if (!sentSessionUpdate && !queued.some((e) => e.type === 'session.update')) {
+      sentSessionUpdate = true;
+      upstream.send(JSON.stringify({ type: 'session.update', session: { type: 'realtime', ...sessionConfig(), audio: DEFAULT_AUDIO } }));
+    }
+    for (const e of queued) upstream.send(JSON.stringify(e));
   }
 
   function writeLine(role, text) {
