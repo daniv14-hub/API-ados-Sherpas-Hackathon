@@ -112,7 +112,11 @@ ${worries}
    ${joint}
 - Risk. ${askEach} Find out how they would react if their investments dropped 20% in a year:
    sell means ${q('conservative')}, wait means ${q('moderate')}, buy more means ${q('growth')}.
-   Save with question "risk" and ${perPerson}.
+   Save with question "risk" and ${perPerson}.${couple ? `
+   If their risk answers differ, do not move on yet. Point out the difference kindly: one of them would hold on or buy
+   more, the other would rather protect what they have. Ask each what feels at stake for them. Explain that their
+   shared money has to work for both of them, and help them find what they would feel comfortable with together.
+   Each partner still keeps their own saved answer. Move on only when both feel heard.` : ''}
 - How they like to hear about money. ${askEach} Do they prefer the numbers, or what it means for their family?
    The numbers means ${q('analytical')}. What it means for the family means ${q('emotional')}.
    Save with question "style" and ${perPerson}.

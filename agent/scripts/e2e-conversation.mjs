@@ -43,6 +43,7 @@ function reply(said) {
     return who === "Daniel" ? ["Daniel", "I would buy more. It's a discount."] : ["Emily", "I would sell. I couldn't sleep watching it fall."];
   }
   if (/detail|big picture/.test(s)) return ["Emily", "Just the big picture, please."];
+  if (/comfortable|at stake|together|middle ground|both of you feel/.test(s) && state.riskAsked.size === 2) return ["Emily", "I guess we could keep investing, but more carefully. That would feel okay to me."];
   if (/as a couple|approach this|both feel|work for both|balance/.test(s)) return ["Emily", "Okay, I hear you, Daniel. Let's put college first, and look at retirement right after."];
   if (/numbers|what it means for (your|the) family/.test(s)) {
     const who = named ?? (state.styleAsked.has("Daniel") ? "Emily" : "Daniel");

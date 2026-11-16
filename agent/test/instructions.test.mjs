@@ -134,3 +134,9 @@ test('rules keep English and handle unclear input without restarting', () => {
   assert.match(SHERPY_RULES, /Sorry, I didn't catch that\./);
   assert.match(SHERPY_RULES, /Never introduce yourself again/);
 });
+
+test('couples: risk differences must be mediated before moving on', () => {
+  const { options, brief, profile } = setup();
+  const text = sherpyInstructions({ phase: 1, brief, profile, options });
+  assert.ok(text.includes('If their risk answers differ, do not move on yet.'), 'risk mediation line');
+});
