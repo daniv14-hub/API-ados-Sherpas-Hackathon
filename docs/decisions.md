@@ -27,6 +27,7 @@ Rewritten 15/11 after reviewing every planning conversation. IDs are stable; don
 | D13 | Demo | Demo with the Johnsons, who mostly agree; show the mediation | DECIDED |
 | D14 | Video | The "if you act" scene uses what the plan gives | DECIDED |
 | D15 | Mascot | Sherpy: suited yak advisor, always available, cheers at checkpoints | DECIDED |
+| D16 | Voice | Live agent = realtime speech-to-speech model; demo video = scripted, ElevenLabs voices | DECIDED |
 
 What we ruled out at idea stage (questionnaire, NotebookLM-style menu, expert dashboard, generic video,
 favourite-character narrator, video per step, leaderboard) and why: `docs/idea-note.md`.
@@ -175,4 +176,15 @@ favourite-character narrator, video per step, leaderboard) and why: `docs/idea-n
   `prototypes/mascot/index.html`, generator `tools/sherpy_svg.py`. Q-MASCOT is closed.
 - Constraint from the hard rules, not a new decision: any figure in those checkpoint lines must come from the case
   data (D5, D6). How "closer to the goal" is measured depends on Q-PROGRESS.
+
+## D16 · Voice architecture — DECIDED (team, via Dani, 16/11)
+- **Live product:** option A, a **realtime speech-to-speech model** (one model hears and speaks, with its own voices).
+  Chosen for simplicity and a natural sound. No ElevenLabs in the live agent.
+- Ruled out: B, a pipeline STT → text LLM → ElevenLabs TTS (more latency, turn-taking and interruptions built by hand,
+  ~40 min ElevenLabs cap for the whole team); C, realtime model with text output + ElevenLabs (unverified on the proxy).
+- **Demo video recording:** the conversation is **scripted** and voiced with **ElevenLabs** (simulated, not live).
+- Still open: which realtime model (`gpt-realtime-2.1-mini`, `gemini-3.8-live`, `gpt-live-1`) → voice spike (Q-VOICE).
+- Agent behaviour ("hybrid", team's words): phase 1 = advisor role with predetermined questions to break the ice and
+  fill the video profile; phase 2 = connected to the Sherpas context, freer to reason, without hallucinating.
+  Context management design in progress (brainstorm 16/11).
 
