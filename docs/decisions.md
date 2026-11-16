@@ -215,5 +215,6 @@ favourite-character narrator, video per step, leaderboard) and why: `docs/idea-n
 - **Sherpy never calculates.** It only says figures exactly as they appear in the data.
 - **Data comes from the Sherpas MCP at runtime**, not from `cases/` ("they give it to us for a reason; they want us to
   use it"). Accepted costs: 72 h token renewal, MCP access ends 21/11, network round trip per lookup.
-- The pitch is a presentation; the MVP is not shown live.
+- The pitch is a presentation; the MVP is not shown live. **The jury won't run the MVP**: it is only shown in the
+  demo video. So no fallback to `cases/` files; if the MCP fails, Sherpy says it can't reach the plan right now.
 

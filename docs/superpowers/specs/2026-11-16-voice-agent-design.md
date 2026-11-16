@@ -68,6 +68,8 @@ browser (mic, speaker, Sherpy animation)
   the code doesn't depend on the source. Known costs, accepted: the token lasts 72 h (someone must log in again and
   update `.env`), MCP access ends 21/11, and every phase-2 lookup adds a network round trip. Fetch only the sections
   needed (parts can be tens of thousands of tokens).
+  No fallback to `cases/` (the jury doesn't run the MVP; it only appears in the demo video): if the MCP fails, Sherpy
+  says it can't reach the plan right now and never answers from memory.
 
 ## 5. Context: four layers
 
