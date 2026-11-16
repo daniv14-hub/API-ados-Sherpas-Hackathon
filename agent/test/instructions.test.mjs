@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { SHERPY_RULES, GLOSSARY, sherpyInstructions } from '../src/instructions.mjs';
 import { buildOptions } from '../src/options.mjs';
 import { buildBrief } from '../src/brief.mjs';
-import { newProfile } from '../src/profile.mjs';
+import { newProfile, applyAnswer } from '../src/profile.mjs';
 import { loadCase } from './fixtures.mjs';
 
 const ID = 'daniel-emily-johnson';
@@ -53,6 +53,15 @@ test('phase 1 instructions for a single adult save joint answers as household', 
   const text = sherpyInstructions({ phase: 1, brief, profile, options });
   assert.ok(/main goal and top worry directly with person "household"/i.test(text), text);
   assert.ok(!/disagree/i.test(text));
+});
+
+test('phase 1 instructions resume from a partial profile', () => {
+  const { options, brief, profile } = setup();
+  let p = applyAnswer(profile, { question: 'present', person: 'household', value: 'Daniel, Emily' }, options).profile;
+  p = applyAnswer(p, { question: 'main_goal', person: 'household', value: 'college' }, options).profile;
+  const text = sherpyInstructions({ phase: 1, brief, profile: p, options });
+  assert.ok(text.includes(JSON.stringify(p, null, 2)));
+  assert.ok(text.includes('Some answers may already be saved in the profile below. Skip questions already answered and resume at the first missing one.'));
 });
 
 test('phase 2 instructions include profile and not the question script', () => {

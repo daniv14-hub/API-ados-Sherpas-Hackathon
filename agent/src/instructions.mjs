@@ -50,7 +50,7 @@ const WORRY_WORDS = {
 
 const q = (v) => `"${v}"`;
 
-function phase1Script(options) {
+function phase1Script(options, profile) {
   const names = options.present;
   const couple = names.length > 1;
   const who = couple ? names.join(' and ') : names[0];
@@ -92,7 +92,7 @@ ${worries}
 
 ${joint}
 
-Third question, risk. ${couple ? 'Ask each partner by name for risk and style. Ask' : askEach}: "Imagine your investments dropped 20% in a year.
+Third question, risk. ${askEach}: "Imagine your investments dropped 20% in a year.
    Would you sell, wait, or buy more?"
    Sell means ${q('conservative')}. Wait means ${q('moderate')}. Buy more means ${q('growth')}.
    Save with question "risk" and person = ${couple ? "that partner's first name" : q(names[0])}.
@@ -106,7 +106,12 @@ Fifth question, detail. Ask: "How much detail would you like: the big picture, t
    Big picture means ${q('low')}. Key numbers means ${q('medium')}. Everything means ${q('high')}.
    Save with question "detail_level" and person "household".
 
-When save_answer returns phase1Complete true, thank them warmly and say you are ready for their questions about the plan.`;
+When save_answer returns phase1Complete true, thank them warmly and say you are ready for their questions about the plan.
+
+Some answers may already be saved in the profile below. Skip questions already answered and resume at the first missing one.
+
+Family profile so far:
+${JSON.stringify(profile, null, 2)}`;
 }
 
 function phase2Script(profile) {
@@ -128,7 +133,7 @@ ${JSON.stringify(profile, null, 2)}`;
 
 export function sherpyInstructions({ phase, brief, profile, options }) {
   let script;
-  if (phase === 1) script = phase1Script(options);
+  if (phase === 1) script = phase1Script(options, profile);
   else if (phase === 2) script = phase2Script(profile);
   else throw new Error(`unknown phase: ${phase}`);
   return `${SHERPY_RULES}\n\n${script}\n\nFAMILY BRIEF (the only figures you may use, besides tool results):\n${brief}`;

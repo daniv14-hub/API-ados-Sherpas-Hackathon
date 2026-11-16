@@ -125,8 +125,9 @@ async function getPlanSection(args, ctx) {
   try {
     const data = await ctx.source.getPart(ctx.caseId, part, wanted);
     return { output: capped(part, wanted, data) };
-  } catch {
-    // Any failure means Sherpy must not answer from memory.
+  } catch (e) {
+    // Any failure means Sherpy must not answer from memory. Log only the error, never case data or tokens.
+    console.error('get_plan_section failed:', e?.name, e?.message);
     return { output: { error: 'plan_unavailable' } };
   }
 }

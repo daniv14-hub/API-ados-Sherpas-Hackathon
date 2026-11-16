@@ -96,10 +96,13 @@ test('get_plan_section persona returns the whole part', async () => {
   assert.equal(r.output.data, '# Persona');
 });
 
-test('get_plan_section returns plan_unavailable when MCP throws', async () => {
+test('get_plan_section returns plan_unavailable when MCP throws', async (t) => {
+  const logged = t.mock.method(console, 'error', () => {});
   const c = await ctx({ getPart: async () => { throw new CaseSourceError('down'); } });
   const r = await handleToolCall('get_plan_section', args({ part: 'financial-health', section: 'score' }), c);
   assert.deepEqual(r.output, { error: 'plan_unavailable' });
+  assert.equal(logged.mock.callCount(), 1);
+  assert.deepEqual(logged.mock.calls[0].arguments, ['get_plan_section failed:', 'CaseSourceError', 'down']);
 });
 
 test('get_plan_section caps output at 20000 chars', async () => {
