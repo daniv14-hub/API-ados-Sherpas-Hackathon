@@ -237,4 +237,10 @@ favourite-character narrator, video per step, leaderboard) and why: `docs/idea-n
 - **Closing:** Sherpy closes clearly, like "I've got everything I need. I'm putting together your video now.", and
   when the conversation ends **the video appears on screen**. No jump into Q&A right after the questions.
 - The current conversation page (`agent/public/`) is a test bench, not the product screen; the team doesn't like it.
+- **Approach approved (team, via Dani, 16/11):** rewrite the instructions as a natural conversation with an agenda;
+  mediate any disagreement (risk included); confirm aloud before saving; when everything is saved Sherpy says the
+  closing line and calls a new `finish_conversation` tool → the server tells the page and the voice session closes
+  (no paying for idle time); the test page shows a placeholder where the video will appear. **Questions about the plan
+  move to after the video** (the game, with Sherpy always available); during the conversation Sherpy says it will go
+  through them after the video. UI design waits until the agent works well (the test page stays as it is).
 
