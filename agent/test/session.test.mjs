@@ -97,7 +97,7 @@ test('injects instructions and tools into page session.update', async () => {
   assert.equal(ev.type, 'session.update');
   assert.match(ev.session.instructions, /You are Sherpy/);
   assert.match(ev.session.instructions, /PHASE ONE/);
-  assert.deepEqual(ev.session.tools.map((t) => t.name), ['save_answer']);
+  assert.deepEqual(ev.session.tools.map((t) => t.name), ['save_answer', 'get_plan_section']);
   assert.equal(ev.session.tool_choice, 'auto');
   assert.deepEqual(ev.session.audio, pageUpdate.session.audio);
 
@@ -144,7 +144,7 @@ test('answers a save_answer function call with function_call_output then respons
   assert.deepEqual(onDisk.present, ['Daniel', 'Emily']);
 });
 
-test('switches to phase 2 after the last phase-1 answer', async () => {
+test('does not send a second session.update after phase 1 completes', async () => {
   const opts = options();
   const profilesDir = await tmp('profiles-');
   const p = newProfile(ID, opts.present);
@@ -156,14 +156,28 @@ test('switches to phase 2 after the last phase-1 answer', async () => {
 
   const { upstream } = await start({ profilesDir });
   upstream.emit('message', Buffer.from(functionCallDone('save_answer', { question: 'detail_level', person: 'household', value: 'medium' })));
-  await until(() => upstream.sent.length >= 3);
-  const types = upstream.json().map((e) => e.type);
-  assert.deepEqual(types, ['conversation.item.create', 'session.update', 'response.create']);
-  const update = upstream.json()[1];
-  assert.match(update.session.instructions, /PHASE TWO/);
-  assert.deepEqual(update.session.tools.map((t) => t.name), ['get_plan_section']);
-  assert.equal(update.session.tool_choice, 'auto');
+  await until(() => upstream.sent.length >= 2);
+  await new Promise((r) => setTimeout(r, 20));
+  assert.deepEqual(upstream.json().map((e) => e.type), ['conversation.item.create', 'response.create']);
   assert.equal(JSON.parse(upstream.json()[0].item.output).phase1Complete, true);
+
+  // ctx.profile was updated: a later save is validated against the completed profile and still works.
+  upstream.emit('message', Buffer.from(functionCallDone('save_answer', { question: 'detail_level', person: 'household', value: 'bogus' }, 'call_2')));
+  await until(() => upstream.sent.length >= 4);
+  const out = JSON.parse(upstream.json()[2].item.output);
+  assert.equal(out.ok, false);
+  assert.deepEqual(out.allowed, ['low', 'medium', 'high']);
+  assert.ok(!upstream.json().some((e) => e.type === 'session.update'));
+});
+
+test('incomplete profile exposes both tools', async () => {
+  const { browser, upstream } = await start();
+  browser.emit('message', Buffer.from(JSON.stringify(pageUpdate)));
+  await until(() => upstream.sent.length === 1);
+  const ev = upstream.json()[0];
+  assert.deepEqual(ev.session.tools.map((t) => t.name), ['save_answer', 'get_plan_section']);
+  assert.match(ev.session.instructions, /PHASE ONE/);
+  assert.match(ev.session.instructions, /act as their advisor/);
 });
 
 test('starts in phase 2 when profile is complete', async () => {
@@ -286,7 +300,7 @@ test('escaped session.update still gets our instructions', async () => {
   const ev = upstream.json()[0];
   assert.equal(ev.type, 'session.update');
   assert.match(ev.session.instructions, /You are Sherpy/);
-  assert.deepEqual(ev.session.tools.map((t) => t.name), ['save_answer']);
+  assert.deepEqual(ev.session.tools.map((t) => t.name), ['save_answer', 'get_plan_section']);
   assert.equal(ev.session.tool_choice, 'auto');
   assert.deepEqual(Object.keys(ev.session).sort(), ['audio', 'instructions', 'tool_choice', 'tools', 'type']);
 });
@@ -306,7 +320,7 @@ test('sends our session.update when the page sends none', async () => {
   const [update, append] = upstream.json();
   assert.equal(update.type, 'session.update');
   assert.match(update.session.instructions, /You are Sherpy/);
-  assert.deepEqual(update.session.tools.map((t) => t.name), ['save_answer']);
+  assert.deepEqual(update.session.tools.map((t) => t.name), ['save_answer', 'get_plan_section']);
   assert.equal(update.session.tool_choice, 'auto');
   assert.deepEqual(update.session.audio, {
     input: { format: { type: 'audio/pcm', rate: 24000 }, turn_detection: { type: 'server_vad', silence_duration_ms: 600 } },

@@ -106,18 +106,12 @@ Fifth question, detail. Ask: "How much detail would you like: the big picture, t
    Big picture means ${q('low')}. Key numbers means ${q('medium')}. Everything means ${q('high')}.
    Save with question "detail_level" and person "household".
 
-When save_answer returns phase1Complete true, thank them warmly and say you are ready for their questions about the plan.
+If they ask about their plan in the middle of the questions, answer it using the brief or get_plan_section, then return to the next unanswered question.
 
-Some answers may already be saved in the profile below. Skip questions already answered and resume at the first missing one.
-
-Family profile so far:
-${JSON.stringify(profile, null, 2)}`;
+Some answers may already be saved in the profile below. Skip questions already answered and resume at the first missing one.`;
 }
 
-function phase2Script(profile) {
-  return `PHASE TWO: ANSWERING QUESTIONS ABOUT THEIR PLAN
-
-Answer the family's questions about their own plan, in plain words.
+const ADVISOR_GUIDANCE = `Answer the family's questions about their own plan, in plain words.
 Use the family brief first. For anything not in the brief, call get_plan_section to look it up before answering.
 If the lookup does not have the answer either, use the exact decline line from the rules.
 
@@ -125,16 +119,29 @@ Adapt to their profile below:
 - detail_level "low": the big picture, very few figures. "medium": the key figures. "high": all the relevant detail.
 - Frame for each person's style. "analytical": lead with the plan's figures and score.
   "emotional": lead with what it means for their family and their goals.
-- Keep their main goal and top worry in mind when you choose examples.
+- Keep their main goal and top worry in mind when you choose examples.`;
 
-Family profile:
-${JSON.stringify(profile, null, 2)}`;
-}
+export const TRANSITION = 'Once save_answer returns phase1Complete true, thank them and from then on act as their advisor:';
 
-export function sherpyInstructions({ phase, brief, profile, options }) {
-  let script;
-  if (phase === 1) script = phase1Script(options, profile);
-  else if (phase === 2) script = phase2Script(profile);
-  else throw new Error(`unknown phase: ${phase}`);
-  return `${SHERPY_RULES}\n\n${script}\n\nFAMILY BRIEF (the only figures you may use, besides tool results):\n${brief}`;
+const briefBlock = (brief) => `FAMILY BRIEF (the only figures you may use, besides tool results):\n${brief}`;
+const profileJson = (profile) => JSON.stringify(profile, null, 2);
+
+// One realtime session covers both phases (R10: the proxy ignores a mid-session session.update).
+// phase 1 = profile incomplete: question script + advisor guidance in one prompt.
+// phase 2 = profile complete: advisor guidance only.
+export function sherpyInstructions({ brief, profile, options, phase = profile?.phase1Complete ? 2 : 1 }) {
+  if (phase === 1) {
+    return [
+      SHERPY_RULES,
+      phase1Script(options, profile),
+      `${TRANSITION}\n\nPHASE TWO: ANSWERING QUESTIONS ABOUT THEIR PLAN\n\n${ADVISOR_GUIDANCE}`,
+      briefBlock(brief),
+      `Family profile so far:\n${profileJson(profile)}`,
+    ].join('\n\n');
+  }
+  if (phase === 2) {
+    const script = `PHASE TWO: ANSWERING QUESTIONS ABOUT THEIR PLAN\n\n${ADVISOR_GUIDANCE}\n\nFamily profile:\n${profileJson(profile)}`;
+    return [SHERPY_RULES, script, briefBlock(brief)].join('\n\n');
+  }
+  throw new Error(`unknown phase: ${phase}`);
 }

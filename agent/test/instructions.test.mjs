@@ -44,7 +44,38 @@ test('phase 1 instructions list Johnson goals and worries', () => {
   assert.ok(text.includes('Daniel') && text.includes('Emily'));
   assert.ok(text.includes('save_answer'));
   assert.ok(text.includes('"household"'));
-  assert.ok(!text.includes('get_plan_section'));
+});
+
+test('combined instructions contain the question script, the advisor guidance and the mid-interview line', () => {
+  const { options, brief, profile } = setup();
+  const text = sherpyInstructions({ brief, profile, options }); // phase derived from the incomplete profile
+  assert.equal(text, sherpyInstructions({ phase: 1, brief, profile, options }));
+  const at = (s) => {
+    const i = text.indexOf(s);
+    assert.ok(i >= 0, `missing: ${s}`);
+    return i;
+  };
+  const order = [
+    at(SHERPY_RULES),
+    at('PHASE ONE: GETTING TO KNOW THE FAMILY'),
+    at('Some answers may already be saved in the profile below.'),
+    at('Once save_answer returns phase1Complete true, thank them and from then on act as their advisor:'),
+    at('call get_plan_section to look it up before answering'),
+    at('FAMILY BRIEF'),
+    at(JSON.stringify(profile, null, 2)),
+  ];
+  assert.deepEqual(order, [...order].sort((a, b) => a - b));
+  at('If they ask about their plan in the middle of the questions, answer it using the brief or get_plan_section, then return to the next unanswered question.');
+  at('dropped 20% in a year');
+  at('detail_level "low"');
+});
+
+test('complete profile gets advisor instructions only by default', () => {
+  const { options, brief, profile } = setup();
+  const done = { ...profile, phase1Complete: true };
+  const text = sherpyInstructions({ brief, profile: done, options });
+  assert.equal(text, sherpyInstructions({ phase: 2, brief, profile: done, options }));
+  assert.ok(!text.includes('PHASE ONE'));
 });
 
 test('phase 1 instructions for a single adult save joint answers as household', () => {

@@ -69,8 +69,10 @@ function planSectionTool() {
   };
 }
 
+// phase 1 = profile incomplete: one session covers the questions and plan lookups (R10).
+// phase 2 = profile complete: plan lookups only.
 export function toolDefinitions(phase, options) {
-  if (phase === 1) return [saveAnswerTool(options)];
+  if (phase === 1) return [saveAnswerTool(options), planSectionTool()];
   if (phase === 2) return [planSectionTool()];
   throw new Error(`unknown phase: ${phase}`);
 }

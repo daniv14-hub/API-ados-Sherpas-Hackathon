@@ -1,5 +1,7 @@
 // One voice session: relays events between the page and the realtime proxy, owns Sherpy's
-// instructions and tools, runs tool calls, switches phase and writes the transcript.
+// instructions and tools, runs tool calls and writes the transcript.
+// One upstream session covers both phases (R10): the phase is fixed at start from the saved
+// profile, because the proxy ignores a mid-session session.update (scripts/check-phase-switch.mjs).
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { buildBrief } from './brief.mjs';
@@ -115,7 +117,6 @@ export async function createSession({ browser, upstream, caseId, source, profile
   }
 
   async function runToolCalls(calls) {
-    const wasPhase1 = state.phase === 1;
     for (const call of calls) {
       const ctx = { caseId, profile: state.profile, options: state.options, source, profilesDir };
       let result;
@@ -131,11 +132,6 @@ export async function createSession({ browser, upstream, caseId, source, profile
         type: 'conversation.item.create',
         item: { type: 'function_call_output', call_id: call.call_id, output: JSON.stringify(result.output) },
       });
-    }
-    if (wasPhase1 && state.profile?.phase1Complete) {
-      state.phase = 2;
-      log.log(`[${caseId}] phase 2`);
-      sendUp({ type: 'session.update', session: { type: 'realtime', ...sessionConfig() } });
     }
     // Gemini continues on its own and the proxy drops this; OpenAI models need it.
     sendUp({ type: 'response.create' });

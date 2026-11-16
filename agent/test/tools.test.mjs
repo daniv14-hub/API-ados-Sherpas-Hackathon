@@ -18,10 +18,10 @@ async function ctx(source = {}) {
 }
 const args = (o) => JSON.stringify(o);
 
-test('phase 1 exposes only save_answer', async () => {
+test('incomplete profile exposes both tools', async () => {
   const { options } = await ctx();
   const defs = toolDefinitions(1, options);
-  assert.deepEqual(defs.map((d) => d.name), ['save_answer']);
+  assert.deepEqual(defs.map((d) => d.name), ['save_answer', 'get_plan_section']);
   const d = defs[0];
   assert.equal(d.type, 'function');
   assert.deepEqual(d.parameters.properties.question.enum,
@@ -33,7 +33,7 @@ test('phase 1 exposes only save_answer', async () => {
   assert.ok(d.parameters.properties.value.description.includes('protection'));
 });
 
-test('phase 2 exposes only get_plan_section', async () => {
+test('complete profile exposes only get_plan_section', async () => {
   const { options } = await ctx();
   const defs = toolDefinitions(2, options);
   assert.deepEqual(defs.map((d) => d.name), ['get_plan_section']);
