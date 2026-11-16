@@ -43,6 +43,7 @@ function caseLabel(id) {
 const files = {
   '/': [join(here, 'public', 'index.html'), 'text/html; charset=utf-8'],
   '/mic-worklet.js': [join(here, 'public', 'mic-worklet.js'), 'text/javascript; charset=utf-8'],
+  '/speech-gate.mjs': [join(here, 'public', 'speech-gate.mjs'), 'text/javascript; charset=utf-8'],
   '/tokens.css': [join(repo, 'assets', 'brand', 'tokens.css'), 'text/css; charset=utf-8'],
   '/sherpas-logo.svg': [join(repo, 'assets', 'brand', 'sherpas-logo.svg'), 'image/svg+xml'],
 };

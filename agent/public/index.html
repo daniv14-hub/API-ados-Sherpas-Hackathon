@@ -168,7 +168,8 @@
     <details><summary>Events</summary><div id="log"></div></details>
   </div>
 </div>
-<script>
+<script type="module">
+import { createSpeechGate } from "/speech-gate.mjs";
 const $ = (id) => document.getElementById(id);
 let ws = null, ctx = null, micStream = null, micNode = null, analyser = null, MODEL = "";
 let playHead = 0, playing = [], current = null, lastReply = null, userBubble = null;
@@ -249,6 +250,7 @@ function cutReply() {
 // The server replaces instructions and tools with Sherpy's own; the page only sets up audio.
 function sessionUpdate() {
   const ptt = $("mode").value === "ptt";
+  const gate = createSpeechGate();
   const input = { format: { type: "audio/pcm", rate: 24000 },
     turn_detection: ptt ? null : { type: "server_vad", silence_duration_ms: 600 } };
   if (OPENAI()) input.transcription = { model: "gpt-4o-mini-transcribe" };
@@ -319,7 +321,9 @@ async function connect() {
     $("level").style.width = `${Math.min(100, Math.sqrt(sum / frame.length) / 32768 * 600)}%`;
     if (ws?.readyState !== 1) return;
     if (ptt && !pttDown) return; // push to talk: nothing is sent while the button is up
-    ws.send(JSON.stringify({ type: "input_audio_buffer.append", audio: b64(e.data) }));
+    // Open mic: breaths and coughs are replaced by silence before they reach the model (speech-gate.mjs).
+    const out = ptt ? frame : gate.push(frame);
+    ws.send(JSON.stringify({ type: "input_audio_buffer.append", audio: b64(out.buffer) }));
   };
   $("ptt").style.display = ptt ? "block" : "none";
   $("hangup").disabled = false;

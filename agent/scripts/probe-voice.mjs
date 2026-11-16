@@ -45,7 +45,7 @@ const audioCfg = { input: { format: { type: "audio/pcm", rate: 24000 }, turn_det
 ws.on("unexpected-response", (_q, res) => { console.log(`refused HTTP ${res.statusCode}`); done("refused"); });
 ws.on("error", (e) => console.log(`ws error ${e.message}`));
 ws.on("close", (c) => done(`closed ${c}`));
-ws.on("open", () => {
+ws.on("open", async () => {
   if (mode === "silence") {
     send({ type: "session.update", session: { type: "realtime", instructions: "You are a helpful assistant. Always speak English.", audio: audioCfg } });
     const chunk = 480; // 20 ms at 24 kHz
@@ -70,10 +70,14 @@ ws.on("open", () => {
     send({ type: "session.update", session: { type: "realtime", instructions: instr, audio: audioCfg } });
     const wav = readFileSync(arg).subarray(44);
     const pcm = Buffer.concat([Buffer.alloc(48000), wav, Buffer.alloc(144000)]);
+    // PROBE_GATE=1 runs the page's speech gate on the audio first, like the real page does.
+    const gate = process.env.PROBE_GATE ? (await import("../public/speech-gate.mjs")).createSpeechGate() : null;
     let off = 0;
     const iv = setInterval(() => {
-      if (off >= pcm.length) { clearInterval(iv); return; }
-      send({ type: "input_audio_buffer.append", audio: pcm.subarray(off, off + 960).toString("base64") });
+      if (off + 960 > pcm.length) { clearInterval(iv); return; }
+      let chunk = pcm.subarray(off, off + 960);
+      if (gate) { const f = new Int16Array(chunk.buffer.slice(chunk.byteOffset, chunk.byteOffset + 960)); chunk = Buffer.from(gate.push(f).buffer); }
+      send({ type: "input_audio_buffer.append", audio: chunk.toString("base64") });
       off += 960;
     }, 20);
   } else throw new Error("mode: silence | voice <name> | lang");
