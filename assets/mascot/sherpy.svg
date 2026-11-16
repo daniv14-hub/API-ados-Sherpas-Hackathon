@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="20 40 280 336">
-<!-- Sherpas yak advisor mascot, PROPOSAL v3 (16/11, not approved). Drawn by us; based on the yak on assets/banner.png. -->
-<style>:root{--ink:#0b0f2e;--suit:#1738b1;--lapel:#112980;--shirt:#fff;--tie:#6485fb;--pocket:#c6d2fd;--horn:#fff;--fur:#fff;--fur-dark:#fff;--muzzle:#eff1f5;--cheek:rgba(232,115,138,.28)}.mouth-open{display:none}</style>
+<!-- Sherpy, the Sherpas advisor mascot. Approved by the team 16/11 (brown fur, no accessories). Drawn by us; based on the yak on assets/banner.png. -->
+<style>:root{--ink:#0b0f2e;--suit:#1738b1;--lapel:#112980;--shirt:#fff;--tie:#6485fb;--pocket:#c6d2fd;--horn:#f3eadb;--fur:#8a5f40;--fur-dark:#5c3d29;--muzzle:#e2c3a3;--cheek:rgba(232,115,138,.28)}.mouth-open{display:none}</style>
 <g class="body-rig">
   <!-- suit -->
   <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--suit)" d="M28,372 C32,318 52,288 96,272 L224,272 C268,288 288,318 292,372 Z"/>

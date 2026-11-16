@@ -26,7 +26,7 @@ Rewritten 15/11 after reviewing every planning conversation. IDs are stable; don
 | D12 | Tone | Explain reality honestly, measured in their goals | DECIDED |
 | D13 | Demo | Demo with the Johnsons, who mostly agree; show the mediation | DECIDED |
 | D14 | Video | The "if you act" scene uses what the plan gives | DECIDED |
-| D15 | Mascot | Virtual financial advisor, 2D avatar, always available, cheers at checkpoints | DECIDED |
+| D15 | Mascot | Sherpy: suited yak advisor, always available, cheers at checkpoints | DECIDED |
 
 What we ruled out at idea stage (questionnaire, NotebookLM-style menu, expert dashboard, generic video,
 favourite-character narrator, video per step, leaderboard) and why: `docs/idea-note.md`.
@@ -170,7 +170,9 @@ favourite-character narrator, video per step, leaderboard) and why: `docs/idea-n
   via Dani, 16/11). Replaces the earlier "2D advisor avatar" idea for the look; it keeps the advisor role.
   Refined the same day (team, via Dani, 16/11): a **personified, friendly, executive yak in a suit and tie**.
   Proposal v3 (closer to the banner yak): `prototypes/mascot/index.html` + `assets/mascot/yak.svg`, **pending team approval**.
-- Still open (Q-MASCOT): name, colour variant, face details, how it's animated beyond the v1 proposal.
+- **APPROVED (team, via Dani, 16/11):** design and animations of v3 (idle, listening, talking by voice volume,
+  checkpoint hop). **Brown fur. Name: Sherpy. No accessories.** Files: `assets/mascot/sherpy.svg`,
+  `prototypes/mascot/index.html`, generator `tools/sherpy_svg.py`. Q-MASCOT is closed.
 - Constraint from the hard rules, not a new decision: any figure in those checkpoint lines must come from the case
   data (D5, D6). How "closer to the goal" is measured depends on Q-PROGRESS.
 
