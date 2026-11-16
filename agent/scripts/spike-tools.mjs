@@ -2,6 +2,7 @@
 import { WebSocket } from "ws";
 
 const model = process.argv[2];
+const noResponseCreate = process.argv.includes("--no-response-create");
 if (!model) throw new Error("usage: spike-tools.mjs <model>");
 const base = (process.env.LLM_PROXY_URL || "https://llm-hackathon.sherpaswealth.com").replace(/\/$/, "").replace(/^http/, "ws");
 const t0 = Date.now();
@@ -56,7 +57,8 @@ ws.on("message", (data) => {
       callAt = Date.now() - t0;
       for (const c of calls) console.log(`  FUNCTION_CALL name=${c.name} call_id=${c.call_id} arguments=${c.arguments}`);
       send({ type: "conversation.item.create", item: { type: "function_call_output", call_id: calls[0].call_id, output: JSON.stringify({ saved: true }) } });
-      send({ type: "response.create" });
+      if (!noResponseCreate) send({ type: "response.create" });
+      else console.log("  (not sending response.create after tool output)");
     } else {
       for (const i of out) for (const c of i.content ?? []) { const t = c.text ?? c.transcript; if (t) followText ||= t; }
       console.log(`  text: ${followText}`);
