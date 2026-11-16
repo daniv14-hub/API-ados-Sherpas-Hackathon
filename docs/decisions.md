@@ -182,7 +182,8 @@ favourite-character narrator, video per step, leaderboard) and why: `docs/idea-n
   Chosen for simplicity and a natural sound. No ElevenLabs in the live agent.
 - Ruled out: B, a pipeline STT → text LLM → ElevenLabs TTS (more latency, turn-taking and interruptions built by hand,
   ~40 min ElevenLabs cap for the whole team); C, realtime model with text output + ElevenLabs (unverified on the proxy).
-- **Demo video recording:** the conversation is **scripted** and voiced with **ElevenLabs** (simulated, not live).
+- **Demo video recording:** **100% artificial**, scripted and voiced with **ElevenLabs** (simulated, not live).
+  Recommended by the Sherpas mentor, who wants teams to use the ElevenLabs credit.
 - Still open: which realtime model (`gpt-realtime-2.1-mini`, `gemini-3.8-live`, `gpt-live-1`) → voice spike (Q-VOICE).
 - Agent behaviour ("hybrid", team's words): phase 1 = advisor role with predetermined questions to break the ice and
   fill the video profile; phase 2 = connected to the Sherpas context, freer to reason, without hallucinating.
