@@ -1,28 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="20 40 280 336">
-<!-- Sherpas yak advisor mascot, PROPOSAL v2 (16/11, not approved). Drawn by us; inspired by the yak on assets/banner.png. -->
-<style>:root{--ink:#15161a;--suit:#112980;--lapel:#0f2267;--shirt:#fff;--tie:#4666d7;--pocket:#a4b7fd;--horn:#f3eadb;--fur:#8a5f40;--fur-dark:#5c3d29;--muzzle:#e2c3a3;--cheek:rgba(232,115,138,.35)}.mouth-open{display:none}</style>
+<!-- Sherpas yak advisor mascot, PROPOSAL v3 (16/11, not approved). Drawn by us; based on the yak on assets/banner.png. -->
+<style>:root{--ink:#0b0f2e;--suit:#1738b1;--lapel:#112980;--shirt:#fff;--tie:#6485fb;--pocket:#c6d2fd;--horn:#fff;--fur:#fff;--fur-dark:#fff;--muzzle:#eff1f5;--cheek:rgba(232,115,138,.28)}.mouth-open{display:none}</style>
 <g class="body-rig">
   <!-- suit -->
   <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--suit)" d="M28,372 C32,318 52,288 96,272 L224,272 C268,288 288,318 292,372 Z"/>
-  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--shirt)" d="M124,272 L196,272 L160,346 Z"/>
-  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--tie)" d="M148,280 L172,280 L166,296 L176,350 L160,368 L144,350 L154,296 Z"/>
-  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--lapel)" d="M96,272 L124,272 L160,346 L132,322 L112,300 L122,292 Z"/>
-  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--lapel)" d="M224,272 L196,272 L160,346 L188,322 L208,300 L198,292 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--shirt)" d="M110,272 L210,272 L160,384 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--lapel)" d="M94,272 L110,272 L158,380 L130,334 L106,302 L116,292 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--lapel)" d="M226,272 L210,272 L162,380 L190,334 L214,302 L204,292 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--tie)" d="M150,278 L170,278 L165,293 L173,326 L160,344 L147,326 L155,293 Z"/>
   <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--pocket)" d="M224,318 L250,318 L246,330 L240,322 L234,330 L228,322 Z"/>
   <line stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" x1="220" y1="330" x2="256" y2="330"/>
 </g>
 <g class="head-rig">
   <!-- horns -->
-  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--horn)" d="M82,118 C58,112 36,92 30,58 C46,78 66,88 92,92 Z"/>
-  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--horn)" d="M238,118 C262,112 284,92 290,58 C274,78 254,88 228,92 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--horn)" d="M86,114 C60,110 40,90 36,54 C50,76 70,86 94,96 Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--horn)" d="M234,114 C260,110 280,90 284,54 C270,76 250,86 226,96 Z"/>
   <!-- shaggy head and beard -->
-  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur-dark)" d="M264.0,158.0 Q278.5,174.9 258.9,186.4 Q266.9,207.0 244.1,212.1 Q244.9,234.4 221.1,232.4 Q214.5,254.2 192.1,245.5 Q178.8,264.7 160.0,250.0 Q141.2,264.7 127.9,245.5 Q105.5,254.2 98.9,232.4 Q75.1,234.4 75.9,212.1 Q53.1,207.0 61.1,186.4 Q41.5,174.9 56.0,158.0 Q41.5,141.1 61.1,129.6 Q53.1,109.0 75.9,103.9 Q75.1,81.6 98.9,83.6 Q105.5,61.8 127.9,70.5 Q141.2,51.3 160.0,66.0 Q178.8,51.3 192.1,70.5 Q214.5,61.8 221.1,83.6 Q244.9,81.6 244.1,103.9 Q266.9,109.0 258.9,129.6 Q278.5,141.1 264.0,158.0Z"/>
+  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur-dark)" d="M268.0,160.0 Q270.2,182.5 257.3,201.7 Q248.3,223.0 227.3,235.1 Q209.0,251.0 184.0,253.6 Q160.0,261.0 136.0,253.6 Q111.0,251.0 92.7,235.1 Q71.7,223.0 62.7,201.7 Q49.8,182.5 52.0,160.0 Q49.8,137.5 62.7,118.3 Q71.7,97.0 92.7,84.9 Q111.0,69.0 136.0,66.4 Q160.0,59.0 184.0,66.4 Q209.0,69.0 227.3,84.9 Q248.3,97.0 257.3,118.3 Q270.2,137.5 268.0,160.0Z"/>
   <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur-dark)" d="M215.2,243.4 Q222.2,254.3 206.8,250.3 Q210.2,262.9 195.6,255.9 Q195.2,269.5 182.2,259.7 Q178.1,273.6 167.6,261.7 Q160.0,275.0 152.4,261.7 Q141.9,273.6 137.8,259.7 Q124.8,269.5 124.4,255.9 Q109.8,262.9 113.2,250.3 Q97.8,254.3 104.8,243.4"/>
   <!-- ears -->
   <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur)" cx="62" cy="150" rx="22" ry="12" transform="rotate(-18 62 150)"/>
   <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur)" cx="258" cy="150" rx="22" ry="12" transform="rotate(18 258 150)"/>
   <!-- face -->
-  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur)" cx="160" cy="170" rx="72" ry="74"/>
+  <ellipse fill="var(--fur)" cx="160" cy="172" rx="76" ry="76"/>
   <ellipse fill="var(--cheek)" cx="112" cy="196" rx="13" ry="8"/>
   <ellipse fill="var(--cheek)" cx="208" cy="196" rx="13" ry="8"/>
   <!-- eyes -->
@@ -33,7 +33,9 @@
     <circle fill="#fff" cx="194" cy="157" r="3.6"/>
   </g>
   <!-- fringe over the forehead -->
-  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur-dark)" d="M225.9,120.9 Q235.0,127.1 218.1,126.6 Q219.2,136.9 199.7,131.2 Q192.6,143.6 174.1,133.7 Q160.0,146.0 145.9,133.7 Q127.4,143.6 120.3,131.2 Q100.8,136.9 101.9,126.6 Q85.0,127.1 94.1,120.9 C96,64 224,64 225.9,120.9Z"/>
+  <!-- crescent brows: the dark crescent from the banner yak -->
+  <path fill="var(--ink)" d="M110,146 C118,132 136,128 150,136 C138,136 124,140 113,151 Z"/>
+  <path fill="var(--ink)" d="M210,146 C202,132 184,128 170,136 C182,136 196,140 207,151 Z"/>
   <!-- muzzle -->
   <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--muzzle)" cx="160" cy="214" rx="46" ry="30"/>
   <ellipse fill="var(--ink)" cx="145" cy="206" rx="6" ry="4.5"/>

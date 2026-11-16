@@ -169,7 +169,7 @@ favourite-character narrator, video per step, leaderboard) and why: `docs/idea-n
 - **Look: built from the yak silhouette** of the official hackathon banner (`assets/banner.png`) — DECIDED (team,
   via Dani, 16/11). Replaces the earlier "2D advisor avatar" idea for the look; it keeps the advisor role.
   Refined the same day (team, via Dani, 16/11): a **personified, friendly, executive yak in a suit and tie**.
-  Proposal v2: `prototypes/mascot/index.html` + `assets/mascot/yak.svg`, **pending team approval**.
+  Proposal v3 (closer to the banner yak): `prototypes/mascot/index.html` + `assets/mascot/yak.svg`, **pending team approval**.
 - Still open (Q-MASCOT): name, colour variant, face details, how it's animated beyond the v1 proposal.
 - Constraint from the hard rules, not a new decision: any figure in those checkpoint lines must come from the case
   data (D5, D6). How "closer to the goal" is measured depends on Q-PROGRESS.
