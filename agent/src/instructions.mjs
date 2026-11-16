@@ -116,6 +116,7 @@ ${worries}
    If their risk answers differ, do not move on yet. Point out the difference kindly: one of them would hold on or buy
    more, the other would rather protect what they have. Ask each what feels at stake for them. Explain that their
    shared money has to work for both of them, and help them find what they would feel comfortable with together.
+   End your turn with a question about it and wait for both of them to answer. Don't change topic in the same turn.
    Each partner still keeps their own saved answer. Move on only when both feel heard.` : ''}
 - How they like to hear about money. ${askEach} Do they prefer the numbers, or what it means for their family?
    The numbers means ${q('analytical')}. What it means for the family means ${q('emotional')}.
