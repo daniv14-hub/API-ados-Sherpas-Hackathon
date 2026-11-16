@@ -124,3 +124,9 @@ test('unknown phase throws', () => {
   const { options, brief, profile } = setup();
   assert.throws(() => sherpyInstructions({ phase: 3, brief, profile, options }));
 });
+
+test('rules keep English and handle unclear input without restarting', () => {
+  assert.match(SHERPY_RULES, /Always speak English, even if what you hear is in another language\./);
+  assert.match(SHERPY_RULES, /Sorry, I didn't catch that\./);
+  assert.match(SHERPY_RULES, /Never introduce yourself again/);
+});

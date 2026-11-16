@@ -37,7 +37,7 @@ function done(why) {
   ws.close();
   setTimeout(() => process.exit(0), 300);
 }
-setTimeout(() => done("timeout"), mode === "silence" ? 32000 : 20000).unref();
+setTimeout(() => done("timeout"), mode === "silence" ? 32000 : process.env.PROBE_KICK ? 32000 : 20000).unref();
 
 const audioCfg = { input: { format: { type: "audio/pcm", rate: 24000 }, turn_detection: process.env.PROBE_TD ? JSON.parse(process.env.PROBE_TD) : { type: "server_vad", silence_duration_ms: 600 } },
   output: { format: { type: "audio/pcm", rate: 24000 }, ...(mode === "voice" ? { voice: arg } : {}) } };
@@ -72,6 +72,13 @@ ws.on("open", async () => {
     const pcm = Buffer.concat([Buffer.alloc(48000), wav, Buffer.alloc(144000)]);
     // PROBE_GATE=1 runs the page's speech gate on the audio first, like the real page does.
     const gate = process.env.PROBE_GATE ? (await import("../public/speech-gate.mjs")).createSpeechGate() : null;
+    // PROBE_KICK=1: Sherpy greets first (like the server's kickoff), the audio arrives 10 s later.
+    if (process.env.PROBE_KICK) {
+      send({ type: "conversation.item.create", item: { type: "message", role: "user", content: [{ type: "input_text", text: "(The family has just joined the call. Start the conversation now, in English.)" }] } });
+      send({ type: "response.create" });
+      await new Promise((r) => setTimeout(r, 10000));
+      text += " ||| ";
+    }
     let off = 0;
     const iv = setInterval(() => {
       if (off + 960 > pcm.length) { clearInterval(iv); return; }
@@ -91,5 +98,5 @@ ws.on("message", (d) => {
   else if (t === "error") console.log(`[${ms()}] ERROR ${JSON.stringify(ev.error ?? ev).slice(0, 300)}`);
   else if (t.includes("input_audio")) console.log(`[${ms()}] ${t} ${ev.transcript ? JSON.stringify(ev.transcript) : ""}`);
   else console.log(`[${ms()}] ${t}`);
-  if (t === "response.done" && mode !== "silence" && (mode !== "audio" || text)) done("response.done");
+  if (t === "response.done" && mode !== "silence" && (mode !== "audio" || (process.env.PROBE_KICK ? text.split("|||")[1]?.trim() : text))) done("response.done");
 });
