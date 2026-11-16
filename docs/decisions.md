@@ -188,7 +188,8 @@ favourite-character narrator, video per step, leaderboard) and why: `docs/idea-n
 - Still open: which realtime model (`gpt-realtime-2.1-mini`, `gemini-3.8-live`, `gpt-live-1`) → voice spike (Q-VOICE).
 - Agent behaviour ("hybrid", team's words): phase 1 = advisor role with predetermined questions to break the ice and
   fill the video profile; phase 2 = connected to the Sherpas context, freer to reason, without hallucinating.
-  Context management design in progress (brainstorm 16/11).
+  **Sherpas context = only the case data from the MCP (same as `cases/`). Inventing any figure or fact is strictly
+  forbidden** (team, 16/11). Design draft: `docs/superpowers/specs/2026-11-16-voice-agent-design.md`.
 
 ## D17 · The conversation profile — DECIDED (team, via Dani, 16/11)
 - What Sherpy learns in phase 1 is saved as a **JSON profile file per family on the backend** (git-ignored).
