@@ -17,6 +17,7 @@ export class CaseSourceError extends Error {
 //  - get_case persona without section: raw Markdown text (NOT JSON, starts with "# Household Persona")
 function extractText(res) {
   const text = res?.content?.[0]?.text;
+  if (res?.isError) throw new CaseSourceError(`MCP tool error: ${typeof text === "string" ? text : "(no text)"}`);
   if (typeof text !== "string") throw new CaseSourceError("MCP response has no text content");
   return text;
 }

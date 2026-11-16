@@ -64,3 +64,8 @@ test("listCaseIds returns case ids", async () => {
   const src = createCaseSource({ callTool });
   assert.deepEqual(await src.listCaseIds(), ["daniel-emily-johnson", "michael-carter"]);
 });
+
+test("getPart throws CaseSourceError when the MCP reply has isError", async () => {
+  const src = createCaseSource({ callTool: async () => ({ isError: true, content: [{ text: "case not found" }] }) });
+  await assert.rejects(src.getPart("x", "persona"), CaseSourceError);
+});
