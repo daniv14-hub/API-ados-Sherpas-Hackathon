@@ -30,12 +30,23 @@
 
 ## Last Claude Code session
 (Claude Code updates this block before ending each session.)
-- 15/11: brainstorm produced the flow-v1 wireframe (rejected, see above). No code written.
-- 16/11: mascot Sherpy approved (D15, `assets/mascot/sherpy.svg`). Voice agent designed (D16–D18, spec in
-  `docs/superpowers/specs/`) and built on branch `feat/sherpy-voice-agent` (not pushed, not merged): `agent/` Node
-  backend + page, Gemini (`gemini-3.8-live`) via the proxy, data via the MCP, 77 tests green, every task reviewed.
-  Findings: `gpt-realtime-2.1-mini` returns `expired_secret_key` on the proxy (tell Sherpas); the proxy ignores a
-  mid-session `session.update`, so one session covers both phases (D18).
-- Half-done: plan Task 8 needs the team: live voice test with the Johnsons, grounding check on its transcript,
-  `/security-review`, README "Run Sherpy", screenshot. Then merge decision.
-- Needs from the desktop Claude: close Q-MASCOT and Q-VOICE in `open-questions.md`; D15–D18 are in `decisions.md`.
+- 15/11: flow-v1 wireframe (rejected). No code.
+- 16/11 (long session): mascot **Sherpy** approved (D15). Voice agent designed and built on branch
+  **`feat/sherpy-voice-agent`** (not pushed, not merged; 96 tests): `agent/` Node server + test page, Gemini
+  `gemini-3.8-live` with voice **Charon**, case data via the MCP. Decisions D16–D19 in `decisions.md`.
+  - Two live tests by the team. 1st: "a disaster" → fixed: phantom "¿Qué?" turns were Gemini transcribing breaths and
+    coughs (speech gate in the page), Spanish start (Sherpy now greets first in English), robotic voice (Charon).
+  - D19: natural conversation with an agenda, mediation (goal, worry, risk), confirm before saving, closing line
+    "I've got everything I need. I'm putting together your video now." + `finish_conversation` → page shows a video
+    placeholder and the paid voice session closes. Plan questions move to after the video.
+  - 2nd live test: "ya no es una mierda". Fixed after it: closing line was cut, stuck on "both", saved a guessed
+    value, re-greeted. **Closing-line fix is only unit-tested: check it in the next live test.**
+- How to run: `cd agent && npm start` → http://localhost:5173 (must be `localhost`), headphones. A completed
+  profile makes the next session start in Q&A mode: move `data/profiles/<case>.json` to `data/archive/` to restart.
+  Synthetic full conversation: `node scripts/e2e-conversation.mjs` with the server running (~$0.50 per run).
+- Spend: **$2.39 of $50** (each 5-min conversation ≈ $0.50). MCP token taken 16/11 ~20:30 → expires ~19/11 20:30.
+  `gpt-realtime-2.1-mini` returns `expired_secret_key` on the proxy: tell Sherpas in `#dudas-reto-mcp`.
+- Next, in order: (1) live test of the latest fixes; (2) conversation screen UI proposals (team said: only once the
+  agent works); (3) the video (D10, D14) built from `data/profiles/` + persona; (4) plan Task 8: `/security-review`,
+  README "Run Sherpy", screenshot; (5) merge decision for the branch.
+- Needs from the desktop Claude: close Q-MASCOT and Q-VOICE in `open-questions.md`; D15–D19 are in `decisions.md`.
