@@ -11,7 +11,7 @@ const joinNames = (names) => (names.length <= 2 ? names.join(' and ') : `${names
 const lowerFirst = (s) => s.charAt(0).toLowerCase() + s.slice(1);
 
 // One adult: their style. Couple with the same style: that style. Different or unknown: mixed.
-function styleOf(names, profile) {
+export function styleOf(names, profile) {
   const set = new Set();
   for (const n of names) {
     const s = profile.people?.[n]?.style;
