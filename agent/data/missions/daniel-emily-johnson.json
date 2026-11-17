@@ -1,0 +1,685 @@
+{
+  "caseId": "daniel-emily-johnson",
+  "order": [
+    "M1",
+    "M2",
+    "M3",
+    "M5",
+    "M4",
+    "M6",
+    "M7",
+    "M8"
+  ],
+  "missions": [
+    {
+      "id": "M1",
+      "title": "Protect the family: life cover",
+      "kind": "individual",
+      "phase": "first",
+      "effort": "low",
+      "moveTitle": "Raise mortality coverage",
+      "scoreNote": "This is the plan's biggest single score move.",
+      "facts": [
+        {
+          "label": "Daniel's life cover today (whole life)",
+          "value": 250000,
+          "fmt": "usd",
+          "src": "FH: key_metrics.ratios.lifeInsurance.clientCoverage"
+        },
+        {
+          "label": "Recommended for Daniel, from",
+          "value": 1600000,
+          "fmt": "usd",
+          "src": "FH: key_metrics.ratios.lifeInsurance.recommendedClientMinCoverage"
+        },
+        {
+          "label": "Recommended for Daniel, to",
+          "value": 2400000,
+          "fmt": "usd",
+          "src": "FH: key_metrics.ratios.lifeInsurance.recommendedClientMaxCoverage"
+        },
+        {
+          "label": "Emily's life cover today (whole life)",
+          "value": 200000,
+          "fmt": "usd",
+          "src": "FH: key_metrics.ratios.lifeInsurance.coClientCoverage"
+        },
+        {
+          "label": "Recommended for Emily, from",
+          "value": 1200000,
+          "fmt": "usd",
+          "src": "FH: key_metrics.ratios.lifeInsurance.recommendedCoClientMinCoverage"
+        },
+        {
+          "label": "Recommended for Emily, to",
+          "value": 1800000,
+          "fmt": "usd",
+          "src": "FH: key_metrics.ratios.lifeInsurance.recommendedCoClientMaxCoverage"
+        },
+        {
+          "label": "Household cover after the plan's move",
+          "value": 1616000,
+          "fmt": "usd",
+          "src": "FH: score.top_moves[0].target_amount"
+        },
+        {
+          "label": "Daniel's income at risk",
+          "value": 160000,
+          "fmt": "usd",
+          "src": "FH: key_metrics.ratios.lifeInsurance.clientEarnedIncome"
+        },
+        {
+          "label": "Emily's income at risk",
+          "value": 120000,
+          "fmt": "usd",
+          "src": "FH: key_metrics.ratios.lifeInsurance.coClientEarnedIncome"
+        }
+      ],
+      "steps": [
+        {
+          "id": "M1-1",
+          "type": "learn",
+          "owner": "together",
+          "title": "See how far your cover is from the plan's range",
+          "body": "Each of you has some life cover today, and it sits well below the range the plan recommends for you. If one income stopped, the other person would carry the whole household. Look at your own range, not a share of the household total.",
+          "kit": null
+        },
+        {
+          "id": "M1-2",
+          "type": "prepare",
+          "owner": "each",
+          "title": "Find your current life policy",
+          "body": "Before you ask for any quote, know exactly what you have now: who the insurer is, how much it pays out and what type of policy it is.",
+          "kit": "Where to look: a letter or email from the insurer, your employer's benefits portal, or the policy documents in your files. Write down three things: the insurer, the amount, and the type of policy."
+        },
+        {
+          "id": "M1-3",
+          "type": "act",
+          "owner": "each",
+          "title": "Ask for a quote inside your recommended range",
+          "body": "Contact an insurer or an independent agent and ask for a quote for an amount inside your own range. The plan does not name a product or a price, so these quotes are your first real numbers.",
+          "kit": "What they will usually ask: your age, your health, your income, the amount of cover and how long you want it to last. Compare two or three quotes. For each one, ask what the monthly cost is, what is excluded, and whether the price can change over time."
+        },
+        {
+          "id": "M1-4",
+          "type": "close",
+          "owner": "each",
+          "title": "Choose a policy and apply",
+          "body": "Pick the quote that fits you and send the application. Tap \"I did it\" when you have applied. That is the checkpoint.",
+          "kit": null
+        }
+      ],
+      "adviceRefs": [
+        "S1:summary_recommendations:0",
+        "S2:recommendations_main:0"
+      ]
+    },
+    {
+      "id": "M2",
+      "title": "Shield what you've built: umbrella cover",
+      "kind": "joint",
+      "phase": "first",
+      "effort": "low",
+      "moveTitle": "Add umbrella cover",
+      "scoreNote": "It lifts the score a little alone, and more together with life cover.",
+      "facts": [
+        {
+          "label": "Recommended umbrella cover (you have none)",
+          "value": 1000000,
+          "fmt": "usd",
+          "src": "FH: key_metrics.ratios.umbrella.recommendedCoverage"
+        },
+        {
+          "label": "Home and car a claim could reach",
+          "value": 785000,
+          "fmt": "usd",
+          "src": "FH: key_metrics.protection.umbrellaInsurance.assetExposed.assetExposedSummary[3][2]"
+        },
+        {
+          "label": "Cash and investments a claim could reach",
+          "value": 344000,
+          "fmt": "usd",
+          "src": "FH: key_metrics.protection.umbrellaInsurance.assetExposed.totalLiquidAssets"
+        },
+        {
+          "label": "Price of umbrella cover",
+          "value": "Not in the plan",
+          "fmt": "text",
+          "src": "FH: narrative.protection_umbrella_short_observations",
+          "verify": "exists"
+        }
+      ],
+      "steps": [
+        {
+          "id": "M2-1",
+          "type": "learn",
+          "owner": "together",
+          "title": "See what a large claim could reach",
+          "body": "Without an umbrella, one large liability claim could reach your home, your car, and the cash and investments you hold. The plan recommends an umbrella policy on top of your home and auto cover.",
+          "kit": null
+        },
+        {
+          "id": "M2-2",
+          "type": "prepare",
+          "owner": "together",
+          "title": "Find your home and auto policies",
+          "body": "The plan flags your home and your car as not insured. That may only mean details are missing in the data. An umbrella sits on top of those policies, so confirm what you already have.",
+          "kit": "Where to look: your insurer's app or website, or last year's renewal letters. Write down the insurer and the liability limits on each policy."
+        },
+        {
+          "id": "M2-3",
+          "type": "act",
+          "owner": "together",
+          "title": "Ask for an umbrella quote",
+          "body": "The plan has no price for umbrella cover, so this quote is the first real number you will see.",
+          "kit": "Start with the insurer that already covers your home and car. Ask for an umbrella quote at the amount the plan recommends. They will usually ask for your current liability limits and for details of your household and vehicles."
+        },
+        {
+          "id": "M2-4",
+          "type": "close",
+          "owner": "together",
+          "title": "Sign and put it in place",
+          "body": "When you are happy with the quote, sign the policy. Tap \"I did it\" once it is active.",
+          "kit": null
+        }
+      ],
+      "adviceRefs": [
+        "S1:summary_recommendations:0",
+        "S2:recommendations_main:1"
+      ]
+    },
+    {
+      "id": "M3",
+      "title": "Decide together where your free cash flow goes",
+      "kind": "joint",
+      "phase": "decision",
+      "effort": null,
+      "moveTitle": null,
+      "scoreNote": "This is a decision, not a score move. It sets the order of the next missions.",
+      "facts": [
+        {
+          "label": "Free cash flow per year",
+          "value": 15032,
+          "fmt": "usd",
+          "src": "FH: key_metrics.cashflowStatement.freeCashflow.total"
+        },
+        {
+          "label": "Cash reserve gap",
+          "value": 92360,
+          "fmt": "usd",
+          "src": "FH: key_metrics.ratios.emergencyFund.shortfallToAdjustedMin"
+        },
+        {
+          "label": "Extra retirement saving the plan calls for, per year",
+          "value": 34165,
+          "fmt": "usd",
+          "src": "FH: key_metrics.ratios.retirementSavings.requiredExtraSavings"
+        },
+        {
+          "label": "Credit card balance",
+          "value": 18000,
+          "fmt": "usd",
+          "src": "FH: profile.liabilities[0].balance"
+        },
+        {
+          "label": "Extra college saving needed in the first year",
+          "value": 1928,
+          "fmt": "usd",
+          "src": "FH: key_metrics.facts.education.extraYearlySaving.value"
+        },
+        {
+          "label": "Mortgage payment per month",
+          "value": 4100,
+          "fmt": "usd",
+          "src": "FH: profile.liabilities[2].monthly_payment"
+        }
+      ],
+      "steps": [
+        {
+          "id": "M3-1",
+          "type": "learn",
+          "owner": "together",
+          "title": "See the four needs that share the same money",
+          "body": "Protection, the cash reserve, retirement saving and the college fund all draw on the same yearly free cash flow, and the mortgage payment has to fit alongside them. The plan says its data does not settle which comes first, so it is your choice.",
+          "kit": null
+        },
+        {
+          "id": "M3-2",
+          "type": "decide",
+          "owner": "each",
+          "title": "Put the needs in your own order",
+          "body": "Each of you, on your own, puts the needs in the order you would choose. It is fine if your orders differ: that is the conversation to have next.",
+          "kit": null
+        },
+        {
+          "id": "M3-3",
+          "type": "decide",
+          "owner": "together",
+          "title": "Agree one order, and optionally an amount for each",
+          "body": "Compare your orders and agree one. If you like, also decide how much of the yearly free cash flow goes to each need. Any amount you pick is your own number, not the plan's.",
+          "kit": "Have the plan's facts side by side while you talk: the free cash flow, the cash gap, the retirement need, the card balance and the college need. The plan itself suggests taking small, clear steps rather than everything at once."
+        }
+      ],
+      "adviceRefs": [
+        "S1:summary_recommendations:4",
+        "S2:recommendations_main:4",
+        "S3:retirement_what_to_look_into:0",
+        "S3:debt_what_to_look_into:0"
+      ]
+    },
+    {
+      "id": "M5",
+      "title": "Build your cushion: cash reserve",
+      "kind": "joint",
+      "phase": "competing",
+      "effort": null,
+      "moveTitle": null,
+      "scoreNote": "It doesn't move the Sherpas score. Its effect shows in your cash numbers.",
+      "facts": [
+        {
+          "label": "Accessible cash today",
+          "value": 19000,
+          "fmt": "usd",
+          "src": "FH: key_metrics.facts.cash.accessibleCash.value"
+        },
+        {
+          "label": "Months of essential expenses it covers",
+          "value": 1.4,
+          "fmt": "months",
+          "src": "FH: key_metrics.facts.cash.monthsCovered.value"
+        },
+        {
+          "label": "Cash target, from (reserve plus near-term goals)",
+          "value": 111360,
+          "fmt": "usd",
+          "src": "FH: key_metrics.facts.cash.totalCashNeeded.min"
+        },
+        {
+          "label": "Cash target, to",
+          "value": 124718,
+          "fmt": "usd",
+          "src": "FH: key_metrics.facts.cash.totalCashNeeded.max"
+        },
+        {
+          "label": "Gap",
+          "value": 92360,
+          "fmt": "usd",
+          "src": "FH: key_metrics.ratios.emergencyFund.shortfallToAdjustedMin"
+        },
+        {
+          "label": "Vacation payment included in the target (January 2027)",
+          "value": 4500,
+          "fmt": "usd",
+          "src": "FH: key_metrics.facts.cash.nearTermGoals[0].value"
+        }
+      ],
+      "steps": [
+        {
+          "id": "M5-1",
+          "type": "learn",
+          "owner": "together",
+          "title": "See what the cushion is for",
+          "body": "A cash reserve lets you handle a lost paycheck or a big bill without selling investments at a bad time. Your accessible cash today is far below the plan's target. The plan says closing the gap will take time, so steady progress is the goal.",
+          "kit": null
+        },
+        {
+          "id": "M5-2",
+          "type": "act",
+          "owner": "together",
+          "title": "Set up an automatic monthly transfer to savings",
+          "body": "Choose the monthly amount you agreed in the cash flow decision, and set up a transfer that moves it to savings on its own.",
+          "kit": "In your bank app, look for \"transfers\" or \"recurring transfers\". Pick the source account, the savings account, the amount and a day just after payday. Have at hand: both account names and the amount you agreed."
+        },
+        {
+          "id": "M5-3",
+          "type": "close",
+          "owner": "together",
+          "title": "Make the first transfer",
+          "body": "Confirm the first transfer went through. Later, you can type in your savings balance at check-ins and compare it with the plan's target.",
+          "kit": null
+        }
+      ],
+      "adviceRefs": [
+        "S1:summary_recommendations:1",
+        "S2:recommendations_main:2",
+        "S3:savings_what_to_look_into:0"
+      ]
+    },
+    {
+      "id": "M4",
+      "title": "Start paying your future selves: retirement saving",
+      "kind": "mixed",
+      "phase": "competing",
+      "effort": "medium",
+      "moveTitle": "Raise annual savings",
+      "scoreNote": "On its own it adds a little. With the two protection moves the combined score stays the same.",
+      "facts": [
+        {
+          "label": "Going into your 401(k)s today",
+          "value": 0,
+          "fmt": "usd",
+          "src": "IA: key_metrics.savingsAndContributions.taxOpportunityCheck.annualTaxSavingsByBucket[3][2]"
+        },
+        {
+          "label": "Each of you can contribute per year",
+          "value": 24500,
+          "fmt": "usd",
+          "src": "FH: key_metrics.assetsAndInvestments.contributions.employerPlanContributions[1][1]"
+        },
+        {
+          "label": "Extra saving the plan calls for, per year",
+          "value": 34165,
+          "fmt": "usd",
+          "src": "FH: key_metrics.ratios.retirementSavings.requiredExtraSavings"
+        },
+        {
+          "label": "Retirement gap (today's dollars)",
+          "value": 1427456,
+          "fmt": "usd",
+          "src": "FH: key_metrics.ratios.retirementSavings.planningGapAtRetirementAgeInTodaysDollars"
+        },
+        {
+          "label": "Tax it could save per year if both of you contribute in full",
+          "value": 11760,
+          "fmt": "usd",
+          "src": "IA: key_metrics.savingsAndContributions.taxOpportunityCheck.annualTaxSavingsByBucket[3][5]"
+        },
+        {
+          "label": "Employer match",
+          "value": "None recorded",
+          "fmt": "text",
+          "src": [
+            "FH: key_metrics.assetsAndInvestments.matchGapAnalysis[0].matchPolicyConfigured",
+            "FH: key_metrics.assetsAndInvestments.matchGapAnalysis[1].matchPolicyConfigured"
+          ],
+          "verify": "exists"
+        },
+        {
+          "label": "HSA: most you could put in per year, if eligible",
+          "value": 8750,
+          "fmt": "usd",
+          "src": "FH: key_metrics.assetsAndInvestments.contributions.hsaContributions.maxContributions"
+        }
+      ],
+      "steps": [
+        {
+          "id": "M4-1",
+          "type": "learn",
+          "owner": "together",
+          "title": "See what goes in today and what could",
+          "body": "Right now nothing goes into your 401(k)s. Each of you could contribute up to the yearly limit, and the plan calls for more saving than your free cash flow covers today. No employer match is recorded, but the plan flags that as unconfirmed.",
+          "kit": null
+        },
+        {
+          "id": "M4-2",
+          "type": "prepare",
+          "owner": "each",
+          "title": "Ask HR about the match and the HSA",
+          "body": "Send your HR team one short email. You need two answers: does the company offer a 401(k) match, and does your health plan qualify for an HSA.",
+          "kit": "Hi, I'd like to start contributing to my 401(k). Could you tell me first whether the company offers a match and how it works, and second whether my health plan is eligible for an HSA? Thanks, {name}."
+        },
+        {
+          "id": "M4-3",
+          "type": "act",
+          "owner": "each",
+          "title": "Set your 401(k) contribution",
+          "body": "In your employer's portal, set the amount you contribute from each paycheck. Use the amount you agreed in the cash flow decision.",
+          "kit": "It is usually in the benefits or retirement section of the employer portal. Have at hand: your login, the amount you agreed, and the answer from HR about the match."
+        },
+        {
+          "id": "M4-4",
+          "type": "act",
+          "owner": "each",
+          "title": "If HR said yes, start your HSA",
+          "body": "Only do this if HR confirmed your health plan qualifies. The plan calls the HSA a secondary step, to come after the bigger priorities, so it stays last.",
+          "kit": null
+        }
+      ],
+      "adviceRefs": [
+        "S1:summary_recommendations:2",
+        "S2:recommendations_main:3",
+        "S3:retirement_what_to_look_into:0",
+        "S3:assets_what_to_look_into:0",
+        "S3:savings_what_to_look_into:0",
+        "S3:portfolio_today_also_meaningful:0"
+      ]
+    },
+    {
+      "id": "M6",
+      "title": "Tame the credit card",
+      "kind": "joint",
+      "phase": "competing",
+      "effort": null,
+      "moveTitle": null,
+      "scoreNote": "It doesn't move the Sherpas score. It shows in how much interest you pay.",
+      "facts": [
+        {
+          "label": "Balance",
+          "value": 18000,
+          "fmt": "usd",
+          "src": "FH: profile.liabilities[0].balance"
+        },
+        {
+          "label": "Interest rate",
+          "value": 0.249,
+          "fmt": "pct",
+          "src": "FH: profile.liabilities[0].interest_rate"
+        },
+        {
+          "label": "Monthly payment",
+          "value": 450,
+          "fmt": "usd",
+          "src": "FH: profile.liabilities[0].monthly_payment"
+        },
+        {
+          "label": "Part of each payment that is interest, at today's balance",
+          "value": 374,
+          "fmt": "usd",
+          "src": "FH: key_metrics.ratios.creditCardDebt.paymentsEqualToInterest"
+        },
+        {
+          "label": "Paid off at the current payment",
+          "value": "2034-01",
+          "fmt": "date",
+          "src": "FH: key_metrics.ratios.creditCardDebt.ccPayoffDate"
+        }
+      ],
+      "steps": [
+        {
+          "id": "M6-1",
+          "type": "learn",
+          "owner": "together",
+          "title": "See what the card costs you",
+          "body": "This is your costliest debt. A large part of every payment goes to interest, not to the balance. At today's payment the plan shows when it would be paid off.",
+          "kit": null
+        },
+        {
+          "id": "M6-2",
+          "type": "decide",
+          "owner": "together",
+          "title": "Decide whether a higher payment fits",
+          "body": "Look at what you agreed in the cash flow decision and decide whether a bigger monthly payment fits. The plan does not compute a new payoff date, so we do not show one.",
+          "kit": null
+        },
+        {
+          "id": "M6-3",
+          "type": "act",
+          "owner": "Daniel",
+          "title": "Change the autopay amount",
+          "body": "The card is Daniel's. Change the automatic payment to the amount you decided.",
+          "kit": "In the card's app or website, look for \"autopay\" or \"payment settings\". Pick a fixed amount and enter the new payment. Have at hand: your login and the amount you decided."
+        }
+      ],
+      "adviceRefs": [
+        "S1:summary_recommendations:3",
+        "S3:debt_what_to_look_into:0"
+      ]
+    },
+    {
+      "id": "M7",
+      "title": "College for Oliver and Sophia: the college savings plan",
+      "kind": "joint",
+      "phase": "competing",
+      "effort": null,
+      "moveTitle": null,
+      "scoreNote": "It doesn't move the Sherpas score. It shows in the college funding gap.",
+      "facts": [
+        {
+          "label": "529 balance",
+          "value": 30000,
+          "fmt": "usd",
+          "src": "FH: profile.accounts[4].balance"
+        },
+        {
+          "label": "Going in per year",
+          "value": 8000,
+          "fmt": "usd",
+          "src": "FH: profile.accounts[4].yearly_contribution_total"
+        },
+        {
+          "label": "Cost per child",
+          "value": 60000,
+          "fmt": "usd",
+          "src": "FH: key_metrics.facts.education.totalCostPerGoal[0].value"
+        },
+        {
+          "label": "College funding gap",
+          "value": 106552,
+          "fmt": "usd",
+          "src": "FH: key_metrics.facts.education.fundingGap.value"
+        },
+        {
+          "label": "Extra saving needed in the first year (it rises each year)",
+          "value": 1928,
+          "fmt": "usd",
+          "src": "FH: key_metrics.facts.education.extraYearlySaving.value"
+        },
+        {
+          "label": "Oliver starts",
+          "value": "2033-08",
+          "fmt": "date",
+          "src": "FH: goals.chartGoals[1].date"
+        },
+        {
+          "label": "Sophia starts",
+          "value": "2035-08",
+          "fmt": "date",
+          "src": "FH: goals.chartGoals[2].date"
+        }
+      ],
+      "steps": [
+        {
+          "id": "M7-1",
+          "type": "learn",
+          "owner": "together",
+          "title": "See where the college fund stands",
+          "body": "You already save in a college savings plan. The plan shows what is saved, what goes in each year, the gap that remains and when each child starts.",
+          "kit": null
+        },
+        {
+          "id": "M7-2",
+          "type": "act",
+          "owner": "Emily",
+          "title": "Adjust the college savings contribution",
+          "body": "The college savings plan is Emily's. Change the yearly contribution to the amount you agreed in the cash flow decision.",
+          "kit": "In the plan's portal, look for \"contributions\" or \"automatic investments\". Change the amount and the schedule. Have at hand: your login and the amount you agreed."
+        }
+      ],
+      "adviceRefs": [
+        "S3:assets_what_to_look_into:0"
+      ]
+    },
+    {
+      "id": "M8",
+      "title": "Invest toward your target mix",
+      "kind": "individual",
+      "phase": "last",
+      "effort": null,
+      "moveTitle": null,
+      "scoreNote": "It doesn't move the Sherpas score. It shows in how your investments are spread.",
+      "facts": [
+        {
+          "label": "Household stocks today",
+          "value": 0.5435,
+          "fmt": "pct",
+          "src": "IA: analysis.summary.assetAllocation.currentEF.equity"
+        },
+        {
+          "label": "Household stocks, plan's target",
+          "value": 0.663,
+          "fmt": "pct",
+          "src": "IA: analysis.summary.assetAllocation.targetEF.equity"
+        },
+        {
+          "label": "Plan flag on Daniel's 401(k) mix (Active means worth a look)",
+          "value": "Active",
+          "fmt": "text",
+          "src": "IA: key_metrics.allocationBenchmarkAnalysis.accounts[2].allocationSeverity"
+        },
+        {
+          "label": "Plan flag on Emily's 401(k) mix (None means on target)",
+          "value": "None",
+          "fmt": "text",
+          "src": "IA: key_metrics.allocationBenchmarkAnalysis.accounts[3].allocationSeverity"
+        }
+      ],
+      "steps": [
+        {
+          "id": "M8-1",
+          "type": "learn",
+          "owner": "together",
+          "title": "See your mix next to the plan's target",
+          "body": "The plan compares the mix of stocks and bonds you hold with the mix it recommends, and shows how both behaved in past markets. Those are past results, not a promise. Emily's 401(k) is on target; Daniel's is the account to look at.",
+          "kit": null
+        },
+        {
+          "id": "M8-2",
+          "type": "prepare",
+          "owner": "Daniel",
+          "title": "Get ready to review the mix with your advisor",
+          "body": "The report presents this as a proposal to review with your advisor, not an instruction.",
+          "kit": "Bring to that conversation: the plan's current and target mix, the account statement for your 401(k), and the risk profile you chose."
+        },
+        {
+          "id": "M8-3",
+          "type": "act",
+          "owner": "Daniel",
+          "title": "Change the fund mix in your 401(k) portal",
+          "body": "After the review, change the fund mix in your 401(k) portal to the mix you settled on.",
+          "kit": null
+        }
+      ],
+      "adviceRefs": [
+        "S2:assetAllocation:0",
+        "S2:recommendations_scenarios:0",
+        "S2:recommendations_scenarios:1",
+        "S2:recommendations_scenarios:2"
+      ]
+    }
+  ],
+  "keepInView": [
+    {
+      "id": "K1",
+      "title": "Your household leans on two paychecks",
+      "body": "Your salaries are a large share of your net worth. The plan says to keep this in view, with no action now. It is one more reason protection comes first.",
+      "facts": [
+        {
+          "label": "Salaries as a share of net worth",
+          "value": 0.5479,
+          "fmt": "pct",
+          "src": "IA: key_metrics.concentrationAndDiversification.employerConcentration[3][2]"
+        }
+      ],
+      "adviceRefs": [
+        "S2:recommendations_main:5"
+      ]
+    },
+    {
+      "id": "K2",
+      "title": "Long-term care is not planned for",
+      "body": "The plan notes that long-term care costs are not part of the numbers. There is nothing to do now. It is a caveat to remember.",
+      "facts": [],
+      "adviceRefs": []
+    }
+  ]
+}
