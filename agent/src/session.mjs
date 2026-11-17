@@ -45,7 +45,7 @@ function parse(raw) {
   }
 }
 
-export async function createSession({ browser, upstream, caseId, source, profilesDir, transcriptsDir, log = console, finishGraceMs = 20000 }) {
+export async function createSession({ browser, upstream, caseId, source, profilesDir, transcriptsDir, log = console, finishGraceMs = 20000, onFinished }) {
   const startISO = new Date().toISOString();
   const transcriptFile = path.join(transcriptsDir, `${caseId}-${startISO.replace(/[:.]/g, '-')}.jsonl`);
 
@@ -53,6 +53,7 @@ export async function createSession({ browser, upstream, caseId, source, profile
   let sentSessionUpdate = false;
   let kickedOff = false;
   let ended = false;
+  let notifiedFinished = false;
   const pending = []; // page messages waiting for case data and for the upstream socket to open
   const state = { phase: 1, brief: '', options: null, profile: null };
   let toolChain = Promise.resolve(); // tool calls run one at a time so profile updates never race
@@ -167,6 +168,14 @@ export async function createSession({ browser, upstream, caseId, source, profile
       // hangs up; if it doesn't, we close the paid voice session ourselves after a grace period.
       if (isOpen(browser)) browser.send(JSON.stringify({ type: 'sherpy.conversation_done' }));
       log.log(`[${caseId}] conversation finished`);
+      if (!notifiedFinished) {
+        notifiedFinished = true;
+        try {
+          onFinished?.(caseId); // e.g. start building the video; must never break the session
+        } catch (e) {
+          log.error(`[${caseId}] onFinished failed:`, e?.message);
+        }
+      }
       setTimeout(() => closeIfOpen(upstream), finishGraceMs).unref?.();
       return;
     }

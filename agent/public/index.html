@@ -274,13 +274,13 @@ function onEvent(ev) {
   }
   if (t === "session.created" || t === "session.updated") setState("connected, talk whenever you like");
   if (t === "sherpy.conversation_done") {
-    // D19: let the closing line finish playing, then hang up and show where the video will go.
+    // D19: let the closing line finish playing, then hang up and go to the video page.
     finished = true; setState("conversation finished");
     const wait = setInterval(() => {
       if (audioPending()) return;
       clearInterval(wait);
-      $("videoSlot").hidden = false;
       ws?.close();
+      location.href = "/video.html?case=" + encodeURIComponent($("case").value);
     }, 200);
     return;
   }

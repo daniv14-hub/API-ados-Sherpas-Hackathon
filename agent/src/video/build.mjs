@@ -40,7 +40,7 @@ export function createVideoBuilder({ source, profilesDir, videosDir, complete, t
     const dir = path.join(videosDir, `${caseId}-${hashOf(profile, voice)}`);
     const file = path.join(dir, 'video.json');
     try {
-      return JSON.parse(await fs.readFile(file, 'utf8'));
+      return { video: JSON.parse(await fs.readFile(file, 'utf8')), dir };
     } catch { /* not cached yet */ }
 
     const [fh, ia, personaMd] = await Promise.all(
@@ -71,17 +71,21 @@ export function createVideoBuilder({ source, profilesDir, videosDir, complete, t
       await fs.writeFile(tmp, JSON.stringify(video, null, 2));
       await fs.rename(tmp, file); // last, so video.json never points at missing audio
     }
-    return video;
+    return { video, dir };
+  }
+
+  // Server-side only: `dir` holds the scene audio files and must never be sent to the browser.
+  function locate(caseId) {
+    if (!isSafeCaseId(caseId)) return Promise.reject(new Error(`unsafe caseId: ${caseId}`));
+    if (!inflight.has(caseId)) {
+      const p = build(caseId).finally(() => inflight.delete(caseId));
+      inflight.set(caseId, p);
+    }
+    return inflight.get(caseId);
   }
 
   return {
-    get(caseId) {
-      if (!isSafeCaseId(caseId)) return Promise.reject(new Error(`unsafe caseId: ${caseId}`));
-      if (!inflight.has(caseId)) {
-        const p = build(caseId).finally(() => inflight.delete(caseId));
-        inflight.set(caseId, p);
-      }
-      return inflight.get(caseId);
-    },
+    locate,
+    get: (caseId) => locate(caseId).then((r) => r.video),
   };
 }

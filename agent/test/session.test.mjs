@@ -467,3 +467,19 @@ test('closes upstream after the finish grace period', async () => {
   upstream.emit('message', Buffer.from((functionCallDone('finish_conversation', {}, 'call_9'))));
   await until(() => upstream.closed);
 });
+
+test('finish_conversation success calls onFinished once with the case id', async () => {
+  const profilesDir = await tmp('profiles-');
+  await completeProfileButDetail(profilesDir);
+  const calls = [];
+  const browser = new FakeSocket();
+  const upstream = new FakeSocket();
+  await createSession({
+    browser, upstream, caseId: ID, source: fakeSource(), profilesDir, transcriptsDir: await tmp('transcripts-'), log,
+    finishGraceMs: 5000, onFinished: (id) => { calls.push(id); throw new Error('boom'); },
+  });
+  upstream.emit('message', Buffer.from((functionCallDone('save_answer', { question: 'detail_level', person: 'household', value: 'low' }))));
+  upstream.emit('message', Buffer.from((functionCallDone('finish_conversation', {}, 'call_9'))));
+  await until(() => browser.json().some((e) => e.type === 'sherpy.conversation_done'));
+  assert.deepEqual(calls, [ID]);
+});

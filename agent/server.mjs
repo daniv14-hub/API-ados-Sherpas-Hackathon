@@ -5,13 +5,17 @@
 // Secrets (TEAM_KEY, MCP_TOKEN) stay in this process. The page never sees them or the case data;
 // it only gets audio, transcripts and the relayed realtime events.
 import { createServer } from 'node:http';
-import { readFileSync } from 'node:fs';
+import { readFileSync, createReadStream } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WebSocket, WebSocketServer } from 'ws';
 import { connectMcp, createCaseSource, withReconnect } from './src/case-source.mjs';
 import { createSession, isAllowedCase } from './src/session.mjs';
 import { isAllowedOrigin } from './src/origin.mjs';
+import { createVideoBuilder } from './src/video/build.mjs';
+import { speech } from './src/video/voice.mjs';
+import { chatComplete } from './src/video/narrate.mjs';
+import { parseVideoPath, videoView } from './src/video/routes.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(here, '..');
@@ -23,6 +27,7 @@ const PORT = Number(process.env.PORT || 5173);
 const MODEL = process.env.MODEL || 'gemini-3.8-live';
 const profilesDir = join(repo, 'data', 'profiles');
 const transcriptsDir = join(repo, 'data', 'transcripts');
+const videosDir = join(repo, 'data', 'videos');
 
 const missing = ['TEAM_KEY', 'MCP_URL', 'MCP_TOKEN'].filter((k) => !process.env[k]);
 if (missing.length) {
@@ -33,6 +38,15 @@ if (missing.length) {
 const mcp = withReconnect(() => connectMcp(MCP_URL, MCP_TOKEN));
 const source = createCaseSource(mcp);
 const caseIds = await source.listCaseIds(); // cached: the allow-list for /voice
+
+const builder = createVideoBuilder({
+  source,
+  profilesDir,
+  videosDir,
+  complete: chatComplete({ baseUrl: PROXY_URL, key: TEAM_KEY }),
+  tts: speech({ baseUrl: PROXY_URL, key: TEAM_KEY, voice: process.env.SHERPY_VOICE || 'onyx' }),
+  voice: process.env.SHERPY_VOICE || 'onyx',
+});
 
 // "daniel-emily-johnson" -> "Daniel & Emily Johnson". Built from the id only, no case data.
 function caseLabel(id) {
@@ -47,7 +61,37 @@ const files = {
   '/half-duplex.mjs': [join(here, 'public', 'half-duplex.mjs'), 'text/javascript; charset=utf-8'],
   '/tokens.css': [join(repo, 'assets', 'brand', 'tokens.css'), 'text/css; charset=utf-8'],
   '/sherpas-logo.svg': [join(repo, 'assets', 'brand', 'sherpas-logo.svg'), 'image/svg+xml'],
+  '/sherpy.svg': [join(repo, 'assets', 'mascot', 'sherpy.svg'), 'image/svg+xml'],
+  '/video.html': [join(here, 'public', 'video.html'), 'text/html; charset=utf-8'],
+  '/video-player.mjs': [join(here, 'public', 'video-player.mjs'), 'text/javascript; charset=utf-8'],
+  '/video-stage.mjs': [join(here, 'public', 'video-stage.mjs'), 'text/javascript; charset=utf-8'],
 };
+
+function sendJson(res, status, body) {
+  res.writeHead(status, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+  res.end(JSON.stringify(body));
+}
+
+async function handleVideo(res, { caseId, audio }) {
+  let built;
+  try {
+    built = await builder.locate(caseId);
+  } catch (e) {
+    if (e?.code === 'profile_incomplete') return sendJson(res, 409, { error: 'profile_incomplete' });
+    console.error(`[${caseId}] video failed: ${e?.message}`);
+    return sendJson(res, 500, { error: 'video_failed' });
+  }
+  const { video, dir } = built;
+  if (audio === null) return sendJson(res, 200, videoView(video));
+  const name = video.scenes[audio]?.audio;
+  if (!name) return res.writeHead(404).end('not found');
+  const stream = createReadStream(join(dir, name));
+  stream.on('error', () => (res.headersSent ? res.destroy() : res.writeHead(404).end('not found')));
+  stream.on('open', () => {
+    res.writeHead(200, { 'content-type': 'audio/mpeg', 'cache-control': 'no-store' });
+    stream.pipe(res);
+  });
+}
 
 const server = createServer((req, res) => {
   const pathname = new URL(req.url, 'http://localhost').pathname;
@@ -55,14 +99,17 @@ const server = createServer((req, res) => {
     res.writeHead(200, { 'content-type': 'application/json' });
     return res.end(JSON.stringify({ model: MODEL, cases: caseIds.filter((id) => isAllowedCase(id, caseIds)).map((id) => ({ id, label: caseLabel(id) })) }));
   }
+  const video = parseVideoPath(pathname, caseIds);
+  if (video) return void handleVideo(res, video);
   const file = files[pathname];
   if (!file) return res.writeHead(404).end('not found');
   try {
     const body = readFileSync(file[0]);
     res.writeHead(200, { 'content-type': file[1], 'cache-control': 'no-store' });
     res.end(body);
-  } catch {
-    res.writeHead(500).end('error');
+  } catch (e) {
+    if (e?.code === 'ENOENT') res.writeHead(404).end('not found');
+    else res.writeHead(500).end('error');
   }
 });
 
@@ -94,7 +141,10 @@ wss.on('connection', (browser, req) => {
   browser.on('error', (e) => console.log(`[${caseId}] browser error ${e.message}`));
   browser.on('close', () => console.log(`[${caseId}] session closed`));
 
-  createSession({ browser, upstream, caseId, source, profilesDir, transcriptsDir }).catch((e) => {
+  createSession({
+    browser, upstream, caseId, source, profilesDir, transcriptsDir,
+    onFinished: (id) => { builder.get(id).catch(() => {}); }, // start building while the closing line plays
+  }).catch((e) => {
     console.error(`[${caseId}] session failed:`, e?.message);
     browser.close();
     upstream.close();
