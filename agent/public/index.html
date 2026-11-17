@@ -174,12 +174,14 @@
 </div>
 <script type="module">
 import { createSpeechGate } from "/speech-gate.mjs";
+import { micMuted } from "/half-duplex.mjs";
 const $ = (id) => document.getElementById(id);
 let ws = null, ctx = null, micStream = null, micNode = null, analyser = null, MODEL = "";
 let playHead = 0, playing = [], current = null, lastReply = null, userBubble = null;
 let pttDown = false, listening = false, lvl = 0;
 let finished = false; // set when Sherpy ends the conversation (sherpy.conversation_done)
 const OPENAI = () => MODEL.startsWith("gpt-");
+const ptt = () => $("mode").value === "ptt";
 
 fetch("/config").then((r) => r.json()).then((cfg) => {
   MODEL = cfg.model;
@@ -282,7 +284,8 @@ function onEvent(ev) {
     }, 200);
     return;
   }
-  if (t === "input_audio_buffer.speech_started") { listening = true; cutReply(); }
+  // Open mic is half-duplex (half-duplex.mjs): Sherpy is never cut off, it finishes and then listens.
+  if (t === "input_audio_buffer.speech_started") { listening = true; if (ptt()) cutReply(); }
   if (t === "input_audio_buffer.speech_stopped") listening = false;
   if (t.includes("input_audio_transcription")) {
     if (!userBubble) userBubble = bubble("user");
@@ -308,7 +311,7 @@ function onEvent(ev) {
   if (t === "response.output_audio.done" || t === "response.audio.done") { if (current) current.audioDone = true; }
   if (t === "response.done" && current) {
     // Gemini through the proxy: a reply cut short by the user ends without output_audio.done.
-    if (!current.audioDone && lastReply?.seconds && lastReply.el) cutReply();
+    if (ptt() && !current.audioDone && lastReply?.seconds && lastReply.el) cutReply();
     current = null;
   }
 }
@@ -338,11 +341,13 @@ async function connect() {
     $("level").style.width = `${Math.min(100, Math.sqrt(sum / frame.length) / 32768 * 600)}%`;
     if (ws?.readyState !== 1) return;
     if (ptt && !pttDown) return; // push to talk: nothing is sent while the button is up
-    // Open mic: breaths and coughs are replaced by silence before they reach the model (speech-gate.mjs).
-    const out = ptt ? frame : gate.push(frame);
+    // Open mic: breaths and coughs are replaced by silence before they reach the model (speech-gate.mjs),
+    // and so is everything while Sherpy is speaking, so it can't hear its own voice (half-duplex.mjs).
+    const muted = !ptt && micMuted(ctx.currentTime, playHead);
+    const out = ptt ? frame : gate.push(muted ? new Int16Array(frame.length) : frame);
     // Lightweight counters to check the mic path in tests and in the console (no audio is kept).
-    const d = (window.sherpyMic ??= { frames: 0, sentVoice: 0, peak: 0 });
-    d.frames++; if (out.some((v) => v !== 0)) d.sentVoice++;
+    const d = (window.sherpyMic ??= { frames: 0, sentVoice: 0, muted: 0, peak: 0 });
+    d.frames++; if (out.some((v) => v !== 0)) d.sentVoice++; if (muted) d.muted++;
     for (let i = 0; i < frame.length; i += 16) d.peak = Math.max(d.peak, Math.abs(frame[i]));
     ws.send(JSON.stringify({ type: "input_audio_buffer.append", audio: b64(out.buffer) }));
   };
