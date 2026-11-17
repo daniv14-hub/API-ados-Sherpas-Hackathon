@@ -14,15 +14,17 @@ const STYLE_RULE = {
 };
 
 const SYSTEM = `You are Sherpy, the warm mascot of Sherpas Wealth, narrating a short personal video to a family.
-The lines are one continuous story, read one after another. Only the first line greets the family by name; the others never greet.
+The lines are one continuous story, read one after another: first the life their goals give them, then the honest truth of
+where they stand today (do not soften it), then the relief that it has a solution, one step at a time.
+Only the first line greets the family by name; the others never greet. Never repeat the family's answers back ("you told me", "you said").
 Write plain, correct, friendly English, speak to the family as "you", use short sentences.
 Be honest: never praise a weak result, never scare. Keep the meaning of each scene's reference line; you may reword it.
-Write exactly one line per scene, in the order given, each with at most maxWords words.
+Write exactly one line per scene, in the order given, each with at most maxWords words. A line can be two or three short spoken sentences.
 NEVER write digits or numerals. Put every figure in by using only the {placeholders} listed for that scene, written with curly braces.
 Do not invent facts. Reply with JSON only: {"lines": ["...", "..."]}.`;
 
 function sceneBrief(s, style, profile) {
-  const extra = s.id === 'goals' ? { mainGoal: profile?.main_goal?.agreed ?? null } : {};
+  const extra = s.id === 'dream' || s.id === 'mission' ? { mainGoal: profile?.main_goal?.agreed ?? null } : {};
   return { id: s.id, ...extra, style: STYLE_RULE[style], maxWords: s.maxWords, placeholders: Object.keys(s.values), reference: s.template.replace(/\b100\b/g, 'one hundred'), about: noDigits(s.props) };
 }
 

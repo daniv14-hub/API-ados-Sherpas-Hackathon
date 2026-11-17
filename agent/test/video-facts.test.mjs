@@ -31,3 +31,24 @@ test('money formats like the grounding check expects', () => {
   assert.equal(money(106552.38), '$106,552'); assert.equal(money(4500), '$4,500');
   assert.equal(money(1427455.89), '$1.43 million'); assert.equal(money(1000000), '$1 million');
 });
+test('v2 facts: retirement, free cash flow, cash, protection, retirement saving (Johnson)', () => {
+  const f = buildFacts(...Object.values(loadCase('daniel-emily-johnson')));
+  assert.deepEqual(f.retirement, { year: 2044, ages: { Daniel: 62, Emily: 60 } });
+  assert.equal(f.freeCashFlow, 15032.01);
+  assert.deepEqual(f.cash, { have: 19000, months: 1, minMonths: 8, maxMonths: 9 });
+  assert.deepEqual(f.protection, [{ name: 'Daniel', cover: 250000, shortfall: 1350000 }, { name: 'Emily', cover: 200000, shortfall: 1000000 }]);
+  assert.equal(f.noRetirementSaving, true);
+  assert.equal(f.retirementExtra, 34164.77);
+});
+test('v2 facts: Weah "+12" months is null; Carter has negative free cash flow and one adult', () => {
+  const weah = buildFacts(...Object.values(loadCase('timothy-melanie-weah')));
+  assert.equal(weah.cash.months, null);
+  assert.equal(weah.noRetirementSaving, false);
+  const carter = buildFacts(...Object.values(loadCase('michael-carter')));
+  assert.equal(carter.freeCashFlow, -8336);
+  assert.deepEqual(carter.retirement, { year: 2047, ages: { Michael: 58 } });
+  assert.deepEqual(carter.protection, [{ name: 'Michael', cover: 180000, shortfall: 720000 }]);
+  const lewis = buildFacts(...Object.values(loadCase('samantha-lewis')));
+  assert.deepEqual(lewis.protection, []);
+  assert.equal(lewis.noRetirementSaving, false);
+});

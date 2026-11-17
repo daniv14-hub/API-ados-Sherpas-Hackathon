@@ -30,9 +30,11 @@ function buildGoals(fh) {
       case 'COLLEGE':
         goals.push({ type: 'college', label: g.name, year: year(g.date), amount: null });
         break;
-      case 'VACATION':
-        goals.push({ type: 'vacation', label: g.name, year: year(g.date), amount: amountOf('vacation') });
+      case 'VACATION': {
+        const yearly = /every year/i.test(summary.find((s) => String(s.goalType).toLowerCase() === 'vacation')?.value ?? '');
+        goals.push({ type: 'vacation', label: g.name, year: year(g.date), amount: amountOf('vacation'), yearly });
         break;
+      }
       case 'PURCHASE': {
         const purchases = summary.filter((s) => String(s.goalType).toLowerCase() === 'purchase');
         const kind = /vehicle/i.test(g.name ?? '') ? 'VEHICLE' : 'REAL_ESTATE';
@@ -75,10 +77,40 @@ function buildConcerns(personaMd) {
   return concerns;
 }
 
+// Emergency months come as strings ("1", "+12"); only a plain number is usable.
+const monthsOrNull = (v) => (typeof v === 'number' ? num(v) : /^\d+(\.\d+)?$/.test(String(v ?? '').trim()) ? Number(v) : null);
+
+function buildCash(fh) {
+  const ef = fh.key_metrics?.ratios?.emergencyFund;
+  if (!ef) return null;
+  return { have: num(ef.emergencyFund), months: monthsOrNull(ef.emergencyFundMonths), minMonths: num(ef.minRecommendedEFMonths), maxMonths: num(ef.maxRecommendedEFMonths) };
+}
+
+// One entry per adult whose life cover falls short (cover and shortfall as the case states them).
+function buildProtection(fh, adults) {
+  const li = fh.key_metrics?.ratios?.lifeInsurance;
+  if (!li) return [];
+  const gaps = li.lifeInsuranceCoverageGapsAndExcess ?? {};
+  const rows = [
+    { person: adults.find((p) => p.role === 'client'), cover: li.clientCoverage, shortfall: gaps.clientShortfall },
+    { person: adults.find((p) => p.role === 'co-client'), cover: li.coClientCoverage, shortfall: gaps.coClientShortfall },
+  ];
+  return rows
+    .filter((r) => r.person && gapOrNull(r.shortfall) !== null)
+    .map((r) => ({ name: r.person.first_name, cover: num(r.cover), shortfall: r.shortfall }));
+}
+
+// True when the household has retirement accounts and none of them receives contributions.
+function buildNoRetirementSaving(fh) {
+  const accounts = (fh.profile?.accounts ?? []).filter((a) => /401\(?k\)?|\bIRA\b/i.test(a.name ?? ''));
+  return accounts.length > 0 && accounts.every((a) => a.yearly_contribution_total === 0);
+}
+
 export function buildFacts(fh, personaMd) {
-  const people = fh.case.household
-    .filter((p) => p.role === 'client' || p.role === 'co-client')
-    .map((p) => p.first_name);
+  const adults = fh.case.household.filter((p) => p.role === 'client' || p.role === 'co-client');
+  const people = adults.map((p) => p.first_name);
+  const retirementYears = fh.goals.chartGoals.filter((g) => g.goalType === 'RETIREMENT').map((g) => year(g.date));
+  const ages = Object.fromEntries(adults.filter((p) => num(p.retirement_age) !== null).map((p) => [p.first_name, p.retirement_age]));
 
   const s = fh.score;
   const pillars = s.pillars.map((p) => ({ name: p.pillar, points: p.points_shown_in_app, score: p.score }));
@@ -95,5 +127,11 @@ export function buildFacts(fh, personaMd) {
     combined: best ? { moves: best.moves, after: best.score_after } : null,
     firstMission: moves[0]?.title ?? null,
     concerns: buildConcerns(personaMd),
+    retirement: { year: retirementYears.length ? Math.min(...retirementYears) : null, ages },
+    freeCashFlow: num(fh.key_metrics?.cashflowStatement?.freeCashflow?.total),
+    cash: buildCash(fh),
+    protection: buildProtection(fh, adults),
+    noRetirementSaving: buildNoRetirementSaving(fh),
+    retirementExtra: num(fh.key_metrics?.ratios?.retirementSavings?.requiredExtraSavings),
   };
 }
