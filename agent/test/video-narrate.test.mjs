@@ -16,10 +16,11 @@ const good = scenes.map((s) => `Here is {${Object.keys(s.values)[0]}} for you.`)
 const run = (lines) => narrate(scenes, { complete: async () => JSON.stringify({ lines }), numberSet, profile });
 const withLine = (i, line) => good.map((g, j) => (j === i ? line : g));
 const sources = (out) => out.map((l) => l.source);
+const free = (out) => out.filter((l) => l.id !== 'act'); // act is template-only
 
 test('uses model lines with placeholders filled', async () => {
   const out = await run(good);
-  assert.ok(out.every((l) => l.source === 'model'));
+  assert.ok(free(out).every((l) => l.source === 'model'));
   assert.deepEqual(out.map((l) => l.id), scenes.map((s) => s.id));
   const k = Object.keys(scenes[1].values)[0];
   assert.equal(out[1].text, `Here is ${scenes[1].values[k]} for you.`);
@@ -42,7 +43,7 @@ test('a bad model line falls back to the template; the others stay model', async
       out = await narrate(bad, { complete: async () => JSON.stringify({ lines: withLine(1, `Here is {${k}} for you.`) }), numberSet, profile });
     } else out = await run(withLine(1, line));
     assert.equal(out[1].source, 'template', `case ${n}`);
-    assert.ok(out.filter((_, i) => i !== 1).every((l) => l.source === 'model'), `case ${n}`);
+    assert.ok(free(out.filter((_, i) => i !== 1)).every((l) => l.source === 'model'), `case ${n}`);
   }
 });
 
@@ -57,7 +58,7 @@ test('stray braces fall back to the template', async () => {
 test('a fenced JSON reply is accepted', async () => {
   const fenced = '```json\n' + JSON.stringify({ lines: good }) + '\n```';
   const out = await narrate(scenes, { complete: async () => fenced, numberSet, profile });
-  assert.ok(out.every((l) => l.source === 'model'));
+  assert.ok(free(out).every((l) => l.source === 'model'));
 });
 
 test('a throwing complete logs one warning without secrets', async () => {
@@ -127,12 +128,26 @@ test('a greeting by name is removed from every line but the first', async () => 
   const lines = good.map((g) => `Daniel and Emily, ${g.charAt(0).toLowerCase()}${g.slice(1)}`);
   const out = await run(lines);
   assert.match(out[0].text, /^Daniel and Emily, here is/);
-  for (const l of out.slice(1)) { assert.equal(l.source, 'model'); assert.match(l.text, /^Here is /); }
-  assert.ok(out.slice(1).every((l) => l.segments[0].text.startsWith('Here')));
+  for (const l of free(out.slice(1))) { assert.equal(l.source, 'model'); assert.match(l.text, /^Here is /); }
+  assert.ok(free(out.slice(1)).every((l) => l.segments[0].text.startsWith('Here')));
 });
 
 test('the prompt names the main goal for the goals scene', async () => {
   let sent;
   await narrate(scenes, { complete: async (m) => { sent = m; return '{}'; }, numberSet, profile });
   assert.match(sent.map((m) => m.content).join('\n'), /"mainGoal": "college"/);
+});
+
+test('a model line with a semicolon or a sentence over 20 words falls back to the template', async () => {
+  const long = `Here is {${Object.keys(scenes[1].values)[0]}} and ${'more words '.repeat(10)}in one breath.`;
+  const out = await run(withLine(1, long));
+  assert.equal(out[1].source, 'template');
+  const semi = await run(withLine(2, `Here is {${Object.keys(scenes[2].values)[0]}}; then more.`));
+  assert.equal(semi[2].source, 'template');
+});
+
+test('the act scene always uses its template (the model mislabelled score changes as gap changes)', async () => {
+  const i = scenes.findIndex((s) => s.id === 'act');
+  const out = await run(good);
+  assert.equal(out[i].source, 'template');
 });

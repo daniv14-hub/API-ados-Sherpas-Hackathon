@@ -19,7 +19,7 @@ where they stand today (do not soften it), then the relief that it has a solutio
 Only the first line greets the family by name; the others never greet. Never repeat the family's answers back ("you told me", "you said").
 Write plain, correct, friendly English, speak to the family as "you", use short sentences.
 Be honest: never praise a weak result, never scare. Keep the meaning of each scene's reference line; you may reword it.
-Write exactly one line per scene, in the order given, each with at most maxWords words. A line can be two or three short spoken sentences.
+Write exactly one line per scene, in the order given, each with at most maxWords words. A line can be two or three short spoken sentences, each under fifteen words. Never use semicolons.
 NEVER write digits or numerals. Put every figure in by using only the {placeholders} listed for that scene, written with curly braces.
 Do not invent facts. Reply with JSON only: {"lines": ["...", "..."]}.`;
 
@@ -47,10 +47,16 @@ function accept(scene, raw, numberSet) {
     const filled = fillLine(raw, scene.values);
     if (/[{}]/.test(filled.text)) return null;
     if (wordCount(filled.text) > scene.maxWords) return null;
+    // Spoken and captioned sentence by sentence: run-on lines (minimal effort writes them) read badly.
+    if (/;/.test(filled.text) || filled.text.split(/(?<=[.!?])\s+/).some((x) => wordCount(x) > 20)) return null;
     if (!extractMentions(filled.text).every((m) => isGrounded(m, numberSet))) return null;
     return { id: scene.id, ...filled, source: 'model' };
   } catch { return null; }
 }
+
+// Scenes whose wording must stay exact: act names which move changes which score (17/11 the model wrote
+// "cut the retirement gap from 52 to 55" for a score change).
+const TEMPLATE_ONLY = new Set(['act']);
 
 const templateLine = (s) => ({ id: s.id, ...fillLine(s.template, s.values), source: 'template' });
 
@@ -64,7 +70,7 @@ export async function narrate(scenes, { complete, numberSet, profile, log = cons
     const reply = await complete([{ role: 'system', content: SYSTEM }, { role: 'user', content: user }]);
     const lines = JSON.parse(unfence(reply))?.lines;
     if (!Array.isArray(lines) || lines.length !== scenes.length) throw new Error('reply has no matching lines array');
-    return scenes.map((s, i) => accept(s, i === 0 || typeof lines[i] !== 'string' ? lines[i] : dropGreeting(lines[i], names), numberSet) ?? templateLine(s));
+    return scenes.map((s, i) => (TEMPLATE_ONLY.has(s.id) ? null : accept(s, i === 0 || typeof lines[i] !== 'string' ? lines[i] : dropGreeting(lines[i], names), numberSet)) ?? templateLine(s));
   } catch (e) {
     log.warn(`narration fell back to templates: ${e?.message ?? e}`);
     return scenes.map(templateLine);

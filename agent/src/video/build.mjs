@@ -15,7 +15,7 @@ export class VideoError extends Error {
   }
 }
 
-const VERSION = 3; // bump when the narration logic changes, so cached videos regenerate
+const VERSION = 5; // bump when the narration logic changes, so cached videos regenerate
 const PARTIAL_TTL_MS = 5 * 60 * 1000;
 
 // Only what shapes the video goes into the hash. Narration text is generated after the hash is decided.
