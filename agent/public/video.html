@@ -22,8 +22,8 @@
   #captions { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 48px 20px; min-height: 80px; z-index: 5;
               text-align: center; font: 500 30px/1.4 var(--font-body); color: var(--brand-950);
               background: linear-gradient(to top, rgba(255,255,255,.96) 60%, rgba(255,255,255,0)); pointer-events: none; }
-  #captions .w { display: inline-block; padding: 0 6px; margin: 0 2px; border-radius: 8px; }
-  #captions .w.key { background: var(--brand-500); color: #fff; font-weight: 700; }
+  #captions .w { display: inline-block; margin: 0 .125em; border-radius: 8px; }
+  #captions .w.key { padding: 0 6px; background: var(--brand-500); color: #fff; font-weight: 700; }
   #unavailable { position: absolute; top: 14px; right: 18px; z-index: 5; padding: 6px 12px; font-size: 20px;
                  border-radius: var(--radius-pill); background: var(--gray-100); color: var(--gray-500); }
 
@@ -65,6 +65,19 @@
   @media (orientation: portrait) and (max-width: 900px) { #rotate { display: flex; } }
   body[data-state="loading"] #controls, body[data-state="message"] #controls { visibility: hidden; }
 
+  /* Phone held sideways: no header, the stage takes the full height and the controls float small over its bottom edge. */
+  @media (orientation: landscape) and (max-height: 500px) {
+    header { display: none; }
+    main { position: relative; padding: 0; }
+    #fit { border-radius: 0; border: 0; box-shadow: none; }
+    #controls { position: absolute; left: 50%; bottom: 4px; translate: -50% 0; width: min(560px, calc(100% - 16px)); z-index: 20; gap: 8px; padding: 3px 8px;
+                border-radius: var(--radius-pill); background: rgba(255,255,255,.72); box-shadow: 0 2px 10px rgba(11,15,46,.12); }
+    #controls button { font-size: 12px; padding: 4px 10px; }
+    #progress { height: 4px; }
+    #clock { font-size: 11px; min-width: 64px; }
+    #captions { bottom: 52px; padding-bottom: 8px; background: linear-gradient(to top, rgba(255,255,255,.96) 75%, rgba(255,255,255,0)); }
+  }
+
   /* ---------- scenes (video-stage.mjs): Sherpas sticker look, 1280x720 space, content kept above the captions band ---------- */
   .sc { --ink: var(--brand-950); position: absolute; inset: 0; overflow: hidden; color: var(--ink); font-family: var(--font-body);
         background: radial-gradient(circle at 2px 2px, var(--gray-200) 2px, transparent 0) 0 0 / 32px 32px, var(--surface-frame); }
@@ -83,7 +96,7 @@
   .sc .tone-yellow { background: var(--priority-medium); color: var(--ink); }
   .sc .tone-green { background: var(--success-600); color: #fff; }
   .sc .tone-brand { background: var(--brand-500); color: #fff; }
-  .sc .stroke-tone-red { stroke: var(--error-600); } .sc .stroke-tone-yellow { stroke: var(--warning); }
+  .sc .stroke-tone-red { stroke: var(--error-600); } .sc .stroke-tone-yellow { stroke: var(--priority-medium); }
   .sc .stroke-tone-green { stroke: var(--success-600); } .sc .stroke-tone-brand { stroke: var(--brand-500); }
   .sc .disc { display: grid; place-items: center; border-radius: 50%; background: var(--brand-50); border: 5px solid var(--ink); }
   .sc .disc svg { width: 72%; height: 72%; overflow: visible; }

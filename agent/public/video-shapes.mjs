@@ -29,8 +29,9 @@ const easeOut = (p) => 1 - (1 - p) ** 3;
 export function motion(reduced) {
   const anims = [];
   const tweens = [];
-  function play(target, keyframes, { at = 0, dur = 0.45, easing = 'ease-out', iterations = 1, direction = 'normal' } = {}) {
-    const a = target.animate(keyframes, { duration: dur * 1000, delay: at * 1000, fill: 'both', easing, iterations, direction });
+  // fill 'both' for entrances (hidden before they start); exits use 'forwards' so they don't override the entrance before they start.
+  function play(target, keyframes, { at = 0, dur = 0.45, easing = 'ease-out', iterations = 1, direction = 'normal', fill = 'both' } = {}) {
+    const a = target.animate(keyframes, { duration: dur * 1000, delay: at * 1000, fill, easing, iterations, direction });
     a.pause();
     anims.push(a);
     return a;
@@ -49,8 +50,8 @@ export function motion(reduced) {
     },
     // Disappear (used for Sherpy handing over to the data).
     out(target, at, { x = -900 } = {}) {
-      if (reduced) return play(target, [{ opacity: 1 }, { opacity: 0 }], { at, dur: 0.25 });
-      return play(target, [{ translate: '0 0', opacity: 1 }, { translate: `${x}px 0`, opacity: 1 }], { at, dur: 0.6, easing: 'cubic-bezier(.6,0,.8,.4)' });
+      if (reduced) return play(target, [{ opacity: 1 }, { opacity: 0 }], { at, dur: 0.25, fill: 'forwards' });
+      return play(target, [{ translate: '0 0' }, { translate: `${x}px 0` }], { at, dur: 0.6, easing: 'cubic-bezier(.6,0,.8,.4)', fill: 'forwards' });
     },
     slideIn(target, at, { x = 700 } = {}) {
       if (reduced) return play(target, [{ opacity: 0 }, { opacity: 1 }], { at, dur: 0.25 });

@@ -1,8 +1,8 @@
 // Player for the personal explainer video. Pure helpers are exported (and unit-tested); startPlayer() wires the page.
 import { renderScene } from './video-stage.mjs';
+import { estimateDuration } from './video-time.mjs';
 
-const CHARS_PER_SECOND = 14;
-export const estimateDuration = (text) => String(text ?? '').length / CHARS_PER_SECOND;
+export { estimateDuration };
 
 // Words with the time (seconds from the clip start) at which each one is spoken, proportional to characters.
 // A segment that continues the previous word without whitespace ("5" + "%.") is glued to it.

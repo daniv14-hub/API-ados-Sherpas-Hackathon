@@ -1,7 +1,7 @@
 // The five scenes of the explainer video, in the Sherpas sticker look (D10).
 // Contract: renderScene(stageEl, scene, { reducedMotion }) -> { at(t), dispose() }; t = seconds inside the scene.
 // Every number on screen is a value from scene.props (bars may be proportional; labels are the data values).
-import { estimateDuration } from './video-player.mjs';
+import { estimateDuration } from './video-time.mjs';
 import { money, el, html, motion, cue, icon, goalIcon, topicIcon, moveIcon, sherpy, preloadSherpy } from './video-shapes.mjs';
 
 const SCENES = { goals, standing, worry, act, mission };
@@ -81,7 +81,7 @@ function goals(root, { people = [], goals: list = [] }, { m, D }) {
   m.pop(bubble, 0.12 * D);
   if (!m.reduced) m.play(s.arm, [{ rotate: '-14deg' }, { rotate: '16deg' }], { at: 0.12 * D, dur: 0.32, easing: 'ease-in-out', iterations: 6, direction: 'alternate' });
   m.out(s.wrap, leave - 0.5, { x: -1000 });
-  m.play(bubble, [{ opacity: 1 }, { opacity: 0 }], { at: leave - 0.6, dur: 0.2 });
+  m.play(bubble, [{ opacity: 1 }, { opacity: 0 }], { at: leave - 0.6, dur: 0.2, fill: 'forwards' });
 
   // The main goal leads (planScenes orders it first): every goal of that type is drawn big.
   const row = el('div', 'goals-row');
