@@ -30,6 +30,7 @@ function accept(scene, raw, numberSet) {
     const keys = [...raw.matchAll(/\{(\w+)\}/g)].map((m) => m[1]);
     if (keys.some((k) => !(k in scene.values))) return null;
     const filled = fillLine(raw, scene.values);
+    if (/[{}]/.test(filled.text)) return null;
     if (wordCount(filled.text) > scene.maxWords) return null;
     if (!extractMentions(filled.text).every((m) => isGrounded(m, numberSet))) return null;
     return { id: scene.id, ...filled, source: 'model' };
@@ -38,16 +39,19 @@ function accept(scene, raw, numberSet) {
 
 const templateLine = (s) => ({ id: s.id, ...fillLine(s.template, s.values), source: 'template' });
 
-export async function narrate(scenes, { complete, numberSet, profile }) {
+const unfence = (t) => String(t).trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+
+export async function narrate(scenes, { complete, numberSet, profile, log = console }) {
   try {
     const names = profile?.present?.length ? profile.present : Object.keys(profile?.people ?? {});
     const style = styleOf(names, profile ?? {});
     const user = `Scenes:\n${JSON.stringify(scenes.map((s) => sceneBrief(s, style)), null, 1)}`;
     const reply = await complete([{ role: 'system', content: SYSTEM }, { role: 'user', content: user }]);
-    const lines = JSON.parse(reply)?.lines;
-    if (!Array.isArray(lines) || lines.length !== scenes.length) return scenes.map(templateLine);
+    const lines = JSON.parse(unfence(reply))?.lines;
+    if (!Array.isArray(lines) || lines.length !== scenes.length) throw new Error('reply has no matching lines array');
     return scenes.map((s, i) => accept(s, lines[i], numberSet) ?? templateLine(s));
-  } catch {
+  } catch (e) {
+    log.warn(`narration fell back to templates: ${e?.message ?? e}`);
     return scenes.map(templateLine);
   }
 }

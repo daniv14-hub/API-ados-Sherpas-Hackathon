@@ -46,8 +46,30 @@ test('a bad model line falls back to the template; the others stay model', async
   }
 });
 
+test('stray braces fall back to the template', async () => {
+  const k = Object.keys(scenes[1].values)[0];
+  for (const line of [`Here is {{${k}}} now.`, `Here is { ${k} } now.`, `Here is {${k} now.`]) {
+    const out = await run(withLine(1, line));
+    assert.equal(out[1].source, 'template', line);
+  }
+});
+
+test('a fenced JSON reply is accepted', async () => {
+  const fenced = '```json\n' + JSON.stringify({ lines: good }) + '\n```';
+  const out = await narrate(scenes, { complete: async () => fenced, numberSet, profile });
+  assert.ok(out.every((l) => l.source === 'model'));
+});
+
+test('a throwing complete logs one warning without secrets', async () => {
+  const calls = [];
+  const log = { warn: (m) => calls.push(m) };
+  await narrate(scenes, { complete: async () => { throw new Error('HTTP 401'); }, numberSet, profile, log });
+  assert.equal(calls.length, 1);
+  assert.match(calls[0], /narration fell back to templates: HTTP 401/);
+});
+
 test('non-JSON, wrong line count or a throwing complete -> all template lines', async () => {
-  const mk = (complete) => narrate(scenes, { complete, numberSet, profile });
+  const mk = (complete) => narrate(scenes, { complete, numberSet, profile, log: { warn() {} } });
   for (const complete of [
     async () => 'not json at all',
     async () => JSON.stringify({ lines: good.slice(1) }),
