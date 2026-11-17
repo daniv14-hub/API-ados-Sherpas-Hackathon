@@ -48,8 +48,7 @@ function reply(said) {
   if (/numbers|what it means for (your|the) family/.test(s)) {
     const who = named ?? (state.styleAsked.has("Daniel") ? "Emily" : "Daniel");
     state.styleAsked.add(who);
-    if (who === "Daniel") { state.styleAsked.delete("Daniel"); if (state.dStyle) state.styleAsked.add("Daniel"); state.dStyle = (state.dStyle ?? 0) + 1; return ["Daniel", state.dStyle === 1 ? "Both, honestly." : "Okay, the numbers first."]; }
-    return ["Emily", "What it means for our family."];
+    return who === "Daniel" ? ["Daniel", "Show me the numbers."] : ["Emily", "What it means for our family."];
   }
   if (/right\?|correct\?|is that|does that sound|agree/.test(s)) return ["Daniel", "Yes, that's right."];
   return ["Daniel", "Yes."];
@@ -87,13 +86,12 @@ ws.on("open", () => send({ type: "session.update", session: { type: "realtime", 
   input: { format: { type: "audio/pcm", rate: 24000 }, turn_detection: { type: "server_vad", silence_duration_ms: 600 } },
   output: { format: { type: "audio/pcm", rate: 24000 } } } } }));
 ws.on("close", () => end("socket closed"));
-let audioSec = 0, answerTimer = null, doneAt = 0, afterDone = 0;
+let audioSec = 0, answerTimer = null;
 ws.on("message", async (d) => {
   const ev = JSON.parse(d.toString());
   if (ev.type?.endsWith("audio.delta") && ev.delta) audioSec += (ev.delta.length * 3) / 4 / 48000;
   if (ev.type === "error") console.log(`${ts()}  ERROR ${JSON.stringify(ev.error)}`);
-  if (ev.type === "sherpy.conversation_done") { doneAt = Date.now(); console.log(`${ts()}  >>> sherpy.conversation_done`); setTimeout(() => end(`conversation done; audio chunks after done: ${afterDone}`), 3000); }
-  if (doneAt && ev.type?.endsWith("audio.delta")) afterDone++;
+  if (ev.type === "sherpy.conversation_done") { console.log(`${ts()}  >>> sherpy.conversation_done`); setTimeout(() => end("conversation done"), 3000); }
   if (ev.type?.endsWith("audio_transcript.delta")) said += ev.delta ?? "";
   if (ev.type === "response.created") clearTimeout(answerTimer); // Sherpy keeps talking: don't answer yet
   if (ev.type === "response.done" && said.trim()) {

@@ -45,21 +45,13 @@ function parse(raw) {
   }
 }
 
-export async function createSession({ browser, upstream, caseId, source, profilesDir, transcriptsDir, log = console, finishGraceMs = 20000, closingWaitMs = 6000 }) {
+export async function createSession({ browser, upstream, caseId, source, profilesDir, transcriptsDir, log = console, finishGraceMs = 20000 }) {
   const startISO = new Date().toISOString();
   const transcriptFile = path.join(transcriptsDir, `${caseId}-${startISO.replace(/[:.]/g, '-')}.jsonl`);
 
   let ready = false;
   let sentSessionUpdate = false;
   let kickedOff = false;
-  let closing = false; // finish_conversation accepted, waiting for the closing line
-  let announced = false;
-  function announceDone() {
-    if (announced) return;
-    announced = true;
-    if (isOpen(browser)) browser.send(JSON.stringify({ type: 'sherpy.conversation_done' }));
-    log.log(`[${caseId}] conversation finished`);
-  }
   let ended = false;
   const pending = []; // page messages waiting for case data and for the upstream socket to open
   const state = { phase: 1, brief: '', options: null, profile: null };
@@ -171,11 +163,10 @@ export async function createSession({ browser, upstream, caseId, source, profile
       if (result.finished) finished = true;
     }
     if (finished) {
-      // D19: the conversation is over. Gemini may say the closing line *after* the tool output, so tell the
-      // page only once that next reply is done (or after closingWaitMs if none comes). The page then lets the
-      // audio finish, shows the video and hangs up; if it doesn't, we close the paid session after a grace period.
-      closing = true;
-      setTimeout(announceDone, closingWaitMs).unref?.();
+      // D19: the conversation is over. The page lets the closing line finish playing, shows the video and
+      // hangs up; if it doesn't, we close the paid voice session ourselves after a grace period.
+      if (isOpen(browser)) browser.send(JSON.stringify({ type: 'sherpy.conversation_done' }));
+      log.log(`[${caseId}] conversation finished`);
       setTimeout(() => closeIfOpen(upstream), finishGraceMs).unref?.();
       return;
     }
@@ -195,7 +186,6 @@ export async function createSession({ browser, upstream, caseId, source, profile
     } else if (t === USER_DONE) {
       writeLine('user', ev.transcript);
     } else if (t === 'response.done') {
-      if (closing) announceDone(); // the reply after finish_conversation (the closing line) is complete
       const id = ev.response?.id;
       // Gemini sends no transcript .done: write what the deltas built up for this response.
       const keys = id !== undefined && transcriptBuf.has(id) ? [id] : [...transcriptBuf.keys()];

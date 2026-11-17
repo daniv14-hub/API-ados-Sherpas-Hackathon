@@ -179,7 +179,6 @@ let ws = null, ctx = null, micStream = null, micNode = null, analyser = null, MO
 let playHead = 0, playing = [], current = null, lastReply = null, userBubble = null;
 let pttDown = false, listening = false, lvl = 0;
 let finished = false; // set when Sherpy ends the conversation (sherpy.conversation_done)
-let lastAudioAt = 0;
 const OPENAI = () => MODEL.startsWith("gpt-");
 
 fetch("/config").then((r) => r.json()).then((cfg) => {
@@ -276,8 +275,7 @@ function onEvent(ev) {
     // D19: let the closing line finish playing, then hang up and show where the video will go.
     finished = true; setState("conversation finished");
     const wait = setInterval(() => {
-      // Hang up only after the closing line has fully arrived and played (no new audio for a moment).
-      if (audioPending() || performance.now() - lastAudioAt < 1500) return;
+      if (audioPending()) return;
       clearInterval(wait);
       $("videoSlot").hidden = false;
       ws?.close();
@@ -298,7 +296,6 @@ function onEvent(ev) {
     lastReply = { el: null, itemId: null, startAt: 0, seconds: 0, cut: false };
   }
   if ((t === "response.output_audio.delta" || t === "response.audio.delta") && ev.delta && ctx) {
-    lastAudioAt = performance.now();
     const chunk = play(ev.delta);
     if (lastReply) { if (!lastReply.seconds) lastReply.startAt = chunk.startAt; lastReply.seconds += chunk.seconds; lastReply.itemId ??= ev.item_id ?? null; }
   }

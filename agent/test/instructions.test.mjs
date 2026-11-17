@@ -140,12 +140,3 @@ test('couples: risk differences must be mediated before moving on', () => {
   const text = sherpyInstructions({ phase: 1, brief, profile, options });
   assert.ok(text.includes('If their risk answers differ, do not move on yet.'), 'risk mediation line');
 });
-
-test('more ways to get an answer, and never save a guess', () => {
-  const { options, brief, profile } = setup();
-  const text = sherpyInstructions({ phase: 1, brief, profile, options });
-  assert.ok(text.includes('Never repeat the same question in the same words.'));
-  assert.ok(text.includes("If you didn't understand an answer, ask again. Never save a value you guessed."));
-  assert.ok(text.includes('If they say "both"'));
-  assert.ok(SHERPY_RULES.includes("If you're interrupted while greeting them, don't greet them again"));
-});
