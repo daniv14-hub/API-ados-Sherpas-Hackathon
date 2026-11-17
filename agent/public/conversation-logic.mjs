@@ -83,6 +83,13 @@ export const PHASE_LABEL = {
 };
 
 // ---------- errors ----------
+// Only the errors our own server sends end the call (it closes the socket right after them). The model also sends
+// "error" events that are harmless mid-call (e.g. "conversation already has an active response"): the bench only
+// logs those, and so do we. A fatal upstream failure closes the socket and reaches us as a close instead.
+export function isFatalServerError(message) {
+  return message === "plan_unavailable" || /^proxy HTTP/.test(message ?? "");
+}
+
 // source: "mic" (getUserMedia failed, name = DOMException name), "event" (error event from the server),
 // "close" (the socket closed without us asking, code = close code), "config" (unknown case / /config failed).
 export function classifyError({ source, name, code, message } = {}) {

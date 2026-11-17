@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { tokenize, isKeyWord, wordTimes, revealedCount, currentSentence, turnPhase, classifyError } from "../public/conversation-logic.mjs";
+import { tokenize, isKeyWord, wordTimes, revealedCount, currentSentence, turnPhase, classifyError, isFatalServerError } from "../public/conversation-logic.mjs";
 
 test("tokenize splits sentences and keeps abbreviations together", () => {
   const t = tokenize("Hello Daniel! I'm Sherpy. Ask Dr. Lee? Yes");
@@ -69,4 +69,13 @@ test("classifyError maps failures to a clear message and a retry", () => {
   assert.equal(classifyError({ source: "event", message: "plan_unavailable" }).kind, "plan");
   assert.equal(classifyError({ source: "close", code: 1006 }).kind, "lost");
   for (const k of ["mic-denied", "refused", "lost"]) assert.ok(classifyError({ source: k === "mic-denied" ? "mic" : k === "refused" ? "event" : "close", message: "proxy HTTP 1" }).retry);
+});
+
+test("only our own server errors end the call; model errors mid-call are not fatal", () => {
+  assert.equal(isFatalServerError("plan_unavailable"), true);
+  assert.equal(isFatalServerError("proxy HTTP 401"), true);
+  assert.equal(isFatalServerError("Conversation already has an active response"), false);
+  assert.equal(isFatalServerError("Cancellation failed: no active response found"), false);
+  assert.equal(isFatalServerError(""), false);
+  assert.equal(isFatalServerError(undefined), false);
 });

@@ -4,6 +4,7 @@
 // The UI reads snapshot() every frame and gets a few callbacks. Secrets never reach this file.
 import { createSpeechGate } from "/speech-gate.mjs";
 import { micMuted } from "/half-duplex.mjs";
+import { isFatalServerError } from "/conversation-logic.mjs";
 
 const b64 = (buf) => { let s = ""; const u = new Uint8Array(buf); for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode(...u.subarray(i, i + 0x8000)); return btoa(s); };
 
@@ -41,7 +42,11 @@ export function createVoiceClient({ caseId, model = "", handlers = {} }) {
 
   function onEvent(ev) {
     const t = ev.type ?? "?";
-    if (t === "error") { fail({ source: "event", message: ev.error?.message ?? "" }); return; }
+    if (t === "error") {
+      const message = ev.error?.message ?? "";
+      if (isFatalServerError(message)) fail({ source: "event", message }); // other model errors are harmless mid-call
+      return;
+    }
     if (t === "session.created" || t === "session.updated") { if (!connected) { connected = true; handlers.onConnected?.(); } }
     if (t === "sherpy.conversation_done") {
       // Let the closing line finish playing, then hang up (voice is billed until the session closes).
@@ -74,11 +79,16 @@ export function createVoiceClient({ caseId, model = "", handlers = {} }) {
   async function start() {
     closedByUs = false; errored = false; finished = false; connected = false; thinking = false; reply = null;
     try {
-      ctx = new AudioContext({ sampleRate: 24000 }); // the browser resamples the mic to 24 kHz for us
-      micStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } });
-      await ctx.audioWorklet.addModule("/mic-worklet.js");
-      micNode = new AudioWorkletNode(ctx, "mic-frames");
-      ctx.createMediaStreamSource(micStream).connect(micNode);
+      const audio = new AudioContext({ sampleRate: 24000 }); // the browser resamples the mic to 24 kHz for us
+      ctx = audio;
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } });
+      // Ended (stop()) while the browser asked for the mic: release it, or the mic stays on with nobody listening.
+      if (closedByUs || ctx !== audio) { stream.getTracks().forEach((tr) => tr.stop()); return; }
+      micStream = stream;
+      await audio.audioWorklet.addModule("/mic-worklet.js");
+      if (closedByUs || ctx !== audio) return; // cleanup() already released the mic and the context
+      micNode = new AudioWorkletNode(audio, "mic-frames");
+      audio.createMediaStreamSource(stream).connect(micNode);
     } catch (e) { fail({ source: "mic", name: e?.name }); return; }
     const gate = createSpeechGate(); // one per call: it keeps a short audio history
     const sock = new WebSocket(`${location.origin.replace(/^http/, "ws")}/voice?${new URLSearchParams({ case: caseId })}`);
