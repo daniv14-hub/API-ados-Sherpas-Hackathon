@@ -4,7 +4,7 @@ import { extractMentions, isGrounded } from '../numbers.mjs';
 // The model writes wording only. Numbers reach the text through {placeholders} that we fill from
 // facts, and every line is checked before use; anything doubtful falls back to the scene template.
 
-const noDigits = (v) => JSON.parse(JSON.stringify(v ?? null), (_, x) => (typeof x === 'string' ? x.replace(/\d+/g, '') : x));
+const noDigits = (v) => JSON.parse(JSON.stringify(v ?? null), (_, x) => (typeof x === 'number' ? undefined : typeof x === 'string' ? x.replace(/\d+/g, '') : x));
 const wordCount = (t) => t.split(/\s+/).filter(Boolean).length;
 
 const STYLE_RULE = {

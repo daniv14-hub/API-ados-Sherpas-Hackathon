@@ -65,6 +65,8 @@ test('the prompt carries ids, keys and maxWords but no digits from filled values
   const text = sent.map((m) => m.content).join('\n');
   for (const s of scenes) { assert.ok(text.includes(s.id)); assert.ok(text.includes(String(s.maxWords))); }
   assert.ok(!text.includes('106,552'));
+  const body = text.replace(scenes.map((s) => s.maxWords).map((n) => `"maxWords": ${n}`).join('|') || '', '').replace(/"maxWords": \d+/g, '');
+  assert.equal(body.match(/\d/), null);
 });
 
 test('chatComplete: non-2xx throws with the status and not the key', async () => {
