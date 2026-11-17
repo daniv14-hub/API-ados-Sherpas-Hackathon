@@ -6,6 +6,25 @@
 
 **Sherpas x UPV Sigma Data Club hackathon, 12 to 19 November 2026**
 
+## Run Sherpy (team APIñados)
+
+Our project: a voice conversation led by the mascot **Sherpy**, then a personal narrated explainer video built from the
+family's own plan. (The mission game is still to come.) Requires Node 22+ and the keys in the root `.env`
+(`TEAM_KEY`, `MCP_URL`, `MCP_TOKEN`, see "Save your keys" below). The keys stay in the backend; the page never sees them.
+
+```
+cd agent
+npm install
+npm start
+```
+
+- Open **http://localhost:5173** (it must be `localhost`) and use headphones or a quiet room. Choose a case and talk to Sherpy.
+- When the conversation ends, the video is built on the server (~10 s, cached in `data/videos/`) and shown at
+  `http://localhost:5173/video.html?case=<caseId>` (best in landscape, with sound).
+- Restart a conversation: move `data/profiles/<caseId>.json` to `data/archive/`.
+- Tests: `cd agent && npm test`. Build a video from the terminal: `node --env-file=../.env scripts/build-video.mjs <caseId>`.
+- Narration voice: ElevenLabs through the proxy (`SHERPY_VOICE`, default `onyx`). Every number comes from the case data.
+
 ## Join the Discord first
 
 <a href="https://discord.gg/wVUZXmxdS"><img src="assets/discord-qr.png" alt="QR code: join the Discord" width="160" align="right"></a>

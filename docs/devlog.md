@@ -56,3 +56,13 @@ Timestamped entries (Europe/Madrid). Milestones, blockers, surprises and pivots,
 - **17:40** — Explainer video built (plan Tasks 1–7 subagent-driven with task reviews; Task 8 inline at Dani's request). First real Johnson build: 18.3 s (gpt-5-mini 16.2 s), one TTS clip refused with 429 (5 parallel > the proxy's 4 concurrent), every line greeted the family. Fixes: `reasoning_effort: minimal` (measured 7.1 s default / 3.2 s low / 1.9 s minimal on a one-line probe; ~2 s for the 5 lines) with code guards (greeting only in line 1, main goal named, honesty rule — minimal once praised a score of 52), TTS 3 at a time + retry on 429. Now **4.6 s** per new video, 0.2 s cached; 0 ungrounded numbers; 34 s long with Sherpy's voice (onyx). 139 tests. Spend $3.00.
 - **18:00** — Team feedback on the real video: too short, broken thread (college gap shown, life cover proposed), repeated their answers. Approved the 'roller coaster' story (dream → hard truth → it has a solution), ~2 min, 7 scenes (spec Revision 2, plan `2026-11-17-video-story-v2.md`, approved by Dani).
 - **18:45** — Video v2 (roller coaster) built for the Johnsons: 7 scenes, **2:04**, generated in 9.5 s (0.2 s cached), 0 ungrounded numbers. Fixes after the first v2 build: minimal-effort gpt-5-mini wrote one run-on sentence per scene → lines with ';' or a sentence > 20 words fall back to the template; `act` is template-only (the model called the 52→55 score change a retirement-gap change). 154 tests. Spend $3.08.
+
+## 17/11 ~19:30 — session wrap (Claude Code)
+- Team feedback on the Johnson v2 video: layout and script OK, **voice too monotone** (needs emphasis and dynamism). Not changed (no tokens).
+  Ideas, cheapest first: narration prompt asks for varied rhythm/pauses; a more expressive ElevenLabs voice id; another `eleven-*` model on the proxy
+  (check `/v1/models`; ElevenLabs cap $1.40 team-wide); voice settings (stability/style) if the proxy passes them.
+- Decisions to move to decisions.md (desktop Claude): End conversation = confirm and pause (Dani); Sherpy narration voice `onyx` (ElevenLabs via proxy).
+- `/security-review` on `feat/explainer-video`: nothing at confidence >= 8. Innerhtml sinks only get static icon markup; case ids are allow-listed; audio index
+  comes from the built video; server binds 127.0.0.1 with an Origin check on the WebSocket. Low-confidence notes: no Host check on HTTP (DNS rebinding), and any
+  local page can trigger `GET /video/<case>` (a paid build, once per profile hash).
+- README "Run Sherpy" added; `docs/pillar3-context.md` written as a brief for designing the game; STATUS updated.

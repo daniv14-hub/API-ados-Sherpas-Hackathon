@@ -31,22 +31,26 @@
 ## Last Claude Code session
 (Claude Code updates this block before ending each session.)
 - 15/11: flow-v1 wireframe (rejected). No code.
-- 16/11 (long session): mascot **Sherpy** approved (D15). Voice agent designed and built on branch
-  **`feat/sherpy-voice-agent`** (not pushed, not merged; 96 tests): `agent/` Node server + test page, Gemini
-  `gemini-3.8-live` with voice **Charon**, case data via the MCP. Decisions D16–D19 in `decisions.md`.
-  - Two live tests by the team. 1st: "a disaster" → fixed: phantom "¿Qué?" turns were Gemini transcribing breaths and
-    coughs (speech gate in the page), Spanish start (Sherpy now greets first in English), robotic voice (Charon).
-  - D19: natural conversation with an agenda, mediation (goal, worry, risk), confirm before saving, closing line
-    "I've got everything I need. I'm putting together your video now." + `finish_conversation` → page shows a video
-    placeholder and the paid voice session closes. Plan questions move to after the video.
-  - 2nd live test: "ya no es una mierda". Fixed after it: closing line was cut, stuck on "both", saved a guessed
-    value, re-greeted. **Closing-line fix is only unit-tested: check it in the next live test.**
-- How to run: `cd agent && npm start` → http://localhost:5173 (must be `localhost`), headphones. A completed
-  profile makes the next session start in Q&A mode: move `data/profiles/<case>.json` to `data/archive/` to restart.
-  Synthetic full conversation: `node scripts/e2e-conversation.mjs` with the server running (~$0.50 per run).
-- Spend: **$2.39 of $50** (each 5-min conversation ≈ $0.50). MCP token taken 16/11 ~20:30 → expires ~19/11 20:30.
-  `gpt-realtime-2.1-mini` returns `expired_secret_key` on the proxy: tell Sherpas in `#dudas-reto-mcp`.
-- Next, in order: (1) live test of the latest fixes; (2) conversation screen UI proposals (team said: only once the
-  agent works); (3) the video (D10, D14) built from `data/profiles/` + persona; (4) plan Task 8: `/security-review`,
-  README "Run Sherpy", screenshot; (5) merge decision for the branch.
-- Needs from the desktop Claude: close Q-MASCOT and Q-VOICE in `open-questions.md`; D15–D19 are in `decisions.md`.
+- 16/11: mascot Sherpy approved (D15). Voice agent built on **`feat/sherpy-voice-agent`** (D16–D19); live tests 1–2.
+- 17/11 (branch **`feat/explainer-video`**, not pushed, not merged; 154 tests; spend ~$3.1 of $50):
+  - Live test 3/4: half-duplex open mic (Sherpy can't hear itself or be interrupted). Back to the 728c849 instructions
+    + half-duplex. Open conversation flaws: no mediation of the risk disagreement, a guessed `top_worry` "none" is saved
+    after "I don't know", generic questions. Two reverted fixes (closing line cut, stuck on "both") may need to return.
+  - Conversation screen: option A approved (light Sherpas look, portrait + landscape, Sherpy's words only, End =
+    confirm + pause). Spec + mockup committed; **UI not built**.
+  - **Explainer video built** (16:9, hand-made HTML/SVG, no Remotion; ElevenLabs voice `onyx` via the proxy; narration by
+    `gpt-5-mini`, numbers only through placeholders, guards fall back to templates). Approved 7-scene "roller coaster"
+    story (dream, reality, gaps, fragility, turn, act, mission), ~2 min, generated in ~10 s, cached.
+    Johnson video: `http://localhost:5173/video.html?case=daniel-emily-johnson`. Team feedback: voice too monotone
+    (flash-v2.5, clips synthesised one by one, no prosody in the text) — not fixed yet; ideas in devlog.
+  - `/security-review` of the branch (video routes, voice relay): no finding with confidence >= 8. Noted, not reported:
+    no Host-header check (DNS rebinding could read synthetic case data), `GET /video/<case>` from any page can trigger a paid build.
+  - README now has "Run Sherpy". Decisions taken this session (End conversation = confirm and pause; voice `onyx`)
+    are in `devlog.md` for the desktop Claude to move.
+- How to run: README "Run Sherpy". MCP token expires ~19/11 20:30; `gpt-realtime-2.1-mini` returns `expired_secret_key`
+  (tell Sherpas in `#dudas-reto-mcp`).
+- Next: (1) **game, pillar 3** (not started; needs team design, see `docs/pillar3-context.md`); (2) conversation UI;
+  (3) voice expressiveness; (4) whole-branch review + deferred minors; (5) screenshots, 2-min demo video, one-page write-up
+  (due 18/11 23:59); (6) merge decision.
+- Needs from the team: pillar 3 design; screenshots `YYYYMMDD-HHMM-what.png` for `docs/screenshots/`; merge decision.
+- Needs from the desktop Claude: close Q-MASCOT and Q-VOICE; record "End conversation = confirm and pause" and voice `onyx`.
