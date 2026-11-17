@@ -151,3 +151,28 @@ export function checkpoint(data, state, missionId, scoreFor) {
   const nextLine = next ? `Next up: ${next.title}.` : 'That was your last mission. Everything in your plan is now in motion.';
   return { title: mission ? `${mission.title} is done` : 'Mission done', fact, nextLine, nextId: next?.id ?? null, idx };
 }
+
+// ---------- views in the URL hash (so the phone Back button and deep links work) ----------
+// overview -> '' · mission -> '#m-<id>' · checkpoint -> '#checkpoint-<id>'
+export function viewHash(view) {
+  if (view?.name === 'mission') return `#m-${encodeURIComponent(view.id)}`;
+  if (view?.name === 'checkpoint') return `#checkpoint-${encodeURIComponent(view.id)}`;
+  return '';
+}
+
+export function parseViewHash(hash) {
+  const m = /^#(m|checkpoint)-(.+)$/.exec(typeof hash === 'string' ? hash : '');
+  if (!m) return { name: 'overview' };
+  let id;
+  try { id = decodeURIComponent(m[2]); } catch { return { name: 'overview' }; }
+  return m[1] === 'm' ? { name: 'mission', id } : { name: 'checkpoint', id, fromDone: null };
+}
+
+// A view from the URL may point at a mission that does not exist, or at a checkpoint not reached yet.
+export function resolveView(data, state, view) {
+  if (view.name !== 'mission' && view.name !== 'checkpoint') return { name: 'overview' };
+  const mission = data.missions.find((m) => m.id === view.id);
+  if (!mission) return { name: 'overview' };
+  if (view.name === 'checkpoint' && !state.completed.includes(view.id)) return { name: 'mission', id: view.id };
+  return view;
+}

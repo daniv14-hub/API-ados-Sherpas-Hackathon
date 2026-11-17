@@ -2,6 +2,7 @@ import { scoreFor } from '/game-score.mjs';
 import * as L from '/missions-logic.mjs';
 
 const app = document.getElementById('app');
+const status = document.getElementById('status');
 const params = new URLSearchParams(location.search);
 let caseId = params.get('case');
 let data = null;
@@ -40,7 +41,31 @@ function show(nodes, { focus = true } = {}) {
     if (t) { t.setAttribute('tabindex', '-1'); t.focus({ preventScroll: true }); }
   }
 }
-const goto = (v) => { view = v; render(); };
+// Views live in the URL hash and in history, so the phone Back button returns to the list and deep links work.
+// history.state.depth = how many in-page entries sit above the overview entry we started from.
+function goto(v, { replace = false } = {}) {
+  const depth = history.state?.depth ?? 0;
+  if (v.name === 'overview' && !replace) {
+    if (depth > 0) return history.go(-depth); // popstate renders the overview
+    replace = true;
+  }
+  const url = location.pathname + location.search + L.viewHash(v);
+  if (replace) history.replaceState({ depth }, '', url);
+  else history.pushState({ depth: depth + 1 }, '', url);
+  view = v; render();
+}
+function viewFromUrl() {
+  const v = L.resolveView(data, state, L.parseViewHash(location.hash));
+  if (L.viewHash(v) !== location.hash.replace(/^#$/, '')) history.replaceState({ depth: history.state?.depth ?? 0 }, '', location.pathname + location.search + L.viewHash(v));
+  return v;
+}
+addEventListener('popstate', () => { if (data) { view = viewFromUrl(); render(); } });
+
+// One short polite message for screen readers (the page itself is not a live region).
+function announce(text) {
+  status.textContent = '';
+  setTimeout(() => { status.textContent = text; }, 60);
+}
 
 function header() {
   return h('header', { class: 'top' },
@@ -146,10 +171,27 @@ function footer() {
     h('small', null, "You tell us when it's done. Nothing is checked for you."),
     !storageOk && h('small', null, "This browser can't save your progress, so it will reset when you close the page."),
     h('a', { class: 'pill', href: `/video.html?case=${encodeURIComponent(caseId)}` }, 'Back to my video'),
-    h('button', { type: 'button', class: 'linkbtn danger', onclick: () => {
-      if (!confirm('Reset all progress for this plan? This is for demos.')) return;
-      state = L.emptyState(); save(); goto({ name: 'overview' });
-    } }, 'Reset progress'));
+    resetControl());
+}
+
+// In-page confirm instead of the native confirm() dialog.
+function resetControl() {
+  const wrap = h('div', { class: 'reset' });
+  const trigger = h('button', { type: 'button', class: 'linkbtn danger', onclick: () => {
+    trigger.hidden = true; box.hidden = false; cancel.focus();
+  } }, 'Reset progress');
+  const cancel = h('button', { type: 'button', class: 'pill', onclick: () => {
+    box.hidden = true; trigger.hidden = false; trigger.focus();
+  } }, 'Cancel');
+  const box = h('div', { class: 'sticker reset-confirm', role: 'group', 'aria-labelledby': 'reset-q', hidden: true },
+    h('p', { id: 'reset-q' }, 'Reset your progress? This clears the steps you marked on this device.'),
+    h('div', { class: 'reset-btns' },
+      h('button', { type: 'button', class: 'pill danger', onclick: () => {
+        state = L.emptyState(); save(); announce('Progress reset'); goto({ name: 'overview' });
+      } }, 'Reset'),
+      cancel));
+  wrap.append(trigger, box);
+  return wrap;
 }
 
 // ---------- mission detail ----------
@@ -193,8 +235,9 @@ function stepCard(m, step, idx, whyStepId) {
       const r = L.toggleStep(data, state, m.id, step.id);
       const before = L.progress(data, state).done;
       state = r.state; save();
-      if (r.completedNow) goto({ name: 'checkpoint', id: m.id, fromDone: before });
-      else { const y = window.scrollY; renderMission(m.id, { keepScroll: y, focusStep: step.id }); }
+      if (r.completedNow) { announce('Checkpoint reached'); goto({ name: 'checkpoint', id: m.id, fromDone: before }); }
+      else {
+        announce(done ? 'Step undone' : 'Step done'); const y = window.scrollY; renderMission(m.id, { keepScroll: y, focusStep: step.id }); }
     } }, done ? '✓ Done (undo)' : label);
   return h('div', { class: `sticker step ${done ? 'done' : ''} ${locked ? 'locked' : ''}`, id: `s-${step.id}` },
     h('span', { class: 'num', 'aria-hidden': 'true' }, done ? '✓' : String(idx + 1)),
@@ -208,7 +251,7 @@ function stepCard(m, step, idx, whyStepId) {
 
 function renderMission(id, { keepScroll = null, focusStep = null } = {}) {
   const m = data.missions.find((x) => x.id === id);
-  if (!m) return goto({ name: 'overview' });
+  if (!m) return goto({ name: 'overview' }, { replace: true });
   const pr = L.missionProgress(m, state);
   const why = m.steps.find((s) => s.type === 'learn') ?? null;
   const owner = ownerOfMission(m);
@@ -300,6 +343,7 @@ async function boot() {
     data = await res.json();
     single = L.isSingle(data.label);
     state = load();
+    view = viewFromUrl();
     render();
   } catch {
     failure('We could not load your missions. Please try again in a moment.');

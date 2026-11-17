@@ -16,8 +16,13 @@ document.querySelectorAll("[data-mic]").forEach((el) => (el.innerHTML = $("mic")
 
 // ---------- views ----------
 const VIEWS = ["start", "call", "pause", "error"];
+const HEADING = { start: "start-title", call: "call-title", pause: "pause-title", error: "err-title" };
+let current = null;
 function show(name) {
   for (const v of VIEWS) $(v).hidden = v !== name;
+  // The button that was pressed has just disappeared: put focus on the new view's heading (not on first load).
+  if (current && current !== name) $(HEADING[name]).focus({ preventScroll: true });
+  current = name;
   $("end").hidden = name !== "call" || making;
   if (name !== "call") { cancelAnimationFrame(raf); raf = 0; }
 }
@@ -125,7 +130,7 @@ async function startCall() {
 function conversationDone() {
   making = true;
   $("callstage").classList.add("making", "busy");
-  $("callstage").classList.remove("talking", "listening");
+  $("call").classList.remove("talking", "listening");
   $("end").hidden = true;
   if ($("confirm").open) $("confirm").close(); // they pressed End just as Sherpy said goodbye: the conversation is complete
   cancelAnimationFrame(raf); raf = 0;

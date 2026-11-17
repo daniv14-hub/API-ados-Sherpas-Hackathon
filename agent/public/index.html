@@ -25,7 +25,7 @@
         <div class="halo"><div class="sherpy" data-sherpy></div></div>
         <div class="right">
           <div class="name">Sherpy</div>
-          <h1 id="start-title" class="lead-title">Hi, I'm Sherpy</h1>
+          <h1 id="start-title" class="lead-title" tabindex="-1">Hi, I'm Sherpy</h1>
           <p class="lead-text" id="start-text">Let's talk through your plan together. I'll ask a few questions, and you just answer out loud.</p>
           <button id="go" class="btn primary" type="button" disabled>Start</button>
           <div id="back-actions" class="back-actions" hidden>
@@ -37,7 +37,8 @@
       </div>
     </section>
 
-    <section id="call" class="view" aria-label="Conversation with Sherpy" hidden>
+    <section id="call" class="view" aria-labelledby="call-title" hidden>
+      <h1 id="call-title" class="sr-only" tabindex="-1">Conversation with Sherpy</h1>
       <div id="callstage" class="stage row">
         <div class="halo"><div class="sherpy" data-sherpy></div></div>
         <div class="right">
@@ -63,7 +64,7 @@
         <div class="halo"><div class="sherpy" data-sherpy></div></div>
         <div class="right">
           <div class="name">Sherpy</div>
-          <h1 id="pause-title" class="lead-title">Conversation paused</h1>
+          <h1 id="pause-title" class="lead-title" tabindex="-1">Conversation paused</h1>
           <p class="lead-text">Sherpy keeps what you've shared so far. Continue whenever you're ready and we'll pick up where we left off.</p>
           <button id="resume" class="btn primary" type="button">Continue with Sherpy</button>
         </div>
@@ -73,7 +74,7 @@
     <section id="error" class="view" aria-labelledby="err-title" hidden>
       <div class="stage">
         <div class="err-icon" aria-hidden="true">!</div>
-        <h1 id="err-title" class="lead-title"></h1>
+        <h1 id="err-title" class="lead-title" tabindex="-1"></h1>
         <p id="err-text" class="lead-text" role="alert"></p>
         <button id="retry" class="btn primary" type="button"></button>
         <div id="fam-list" class="fam-list" hidden></div>

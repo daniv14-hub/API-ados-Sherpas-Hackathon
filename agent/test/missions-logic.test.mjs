@@ -125,3 +125,28 @@ test('buildScoreTable output works with the logic', () => {
   const { state } = L.toggleStep(d, L.emptyState(), 'X', 'x1');
   assert.equal(L.scoreView(d, state, scoreFor).score, 12);
 });
+
+test('viewHash: overview is empty, mission and checkpoint carry the mission id', () => {
+  assert.equal(L.viewHash({ name: 'overview' }), '');
+  assert.equal(L.viewHash({ name: 'mission', id: 'M1' }), '#m-M1');
+  assert.equal(L.viewHash({ name: 'checkpoint', id: 'M2', fromDone: 3 }), '#checkpoint-M2');
+  assert.equal(L.viewHash({ name: 'mission', id: 'a b' }), '#m-a%20b');
+});
+
+test('parseViewHash: round-trips, falls back to the overview for anything else', () => {
+  assert.deepEqual(L.parseViewHash('#m-M1'), { name: 'mission', id: 'M1' });
+  assert.deepEqual(L.parseViewHash('#checkpoint-M2'), { name: 'checkpoint', id: 'M2', fromDone: null });
+  assert.deepEqual(L.parseViewHash('#m-a%20b'), { name: 'mission', id: 'a b' });
+  for (const h of ['', '#', '#m-', '#checkpoint', '#checkpoint-', '#x-M1', '#m-%E0%A4%A', null, undefined]) {
+    assert.deepEqual(L.parseViewHash(h), { name: 'overview' }, String(h));
+  }
+});
+
+test('resolveView: unknown missions and checkpoints of unfinished missions go to the overview', () => {
+  const s = finish(L.emptyState(), data.order[0]).state;
+  assert.deepEqual(L.resolveView(data, s, { name: 'mission', id: 'nope' }), { name: 'overview' });
+  assert.deepEqual(L.resolveView(data, s, { name: 'mission', id: data.order[1] }), { name: 'mission', id: data.order[1] });
+  assert.deepEqual(L.resolveView(data, s, { name: 'checkpoint', id: data.order[1], fromDone: null }), { name: 'mission', id: data.order[1] });
+  assert.deepEqual(L.resolveView(data, s, { name: 'checkpoint', id: data.order[0], fromDone: null }), { name: 'checkpoint', id: data.order[0], fromDone: null });
+  assert.deepEqual(L.resolveView(data, s, { name: 'checkpoint', id: 'nope', fromDone: null }), { name: 'overview' });
+});

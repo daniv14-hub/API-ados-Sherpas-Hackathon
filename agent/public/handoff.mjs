@@ -110,6 +110,6 @@ export function initReturningFamily() {
     }
   }
 
-    $('family').addEventListener('change', (e) => check(e.target.value));
+  $('family').addEventListener('change', (e) => check(e.target.value));
   check(readJourneyParams(location.search).caseId);
 }
