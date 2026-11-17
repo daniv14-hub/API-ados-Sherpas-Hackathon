@@ -75,9 +75,14 @@ export function motion(reduced) {
   };
 }
 
-// Seconds into the scene at which the narration says `match` (first key segment containing it), a little early
-// so the picture lands with the word. Falls back to `fallback` × duration. Always before 85 % of the scene.
-export function cue(scene, duration, match, fallback) {
+// A key segment says `m` when it is exactly `m`, or contains it and `m` is long enough not to hide inside
+// another value ("1" must not match "$1.43 million").
+const says = (text, m) => { const t = text.trim().toLowerCase(); return t === m || (m.length >= 4 && t.includes(m)); };
+
+// Seconds into the scene at which the narration says `match` (first key segment containing it, at or after
+// `after` seconds), a little early so the picture lands with the word. Falls back to `fallback` x duration.
+// Always before 85 % of the scene.
+export function cue(scene, duration, match, fallback, after = 0) {
   const segs = scene.segments ?? [];
   const total = segs.reduce((s, x) => s + String(x.text ?? '').length, 0);
   const m = String(match ?? '').toLowerCase();
@@ -85,11 +90,33 @@ export function cue(scene, duration, match, fallback) {
   if (total && m) {
     for (const s of segs) {
       const text = String(s.text ?? '');
-      if (s.key && text.toLowerCase().includes(m)) return Math.min(0.85 * duration, Math.max(0, (acc / total) * duration - 0.25));
+      const at = (acc / total) * duration;
+      if (s.key && at >= after && says(text, m)) return Math.min(0.85 * duration, Math.max(0, at - 0.25));
       acc += text.length;
     }
   }
-  return Math.min(0.85 * duration, fallback * duration);
+  return Math.min(0.85 * duration, Math.max(after, fallback * duration));
+}
+
+// Like cue(), but returns when the sentence holding `match` starts (so a row can appear as its sentence begins).
+export function sentenceCue(scene, duration, match, fallback, after = 0) {
+  const segs = scene.segments ?? [];
+  const text = segs.map((x) => String(x.text ?? '')).join('');
+  const m = String(match ?? '').toLowerCase();
+  let acc = 0;
+  if (text.length && m) {
+    for (const s of segs) {
+      const t = String(s.text ?? '');
+      if (s.key && (acc / text.length) * duration >= after && says(t, m)) {
+        const before = text.slice(0, acc);
+        const end = Math.max(before.search(/[.!?]\s[^.!?]*$/), -1);
+        const begin = end < 0 ? 0 : end + 2;
+        return Math.min(0.85 * duration, Math.max(after, (begin / text.length) * duration - 0.1));
+      }
+      acc += t.length;
+    }
+  }
+  return Math.min(0.85 * duration, Math.max(after, fallback * duration));
 }
 
 // ---------------------------------------------------------------- icons (drawn by us, flat, navy outlines)

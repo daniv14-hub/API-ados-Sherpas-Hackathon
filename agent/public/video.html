@@ -22,7 +22,9 @@
   #captions { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 48px 20px; min-height: 80px; z-index: 5;
               text-align: center; font: 500 30px/1.4 var(--font-body); color: var(--brand-950);
               background: linear-gradient(to top, rgba(255,255,255,.96) 60%, rgba(255,255,255,0)); pointer-events: none; }
-  #captions .w { display: inline-block; margin: 0 .125em; border-radius: 8px; }
+  #captions { text-wrap: balance; }
+  #captions .w { display: inline-block; margin: 0 .125em; border-radius: 8px; transition: opacity .12s; }
+  #captions .w.later { opacity: .45; }
   #captions .w.key { padding: 0 6px; background: var(--brand-500); color: #fff; font-weight: 700; }
   #unavailable { position: absolute; top: 14px; right: 18px; z-index: 5; padding: 6px 12px; font-size: 20px;
                  border-radius: var(--radius-pill); background: var(--gray-100); color: var(--gray-500); }
@@ -116,80 +118,141 @@
   .sc .bubble { position: absolute; padding: 18px 28px; font: 800 40px/1.2 var(--font-heading); background: #fff; border: 5px solid var(--ink);
                 border-radius: 28px; box-shadow: 6px 6px 0 var(--ink); white-space: nowrap; }
 
-  /* 1. goals */
-  .sc-goals .greet { left: 560px; top: 160px; }
-  .sc-goals .bubble { right: 760px; top: 250px; rotate: -3deg; }
-  .sc-goals .goals-row { position: absolute; left: 48px; right: 48px; top: 216px; height: 350px; display: flex; gap: 26px;
-                         align-items: center; justify-content: center; }
-  .sc-goals .goal { position: relative; flex: 0 1 240px; display: flex; flex-direction: column; align-items: center; gap: 8px;
-                    padding: 22px 16px 24px; text-align: center; }
-  .sc-goals .goal.main { flex-basis: 300px; padding-top: 28px; }
-  .sc-goals .goal .disc { width: 112px; height: 112px; margin-bottom: 6px; }
-  .sc-goals .goal.main .disc { width: 150px; height: 150px; background: var(--brand-100); }
-  .sc-goals .goal .title { font: 800 34px/1.1 var(--font-heading); }
-  .sc-goals .goal.main .title { font-size: 44px; }
-  .sc-goals .goal .sub { white-space: nowrap; font: 700 24px/1.2 var(--font-body); color: var(--gray-500); text-transform: uppercase; letter-spacing: .06em; }
-  .sc-goals .goal .amount { font: 800 34px/1.1 var(--font-heading); color: var(--brand-500); }
-  .sc-goals .goal .chip { margin-top: 6px; padding: 4px 18px; white-space: nowrap; font: 700 28px/1.3 var(--font-body); color: #fff; background: var(--ink);
-                          border-radius: var(--radius-pill); }
-  .sc-goals.many .goals-row { gap: 16px; }
-  .sc-goals.many .goal, .sc-goals.many .goal.main { flex-basis: 190px; padding: 18px 10px; }
-  .sc-goals.many .goal .disc { width: 88px; height: 88px; }
-  .sc-goals.many .goal.main .disc { width: 110px; height: 110px; }
-  .sc-goals.many .goal .title, .sc-goals.many .goal.main .title { font-size: 28px; }
-  .sc-goals.many .goal .amount { font-size: 28px; }
-  .sc-goals.many .goal .chip { font-size: 24px; }
-  .sc-goals.many .goal .sub { font-size: 20px; letter-spacing: .03em; }
+  /* shared bars: have (navy) vs missing (hatched red); widths proportional, never labelled with a share */
+  .sc .sbar { position: relative; height: 44px; background: #fff; border: 4px solid var(--ink); border-radius: 14px; overflow: hidden; }
+  .sc .sbar .seg { position: absolute; top: 0; bottom: 0; left: 0; }
+  .sc .sbar .have { background: var(--ink); }
+  .sc .sbar .miss { background: repeating-linear-gradient(-45deg, var(--error-600) 0 14px, var(--error) 14px 28px); border-left: 4px solid var(--ink); }
+  .sc .sbar .miss.alone { border-left: 0; }
 
-  /* 2. standing */
-  .sc-standing .dial { position: absolute; left: 88px; top: 150px; width: 400px; height: 400px; border-radius: 50%; display: grid; place-items: center; }
-  .sc-standing .dial svg { position: absolute; inset: 14px; width: calc(100% - 28px); height: calc(100% - 28px); }
-  .sc-standing .dial .num { font: 800 150px/1 var(--font-heading); margin-top: -30px; font-variant-numeric: tabular-nums; }
-  .sc-standing .dial .of { position: absolute; top: 262px; font: 600 26px/1 var(--font-body); color: var(--gray-500); }
-  .sc-standing .band { position: absolute; left: 150px; top: 500px; font-size: 44px; rotate: -6deg; }
-  .sc-standing .weakest { position: absolute; left: 600px; right: 80px; top: 210px; padding: 34px 40px 38px; }
-  .sc-standing .weakest .label { font: 600 26px/1.2 var(--font-body); color: var(--gray-500); text-transform: uppercase; letter-spacing: .06em; }
-  .sc-standing .weakest .name { margin-top: 10px; font: 800 48px/1.1 var(--font-heading); }
-  .sc-standing .weakest .pts { margin-top: 14px; font: 800 96px/1 var(--font-heading); color: var(--error-600); }
-  .sc-standing .pillars { position: absolute; left: 570px; right: 64px; top: 150px; display: flex; flex-direction: column; gap: 9px; }
-  .sc-standing .pillar { position: relative; display: grid; grid-template-columns: 1fr 110px; grid-template-rows: auto 18px; column-gap: 16px; row-gap: 5px;
-                         align-items: center; padding: 6px 18px 9px; background: #fff; border: 4px solid var(--ink); border-radius: 16px;
-                         box-shadow: 4px 4px 0 var(--ink); }
-  .sc-standing .pillar .name { grid-column: 1; font: 700 25px/1.1 var(--font-body); }
-  .sc-standing .pillar .track { grid-column: 1; grid-row: 2; height: 18px; border-radius: 9px; background: var(--gray-100); border: 3px solid var(--ink); overflow: hidden; }
-  .sc-standing .pillar .fill { height: 100%; width: 0; background: var(--brand-500); }
-  .sc-standing .pillar.weak .fill { background: var(--error-600); }
-  .sc-standing .pillar .pts { grid-column: 2; grid-row: 1 / span 2; text-align: right; font: 800 32px/1 var(--font-heading); }
-  .sc-standing .pillar.weak { border-color: var(--error-600); }
-  .sc-standing .pillar.weak .pts { color: var(--error-600); }
-  .sc-standing .pillar .stamp { position: absolute; right: 124px; top: -14px; rotate: -5deg; }
+  /* 1. dream: warm, postcards on a road in time order */
+  .sc-dream { background: radial-gradient(circle at 2px 2px, var(--gray-200) 2px, transparent 0) 0 0 / 32px 32px,
+                          color-mix(in srgb, var(--priority-medium) 10%, var(--surface-frame)); }
+  .sc-dream .b1 { background: color-mix(in srgb, var(--priority-medium) 30%, white); }
+  .sc-dream .b2 { background: color-mix(in srgb, var(--priority-medium) 18%, white); }
+  .sc-dream .cheer { width: 160px; height: 192px; right: 64px; top: 14px; }
+  .sc-dream .road { position: absolute; left: 40px; right: 40px; top: 531px; height: 14px; border-radius: 7px;
+                    background: repeating-linear-gradient(90deg, var(--ink) 0 28px, transparent 28px 44px); }
+  .sc-dream .cards { position: absolute; left: 48px; right: 48px; top: 176px; height: 392px; display: flex; gap: 22px;
+                     align-items: stretch; justify-content: center; }
+  .sc-dream .stop { flex: 0 1 230px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 14px; }
+  .sc-dream .stop:has(.main) { flex-basis: 280px; }
+  .sc-dream .postcard { position: relative; width: 100%; overflow: visible; display: flex; flex-direction: column; }
+  .sc-dream .postcard .sky { height: 112px; display: grid; place-items: center; border-bottom: 5px solid var(--ink); border-radius: 19px 19px 0 0;
+                             background: var(--brand-100); }
+  .sc-dream .postcard .sky svg { width: 88px; height: 88px; overflow: visible; }
+  .sc-dream .postcard.main .sky svg { width: 112px; height: 112px; }
+  .sc-dream.many .postcard .sky svg { width: 64px; height: 64px; }
+  .sc-dream.many .postcard.main .sky svg { width: 76px; height: 76px; }
+  .sc-dream .postcard.main .sky { height: 140px; }
+  .sc-dream .sky-retirement { background: color-mix(in srgb, var(--priority-medium) 45%, white) !important; }
+  .sc-dream .sky-vacation { background: color-mix(in srgb, var(--chart-6) 30%, white) !important; }
+  .sc-dream .sky-purchase { background: color-mix(in srgb, var(--success) 25%, white) !important; }
+  .sc-dream .pbody { padding: 10px 12px 16px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+  .sc-dream .postcard .title { font: 800 32px/1.1 var(--font-heading); }
+  .sc-dream .postcard.main .title { font-size: 42px; }
+  .sc-dream .postcard .sub { font: 700 20px/1.2 var(--font-body); color: var(--gray-500); text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; }
+  .sc-dream .postcard .detail { font: 700 24px/1.2 var(--font-body); white-space: nowrap; }
+  .sc-dream .postcard .amount { font: 800 32px/1.1 var(--font-heading); color: var(--brand-500); }
+  .sc-dream .pin { padding: 4px 18px; font: 800 28px/1.3 var(--font-heading); color: #fff; background: var(--ink); border: 4px solid #fff;
+                   border-radius: var(--radius-pill); white-space: nowrap; box-shadow: 0 0 0 4px var(--ink); }
+  .sc-dream.many .cards { gap: 14px; left: 32px; right: 32px; }
+  .sc-dream.many .stop, .sc-dream.many .stop:has(.main) { flex-basis: 180px; }
+  .sc-dream.many .postcard .sky { height: 84px; }
+  .sc-dream.many .postcard.main .sky { height: 100px; }
+  .sc-dream.many .postcard .title, .sc-dream.many .postcard.main .title { font-size: 26px; }
+  .sc-dream.many .postcard .amount { font-size: 26px; }
+  .sc-dream.many .postcard .detail { font-size: 20px; }
+  .sc-dream.many .postcard .sub { font-size: 17px; letter-spacing: .03em; }
+  .sc-dream.many .pin { font-size: 22px; padding: 3px 12px; }
+  .sc-dream.many .corner { font-size: 17px; right: -10px; }
 
-  /* 3. worry */
-  .sc-worry .topic { position: absolute; right: 96px; top: 120px; width: 150px; height: 150px; background: #fff; box-shadow: 6px 6px 0 var(--ink); }
-  .sc-worry .gapbar { position: absolute; left: 64px; right: 64px; top: 300px; height: 120px; background: #fff; border: 5px solid var(--ink);
-                      border-radius: 22px; box-shadow: 6px 6px 0 var(--ink); overflow: hidden; }
-  .sc-worry .seg { position: absolute; top: 0; bottom: 0; left: 0; }
-  .sc-worry .have { background: var(--ink); }
-  .sc-worry .miss { background: repeating-linear-gradient(-45deg, var(--error-600) 0 18px, var(--error) 18px 36px); border-left: 5px solid var(--ink); }
-  .sc-worry .gaplabel { position: absolute; display: flex; align-items: baseline; gap: 14px; white-space: nowrap; }
-  .sc-worry .gaplabel .amt { font: 800 60px/1 var(--font-heading); }
-  .sc-worry .gaplabel .what { font: 600 30px/1.2 var(--font-body); color: var(--gray-600); }
-  .sc-worry .have-l { left: 68px; top: 210px; transform-origin: 0 100%; }
-  .sc-worry .miss-l { right: 68px; top: 452px; transform-origin: 100% 0; }
-  .sc-worry .miss-l .amt { color: var(--error-600); font-size: 76px; }
+  /* 2. reality: score dial, band, "not on track", most exposed pillar */
+  .sc-reality .dial { position: absolute; left: 88px; top: 150px; width: 400px; height: 400px; border-radius: 50%; display: grid; place-items: center; }
+  .sc-reality .dial svg { position: absolute; inset: 14px; width: calc(100% - 28px); height: calc(100% - 28px); }
+  .sc-reality .dial .num { font: 800 150px/1 var(--font-heading); margin-top: -30px; font-variant-numeric: tabular-nums; }
+  .sc-reality .dial .of { position: absolute; top: 262px; font: 600 26px/1 var(--font-body); color: var(--gray-500); }
+  .sc-reality .band { position: absolute; left: 150px; top: 500px; font-size: 44px; rotate: -6deg; }
+  .sc-reality .offtrack { position: absolute; left: 610px; top: 160px; font-size: 52px; rotate: -4deg; }
+  .sc-reality .weakest { position: absolute; left: 610px; right: 80px; top: 280px; padding: 24px 36px 26px; }
+  .sc-reality .weakest .label { font: 600 24px/1.2 var(--font-body); color: var(--gray-500); text-transform: uppercase; letter-spacing: .06em; }
+  .sc-reality .weakest .name { margin-top: 6px; font: 800 40px/1.1 var(--font-heading); }
+  .sc-reality .weakest .pts { margin-top: 8px; font: 800 96px/1 var(--font-heading); transform-origin: 0 50%; }
+  .sc-reality .weakest .got { color: var(--error-600); }
+  .sc-reality .weakest .of { font-size: 52px; color: var(--gray-500); }
 
-  /* 4. act */
-  .sc-act .moves { position: absolute; left: 64px; width: 690px; top: 160px; bottom: 140px; display: flex; flex-direction: column; justify-content: center; gap: 22px; }
-  .sc-act.solo .moves { left: 190px; width: 900px; }
-  .sc-act .move { display: flex; align-items: center; gap: 22px; padding: 16px 22px; }
-  .sc-act .move .disc { flex: none; width: 84px; height: 84px; }
-  .sc-act .move .title { flex: 1; font: 800 32px/1.15 var(--font-heading); }
+  /* 3. gaps: one row per goal */
+  .sc-gaps .grows { position: absolute; left: 64px; right: 64px; top: 166px; bottom: 150px; display: flex; flex-direction: column; justify-content: center; gap: 18px; }
+  .sc-gaps .grow { display: flex; align-items: center; gap: 22px; padding: 14px 24px 18px; }
+  .sc-gaps .grow .disc { flex: none; width: 84px; height: 84px; }
+  .sc-gaps .gmain { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+  .sc-gaps .gtop { display: flex; align-items: baseline; gap: 16px; white-space: nowrap; }
+  .sc-gaps .gtitle { font: 800 32px/1.1 var(--font-heading); }
+  .sc-gaps .gnote { padding: 2px 14px; font: 700 22px/1.3 var(--font-body); background: var(--gray-100); border: 3px solid var(--ink); border-radius: var(--radius-pill); }
+  .sc-gaps .gnote.warn { background: color-mix(in srgb, var(--error) 14%, white); color: var(--error-600); border-color: var(--error-600); }
+  .sc-gaps .gmiss { transform-origin: 100% 60%; margin-left: auto; display: flex; align-items: baseline; gap: 10px; font: 700 24px/1.2 var(--font-body); color: var(--gray-600); }
+  .sc-gaps .gmiss .amt { font: 800 40px/1 var(--font-heading); color: var(--error-600); }
+  .sc-gaps .cells { display: flex; gap: 8px; }
+  .sc-gaps .cell { flex: 1; height: 44px; border: 4px solid var(--ink); border-radius: 10px; background: #fff; }
+  .sc-gaps .cell.have { background: var(--ink); }
+  .sc-gaps .cell.miss { background: repeating-linear-gradient(-45deg, var(--error-600) 0 10px, var(--error) 10px 20px); }
+  .sc-gaps .cell.range { background: repeating-linear-gradient(-45deg, color-mix(in srgb, var(--error) 35%, white) 0 10px, #fff 10px 20px); border-style: dashed; }
+  .sc-gaps .n1 .grow, .sc-gaps .n2 .grow { padding: 22px 28px 26px; }
+  .sc-gaps .n1 .disc, .sc-gaps .n2 .disc { width: 104px; height: 104px; }
+  .sc-gaps .n1 .gtitle, .sc-gaps .n2 .gtitle { font-size: 38px; }
+  .sc-gaps .n1 .gmiss .amt, .sc-gaps .n2 .gmiss .amt { font-size: 48px; }
+  .sc-gaps .n1 .sbar, .sc-gaps .n2 .sbar, .sc-gaps .n1 .cell, .sc-gaps .n2 .cell { height: 56px; }
+
+  /* 4. fragility: cover vs shortfall per person */
+  .sc-fragility .frows { position: absolute; left: 64px; right: 64px; top: 196px; bottom: 150px; display: flex; flex-direction: column; justify-content: center; gap: 24px; }
+  .sc-fragility .frow { display: flex; align-items: center; gap: 26px; padding: 18px 28px 22px; }
+  .sc-fragility .who { flex: none; width: 150px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .sc-fragility .who .disc { width: 76px; height: 76px; }
+  .sc-fragility .who .name { font: 800 30px/1.1 var(--font-heading); }
+  .sc-fragility .fmain { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+  .sc-fragility .flabels { display: flex; align-items: baseline; white-space: nowrap; }
+  .sc-fragility .cover, .sc-fragility .short { display: flex; align-items: baseline; gap: 10px; font: 700 24px/1.2 var(--font-body); color: var(--gray-600); }
+  .sc-fragility .cover .amt { font: 800 36px/1 var(--font-heading); color: var(--ink); }
+  .sc-fragility .short { margin-left: auto; transform-origin: 100% 50%; }
+  .sc-fragility .short .amt { font: 800 48px/1 var(--font-heading); color: var(--error-600); }
+  .sc-fragility .sbar { height: 60px; }
+  .sc-fragility .n1 .frow { padding: 30px 32px 34px; }
+  .sc-fragility .n1 .sbar { height: 80px; }
+
+  /* 5. turn: relief, calmer palette, Sherpy back, steps to come */
+  .sc-turn { background: radial-gradient(circle at 2px 2px, var(--gray-200) 2px, transparent 0) 0 0 / 32px 32px,
+                         color-mix(in srgb, var(--success) 7%, var(--surface-frame)); }
+  .sc-turn .b1 { background: color-mix(in srgb, var(--success) 16%, white); }
+  .sc-turn .b2 { background: color-mix(in srgb, var(--success) 10%, white); }
+  .sc-turn .sun { position: absolute; right: 120px; top: 36px; width: 120px; height: 120px; border-radius: 50%; border: 5px solid var(--ink);
+                  background: var(--priority-medium); }
+  .sc-turn .guide { left: 40px; top: 190px; width: 300px; height: 360px; }
+  .sc-turn .bubble { left: 330px; top: 186px; rotate: -2deg; }
+  .sc-turn .fcf { position: absolute; left: 350px; top: 330px; padding: 14px 26px 16px; rotate: 2deg; background: #fff; }
+  .sc-turn .fcf .amt { font: 800 54px/1 var(--font-heading); color: var(--success-600); }
+  .sc-turn .fcf .what { margin-top: 4px; font: 700 24px/1.2 var(--font-body); color: var(--gray-600); }
+  .sc-turn .stairs { position: absolute; right: 70px; top: 230px; width: 510px; height: 330px; }
+  .sc-turn .step { position: absolute; bottom: 0; width: 170px; border: 5px dashed var(--brand-500); border-radius: 18px 18px 0 0;
+                   background: rgba(255,255,255,.6); }
+  .sc-turn .s0 { left: 0; height: 90px; } .sc-turn .s1 { left: 170px; height: 170px; } .sc-turn .s2 { left: 340px; height: 250px; }
+  .sc-turn .sflag { position: absolute; left: 392px; bottom: 250px; width: 90px; height: 104px; transform-origin: 25% 100%; }
+  .sc-turn .sflag svg { width: 100%; height: 100%; overflow: visible; }
+
+  /* 6. act */
+  .sc-act .moves { position: absolute; left: 64px; width: 700px; top: 150px; bottom: 140px; display: flex; flex-direction: column; justify-content: center; gap: 18px; }
+  .sc-act.solo .moves { left: 170px; width: 940px; }
+  .sc-act .move { display: flex; align-items: center; gap: 20px; padding: 14px 20px; }
+  .sc-act .move .disc { flex: none; width: 80px; height: 80px; }
+  .sc-act .mtext { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  .sc-act .move .title { font: 800 30px/1.12 var(--font-heading); }
+  .sc-act .move .link { align-self: flex-start; padding: 2px 12px; font: 700 20px/1.3 var(--font-body); color: var(--success-600);
+                        background: color-mix(in srgb, var(--success) 12%, white); border: 3px solid var(--success-600); border-radius: var(--radius-pill); white-space: nowrap; }
   .sc-act .chips { flex: none; display: flex; align-items: center; gap: 10px; }
-  .sc-act .chip { min-width: 74px; padding: 6px 12px; text-align: center; font: 800 34px/1.1 var(--font-heading); border: 4px solid var(--ink); border-radius: 14px; }
+  .sc-act .chip { min-width: 70px; padding: 6px 10px; text-align: center; font: 800 32px/1.1 var(--font-heading); border: 4px solid var(--ink); border-radius: 14px; }
   .sc-act .chip.before { background: var(--gray-100); color: var(--gray-600); }
   .sc-act .chip.after { background: var(--brand-500); color: #fff; }
   .sc-act .chip.after.up { background: var(--success-600); }
-  .sc-act .to { font: 800 34px/1 var(--font-heading); }
+  .sc-act .to { font: 800 32px/1 var(--font-heading); }
   .sc-act .combined { position: absolute; left: 820px; right: 72px; top: 178px; height: 380px; display: flex; flex-direction: column; align-items: center;
                       justify-content: center; background: var(--brand-50); }
   .sc-act .combined .label { font: 600 26px/1.2 var(--font-body); color: var(--gray-500); text-transform: uppercase; letter-spacing: .06em; }
@@ -198,20 +261,36 @@
   .sc-act .combined .num { font: 800 150px/1 var(--font-heading); color: var(--success-600); font-variant-numeric: tabular-nums; }
   .sc-act .combined .corner { top: -24px; right: auto; left: 50%; translate: -50% 0; rotate: -4deg; }
 
-  /* 5. mission */
+  /* 7. mission: the progress bar ends at the dream's year */
   .sc-mission .presenter { right: 70px; top: 160px; }
   .sc-mission .presenter .rig { transform: scaleX(-1); }
-  .sc-mission .mission { position: absolute; left: 64px; width: 760px; top: 190px; height: 370px; padding: 56px 44px 36px; rotate: -1.5deg;
+  .sc-mission .mission { position: absolute; left: 64px; width: 790px; top: 190px; height: 370px; padding: 56px 40px 30px; rotate: -1.5deg;
                          display: flex; flex-direction: column; justify-content: space-between; }
   .sc-mission .tab { position: absolute; left: 34px; top: -30px; rotate: -5deg; font-size: 36px; }
   .sc-mission .mbody { display: flex; align-items: center; gap: 28px; }
   .sc-mission .mbody .disc { flex: none; width: 130px; height: 130px; background: var(--brand-100); }
   .sc-mission .mbody .title { font: 800 54px/1.1 var(--font-heading); }
-  .sc-mission .progress { display: grid; grid-template-columns: 1fr 70px; grid-template-rows: auto 40px; column-gap: 12px; row-gap: 8px; align-items: end; }
+  .sc-mission .progress { display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto 40px; column-gap: 14px; row-gap: 8px; align-items: end; }
   .sc-mission .plabel { font: 700 26px/1.2 var(--font-body); color: var(--gray-500); text-transform: uppercase; letter-spacing: .06em; }
   .sc-mission .ptrack { grid-row: 2; height: 40px; border-radius: 20px; background: var(--gray-100); border: 4px solid var(--ink); }
   .sc-mission .pflag { grid-column: 2; grid-row: 1 / span 2; width: 70px; height: 76px; transform-origin: 30% 100%; }
   .sc-mission .pflag svg { width: 100%; height: 100%; overflow: visible; }
+  .sc-mission .back { grid-column: 2; grid-row: 1 / span 2; align-self: center; display: flex; align-items: center; gap: 10px; padding: 6px 16px 6px 6px;
+                      border-radius: 18px; border-width: 4px; box-shadow: 4px 4px 0 var(--ink); transform-origin: 50% 100%;
+                      background: color-mix(in srgb, var(--priority-medium) 22%, white); }
+  .sc-mission .back .sky { width: 64px; height: 64px; display: grid; place-items: center; border-radius: 12px; background: #fff; border: 3px solid var(--ink); }
+  .sc-mission .back .sky svg { width: 80%; height: 80%; overflow: visible; }
+  .sc-mission .back .btext { font: 800 30px/1 var(--font-heading); white-space: nowrap; }
+
+  /* Phone held sideways: the captions sit higher (above the floating controls), so the busiest scenes keep clear of them. */
+  @media (orientation: landscape) and (max-height: 500px) {
+    .sc-gaps .grows { top: 156px; bottom: 172px; gap: 12px; }
+    .sc-gaps .n3 .grow { padding: 10px 22px 12px; }
+    .sc-gaps .n3 .gmain { gap: 8px; }
+    .sc-gaps .n3 .sbar, .sc-gaps .n3 .cell { height: 38px; }
+    .sc-fragility .frows { bottom: 168px; gap: 18px; }
+    .sc-act .moves { bottom: 168px; gap: 14px; }
+  }
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&display=swap">
 </head>

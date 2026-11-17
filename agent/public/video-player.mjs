@@ -27,6 +27,46 @@ export function wordTimes(segments, duration) {
   return words;
 }
 
+// Caption chunks: one sentence each (split after a word ending in . ! ?). A sentence longer than maxChars is
+// cut into balanced pieces so a chunk never needs more than two caption lines; a break after a comma, colon
+// or semicolon is preferred. Returns [{ first, last, words }] (indices into `words`).
+const lengthOf = (ws) => ws.reduce((n, w) => n + w.word.length + 1, 0) - 1;
+
+function balance(ws, maxChars) {
+  const pieces = Math.ceil(lengthOf(ws) / maxChars);
+  if (pieces <= 1) return [ws];
+  const target = lengthOf(ws) / pieces;
+  let acc = 0;
+  let cut = -1;
+  let soft = -1; // last word ending in , ; : past half the target
+  for (let i = 0; i < ws.length - 1; i++) {
+    acc += ws[i].word.length + 1;
+    if (/[,;:]$/.test(ws[i].word) && acc >= target * 0.5) soft = i;
+    if (acc >= target) { cut = soft >= 0 && acc - target < target * 0.6 ? soft : i; break; }
+  }
+  if (cut < 0) return [ws];
+  return [ws.slice(0, cut + 1), ...balance(ws.slice(cut + 1), maxChars)];
+}
+
+export function captionChunks(words, maxChars = 110) {
+  const sentences = [];
+  let cur = [];
+  for (const w of words) {
+    cur.push(w);
+    if (/[.!?]["')”]?$/.test(w.word)) { sentences.push(cur); cur = []; }
+  }
+  if (cur.length) sentences.push(cur);
+  const chunks = [];
+  let first = 0;
+  for (const s of sentences) {
+    for (const piece of balance(s, maxChars)) {
+      chunks.push({ first, last: first + piece.length - 1, words: piece });
+      first += piece.length;
+    }
+  }
+  return chunks;
+}
+
 export function timeline(scenes) {
   let start = 0;
   return scenes.map((s) => {
@@ -96,6 +136,7 @@ export async function startPlayer() {
   const tl = timeline(scenes);
   const total = tl.length ? tl.at(-1).start + tl.at(-1).duration : 0;
   const words = scenes.map((s, i) => wordTimes(s.segments, tl[i].duration));
+  const chunks = words.map((w) => captionChunks(w));
 
   const handles = scenes.map(() => null);
 
@@ -119,15 +160,25 @@ export async function startPlayer() {
     return scenes[cur]?.audio ? audio.currentTime : (performance.now() - timerBase) / 1000;
   };
 
+  // Only the sentence being spoken; its words not yet said are dimmed. Rebuilt only when the chunk changes.
+  let capKey = '';
   function captions(i, t) {
-    const shown = words[i].filter((w) => w.start <= t + 1e-6).slice(-14);
+    const ws = words[i];
+    let n = -1; // last word already spoken
+    for (let k = 0; k < ws.length && ws[k].start <= t + 1e-6; k++) n = k;
+    const chunk = chunks[i].find((c) => n <= c.last) ?? chunks[i].at(-1);
     const box = $('captions');
-    box.replaceChildren(...shown.map((w) => {
-      const el = document.createElement('span');
-      el.className = w.key ? 'w key' : 'w';
-      el.textContent = w.word;
-      return el;
-    }));
+    const key = `${i}:${chunk?.first}`;
+    if (key !== capKey) {
+      capKey = key;
+      box.replaceChildren(...(chunk?.words ?? []).map((w) => {
+        const el = document.createElement('span');
+        el.className = w.key ? 'w key' : 'w';
+        el.textContent = w.word;
+        return el;
+      }));
+    }
+    [...box.children].forEach((el, k) => el.classList.toggle('later', chunk.first + k > n));
   }
 
   function draw(i, t) {

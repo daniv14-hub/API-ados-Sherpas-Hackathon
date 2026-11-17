@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { wordTimes, estimateDuration, timeline } from '../public/video-player.mjs';
+import { wordTimes, estimateDuration, timeline, captionChunks } from '../public/video-player.mjs';
 
 test('wordTimes spreads words by characters over the clip', () => {
   const w = wordTimes([{ text: 'Your score is ', key: false }, { text: '52', key: true }], 2);
@@ -30,4 +30,23 @@ test('estimateDuration is chars / 14', () => {
 test('timeline chains scenes; missing duration uses the estimate', () => {
   const t = timeline([{ duration: 3, text: 'a' }, { duration: null, text: 'x'.repeat(28) }]);
   assert.deepEqual(t, [{ start: 0, duration: 3 }, { start: 3, duration: 2 }]);
+});
+
+test('captionChunks splits at sentence ends', () => {
+  const w = wordTimes([{ text: 'You have ', key: false }, { text: '$1.43', key: true }, { text: ' saved. Next step! Done', key: false }], 3);
+  const c = captionChunks(w);
+  assert.deepEqual(c.map((x) => x.words.map((y) => y.word).join(' ')), ['You have $1.43 saved.', 'Next step!', 'Done']);
+  assert.equal(c[1].first, 4); assert.equal(c[1].last, 5);
+});
+test('captionChunks breaks a long sentence into balanced pieces, preferring a comma', () => {
+  const text = 'For retirement, nothing goes into your retirement accounts today, so you are a long way short of the number you need to retire.';
+  const w = wordTimes([{ text, key: false }], 5);
+  const c = captionChunks(w, 70);
+  assert.equal(c.length, 2);
+  for (const x of c) assert.ok(x.words.map((y) => y.word).join(' ').length <= 75);
+  assert.match(c[0].words.at(-1).word, /,$/);
+  assert.deepEqual(c.flatMap((x) => x.words), w);
+});
+test('captionChunks on empty input is empty', () => {
+  assert.deepEqual(captionChunks([]), []);
 });
