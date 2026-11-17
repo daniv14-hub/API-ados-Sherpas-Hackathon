@@ -99,3 +99,40 @@ test('chatComplete: non-2xx throws with the status and not the key', async () =>
       (e) => /401/.test(e.message) && !e.message.includes('SECRET123'));
   } finally { globalThis.fetch = orig; }
 });
+
+test('chatComplete sends a minimal reasoning effort by default (15 s -> ~2.5 s on gpt-5-mini)', async () => {
+  const orig = globalThis.fetch;
+  let body;
+  globalThis.fetch = async (_u, init) => { body = JSON.parse(init.body); return Response.json({ choices: [{ message: { content: 'ok' } }] }); };
+  try {
+    await chatComplete({ baseUrl: 'http://x', key: 'k' })([{ role: 'user', content: 'hi' }]);
+    assert.equal(body.reasoning_effort, 'minimal');
+    assert.equal(body.max_tokens, undefined);
+  } finally { globalThis.fetch = orig; }
+});
+
+test('the prompt gives each scene its reference line and says only the first line greets', async () => {
+  let sent;
+  await narrate(scenes, { complete: async (m) => { sent = m; return '{}'; }, numberSet, profile });
+  const text = sent.map((m) => m.content).join('\n');
+  for (const s of scenes) {
+    const ref = s.template.replace(/\b100\b/g, 'one hundred');
+    assert.ok(text.includes(JSON.stringify(ref).slice(1, -1)), `reference for ${s.id}`);
+  }
+  assert.match(text, /only the first line greets/i);
+  assert.match(text, /never praise/i);
+});
+
+test('a greeting by name is removed from every line but the first', async () => {
+  const lines = good.map((g) => `Daniel and Emily, ${g.charAt(0).toLowerCase()}${g.slice(1)}`);
+  const out = await run(lines);
+  assert.match(out[0].text, /^Daniel and Emily, here is/);
+  for (const l of out.slice(1)) { assert.equal(l.source, 'model'); assert.match(l.text, /^Here is /); }
+  assert.ok(out.slice(1).every((l) => l.segments[0].text.startsWith('Here')));
+});
+
+test('the prompt names the main goal for the goals scene', async () => {
+  let sent;
+  await narrate(scenes, { complete: async (m) => { sent = m; return '{}'; }, numberSet, profile });
+  assert.match(sent.map((m) => m.content).join('\n'), /"mainGoal": "college"/);
+});

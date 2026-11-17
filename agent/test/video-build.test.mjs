@@ -120,3 +120,24 @@ test('peek returns a cached video.json without any calls', async () => {
   assert.ok(peeked.dir);
   assert.deepEqual(calls, before);
 });
+
+test('TTS runs at most 3 clips at a time and retries a 429 once', async () => {
+  const base = await fs.mkdtemp(path.join(os.tmpdir(), 'video-build-'));
+  await fs.mkdir(path.join(base, 'profiles'));
+  await fs.writeFile(path.join(base, 'profiles', `${ID}.json`), JSON.stringify(profile()));
+  let active = 0, peak = 0, first429 = true;
+  const builder = createVideoBuilder({
+    source, profilesDir: path.join(base, 'profiles'), videosDir: path.join(base, 'videos'), voice: 'v', log: quiet, retryDelayMs: 1,
+    complete: async () => { throw new Error('no model'); },
+    tts: async () => {
+      active++; peak = Math.max(peak, active);
+      await new Promise((r) => setTimeout(r, 5));
+      active--;
+      if (first429) { first429 = false; throw new Error('speech failed: HTTP 429'); }
+      return Buffer.from('mp3');
+    },
+  });
+  const v = await builder.get(ID);
+  assert.ok(peak <= 3, `peak ${peak}`);
+  assert.ok(v.scenes.every((s) => s.audio), 'the 429 clip was retried');
+});

@@ -15,7 +15,7 @@ export class VideoError extends Error {
   }
 }
 
-const VERSION = 1;
+const VERSION = 2; // bump when the narration logic changes, so cached videos regenerate
 const PARTIAL_TTL_MS = 5 * 60 * 1000;
 
 // Only what shapes the video goes into the hash. Narration text is generated after the hash is decided.
@@ -30,7 +30,27 @@ function hashOf(profile, voice) {
   return createHash('sha256').update(JSON.stringify({ profile: used, voice, version: VERSION })).digest('hex').slice(0, 12);
 }
 
-export function createVideoBuilder({ source, profilesDir, videosDir, complete, tts, voice, log = console, now = Date.now }) {
+// The proxy allows 4 concurrent requests per team (the voice session may hold one), so clips go 3 at a time,
+// and a clip refused with 429 is retried once.
+const TTS_CONCURRENCY = 3;
+
+async function mapLimit(items, limit, fn) {
+  const out = new Array(items.length);
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (next < items.length) { const i = next++; out[i] = await fn(items[i], i); }
+  }));
+  return out;
+}
+
+export function createVideoBuilder({ source, profilesDir, videosDir, complete, tts, voice, log = console, now = Date.now, retryDelayMs = 1500 }) {
+  const speak = async (text) => {
+    try { return await tts(text); } catch (e) {
+      if (!/\b429\b/.test(e?.message ?? '')) throw e;
+      await new Promise((r) => setTimeout(r, retryDelayMs));
+      return tts(text);
+    }
+  };
   const inflight = new Map();
   const partials = new Map(); // dir -> { result, at }: builds with a failed TTS clip, kept so requests don't re-spend
 
@@ -59,19 +79,19 @@ export function createVideoBuilder({ source, profilesDir, videosDir, complete, t
 
     await fs.mkdir(dir, { recursive: true });
     let failed = false;
-    const out = await Promise.all(scenes.map(async (s, i) => {
+    const out = await mapLimit(scenes, TTS_CONCURRENCY, async (s, i) => {
       const line = lines.find((l) => l.id === s.id);
       let audio = null;
       try {
         const name = `scene-${i}.mp3`;
-        await fs.writeFile(path.join(dir, name), await tts(line.text));
+        await fs.writeFile(path.join(dir, name), await speak(line.text));
         audio = name;
       } catch (e) {
         failed = true;
         log.warn(`tts failed for scene ${s.id}: ${e?.message ?? e}`);
       }
       return { id: s.id, props: s.props, text: line.text, segments: line.segments, audio, duration: null };
-    }));
+    });
 
     const video = { caseId, voice, scenes: out };
     if (!failed) {

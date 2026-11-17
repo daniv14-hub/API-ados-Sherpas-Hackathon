@@ -42,10 +42,11 @@ const TEMPLATES = {
     mixed: '{names}, your first mission: {mission}. The progress bar moves when you finish.',
   },
 };
+// Move titles are imperatives ("Raise mortality coverage"), so the lead must take a verb phrase.
 const ACT_LEAD = {
-  analytical: 'Step one: {move}.',
-  emotional: '{names}, begin with {move}.',
-  mixed: '{names}, start with {move}.',
+  analytical: 'First step: {move}.',
+  emotional: '{names}, step one: {move}.',
+  mixed: '{names}, first step: {move}.',
 };
 const ACT_LIFT = {
   named: 'Together, your score goes from {before} to {after}.',

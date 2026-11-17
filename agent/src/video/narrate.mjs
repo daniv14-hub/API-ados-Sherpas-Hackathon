@@ -14,13 +14,26 @@ const STYLE_RULE = {
 };
 
 const SYSTEM = `You are Sherpy, the warm mascot of Sherpas Wealth, narrating a short personal video to a family.
-Write plain, friendly English, speak to the family as "you", use short sentences.
+The lines are one continuous story, read one after another. Only the first line greets the family by name; the others never greet.
+Write plain, correct, friendly English, speak to the family as "you", use short sentences.
+Be honest: never praise a weak result, never scare. Keep the meaning of each scene's reference line; you may reword it.
 Write exactly one line per scene, in the order given, each with at most maxWords words.
 NEVER write digits or numerals. Put every figure in by using only the {placeholders} listed for that scene, written with curly braces.
 Do not invent facts. Reply with JSON only: {"lines": ["...", "..."]}.`;
 
-function sceneBrief(s, style) {
-  return { id: s.id, style: STYLE_RULE[style], maxWords: s.maxWords, placeholders: Object.keys(s.values), about: noDigits(s.props) };
+function sceneBrief(s, style, profile) {
+  const extra = s.id === 'goals' ? { mainGoal: profile?.main_goal?.agreed ?? null } : {};
+  return { id: s.id, ...extra, style: STYLE_RULE[style], maxWords: s.maxWords, placeholders: Object.keys(s.values), reference: s.template.replace(/\b100\b/g, 'one hundred'), about: noDigits(s.props) };
+}
+
+// gpt-5-mini at minimal effort greets in every line despite the prompt; only the first line may.
+function dropGreeting(raw, names) {
+  if (!names.length) return raw;
+  const who = names.map((n) => n.replace(/[^\w]/g, '')).join('|');
+  const m = raw.match(new RegExp(`^(?:(?:hi|hello|hey)\\s+)?(?:${who})(?:\\s*(?:,|and|&)\\s*(?:${who}))*\\s*[,:!.-]\\s*`, 'i'));
+  if (!m) return raw;
+  const rest = raw.slice(m[0].length);
+  return rest.charAt(0).toUpperCase() + rest.slice(1);
 }
 
 // Returns the filled model line, or null when it breaks any rule.
@@ -45,23 +58,25 @@ export async function narrate(scenes, { complete, numberSet, profile, log = cons
   try {
     const names = profile?.present?.length ? profile.present : Object.keys(profile?.people ?? {});
     const style = styleOf(names, profile ?? {});
-    const user = `Scenes:\n${JSON.stringify(scenes.map((s) => sceneBrief(s, style)), null, 1)}`;
+    const user = `Scenes:\n${JSON.stringify(scenes.map((s) => sceneBrief(s, style, profile)), null, 1)}`;
     const reply = await complete([{ role: 'system', content: SYSTEM }, { role: 'user', content: user }]);
     const lines = JSON.parse(unfence(reply))?.lines;
     if (!Array.isArray(lines) || lines.length !== scenes.length) throw new Error('reply has no matching lines array');
-    return scenes.map((s, i) => accept(s, lines[i], numberSet) ?? templateLine(s));
+    return scenes.map((s, i) => accept(s, i === 0 || typeof lines[i] !== 'string' ? lines[i] : dropGreeting(lines[i], names), numberSet) ?? templateLine(s));
   } catch (e) {
     log.warn(`narration fell back to templates: ${e?.message ?? e}`);
     return scenes.map(templateLine);
   }
 }
 
-export function chatComplete({ baseUrl, key }) {
+// reasoning_effort on the proxy (17/11, Johnson narration): default ~15 s, 'low' ~15 s, 'minimal' ~2.5 s.
+// 'minimal' needs the code guards in this file (greeting, digits, grounding) and the honesty rule in the prompt.
+export function chatComplete({ baseUrl, key, reasoningEffort = 'minimal' }) {
   return async (messages) => {
     const res = await fetch(`${baseUrl.replace(/\/$/, '')}/v1/chat/completions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
-      body: JSON.stringify({ model: 'gpt-5-mini', messages }),
+      body: JSON.stringify({ model: 'gpt-5-mini', messages, reasoning_effort: reasoningEffort }),
     });
     if (!res.ok) throw new Error(`chat completion failed: HTTP ${res.status}`);
     const data = await res.json();
