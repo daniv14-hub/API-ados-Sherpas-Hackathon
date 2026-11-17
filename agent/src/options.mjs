@@ -11,12 +11,12 @@ const WORRY_RULES = [
 
 // Title = text after "O<n>...:" up to "(", "." or "**".
 // Formats: "**O1: Retirement (SIGNIFICANT).**" and "**O1 SIGNIFICANT: Retirement shortfall.**"
-function concernTitle(line) {
+export function concernTitle(line) {
   const m = line.match(/\*\*O\d+[^:*]*:\s*([^(.*]*)/);
   return m ? m[1].trim() : null;
 }
 
-function worryCategory(title) {
+export function worryCategory(title) {
   return WORRY_RULES.find(([, re]) => re.test(title))?.[0] ?? null;
 }
 
