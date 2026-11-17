@@ -16,6 +16,7 @@ export class VideoError extends Error {
 }
 
 const VERSION = 1;
+const PARTIAL_TTL_MS = 5 * 60 * 1000;
 
 // Only what shapes the video goes into the hash. Narration text is generated after the hash is decided.
 function hashOf(profile, voice) {
@@ -29,15 +30,22 @@ function hashOf(profile, voice) {
   return createHash('sha256').update(JSON.stringify({ profile: used, voice, version: VERSION })).digest('hex').slice(0, 12);
 }
 
-export function createVideoBuilder({ source, profilesDir, videosDir, complete, tts, voice, log = console }) {
+export function createVideoBuilder({ source, profilesDir, videosDir, complete, tts, voice, log = console, now = Date.now }) {
   const inflight = new Map();
+  const partials = new Map(); // dir -> { result, at }: builds with a failed TTS clip, kept so requests don't re-spend
+
+  async function dirFor(caseId) {
+    const profile = await loadProfile(profilesDir, caseId, []);
+    if (!isPhase1Complete(profile)) throw new VideoError('profile_incomplete', `profile for ${caseId} is not complete`);
+    return { profile, dir: path.join(videosDir, `${caseId}-${hashOf(profile, voice)}`) };
+  }
 
   async function build(caseId) {
     // Unknown adults only matter for a brand-new profile, which is incomplete anyway.
-    const profile = await loadProfile(profilesDir, caseId, []);
-    if (!isPhase1Complete(profile)) throw new VideoError('profile_incomplete', `profile for ${caseId} is not complete`);
+    const { profile, dir } = await dirFor(caseId);
+    const hit = partials.get(dir);
+    if (hit && now() - hit.at < PARTIAL_TTL_MS) return hit.result;
 
-    const dir = path.join(videosDir, `${caseId}-${hashOf(profile, voice)}`);
     const file = path.join(dir, 'video.json');
     try {
       return { video: JSON.parse(await fs.readFile(file, 'utf8')), dir };
@@ -70,6 +78,9 @@ export function createVideoBuilder({ source, profilesDir, videosDir, complete, t
       const tmp = `${file}.tmp`;
       await fs.writeFile(tmp, JSON.stringify(video, null, 2));
       await fs.rename(tmp, file); // last, so video.json never points at missing audio
+      partials.delete(dir);
+    } else {
+      partials.set(dir, { result: { video, dir }, at: now() });
     }
     return { video, dir };
   }
@@ -84,8 +95,27 @@ export function createVideoBuilder({ source, profilesDir, videosDir, complete, t
     return inflight.get(caseId);
   }
 
+  // Never builds (no MCP, model or TTS): the last partial result or a cached video.json, else null.
+  async function peek(caseId) {
+    if (!isSafeCaseId(caseId)) return null;
+    let dir;
+    try {
+      ({ dir } = await dirFor(caseId));
+    } catch {
+      return null;
+    }
+    const hit = partials.get(dir);
+    if (hit) return hit.result;
+    try {
+      return { video: JSON.parse(await fs.readFile(path.join(dir, 'video.json'), 'utf8')), dir };
+    } catch {
+      return null;
+    }
+  }
+
   return {
     locate,
+    peek,
     get: (caseId) => locate(caseId).then((r) => r.video),
   };
 }

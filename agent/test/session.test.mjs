@@ -481,5 +481,11 @@ test('finish_conversation success calls onFinished once with the case id', async
   upstream.emit('message', Buffer.from((functionCallDone('save_answer', { question: 'detail_level', person: 'household', value: 'low' }))));
   upstream.emit('message', Buffer.from((functionCallDone('finish_conversation', {}, 'call_9'))));
   await until(() => browser.json().some((e) => e.type === 'sherpy.conversation_done'));
+  upstream.emit('message', Buffer.from((functionCallDone('finish_conversation', {}, 'call_10'))));
+  await until(() => browser.json().filter((e) => e.type === 'sherpy.conversation_done').length === 2);
   assert.deepEqual(calls, [ID]);
+  // the session still forwards later events after onFinished threw
+  browser.sent.length = 0;
+  upstream.emit('message', Buffer.from(JSON.stringify({ type: 'response.output_audio.delta', delta: 'AAAA' })));
+  await until(() => browser.sent.length > 0);
 });

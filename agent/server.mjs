@@ -6,6 +6,7 @@
 // it only gets audio, transcripts and the relayed realtime events.
 import { createServer } from 'node:http';
 import { readFileSync, createReadStream } from 'node:fs';
+import { stat } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WebSocket, WebSocketServer } from 'ws';
@@ -15,7 +16,7 @@ import { isAllowedOrigin } from './src/origin.mjs';
 import { createVideoBuilder } from './src/video/build.mjs';
 import { speech } from './src/video/voice.mjs';
 import { chatComplete } from './src/video/narrate.mjs';
-import { parseVideoPath, videoView } from './src/video/routes.mjs';
+import { parseRange, parseVideoPath, videoView } from './src/video/routes.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(here, '..');
@@ -72,24 +73,52 @@ function sendJson(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
-async function handleVideo(res, { caseId, audio }) {
-  let built;
+async function serveAudio(req, res, { caseId, audio }) {
+  const built = await builder.peek(caseId); // never builds: only GET /video/<case> may spend
+  const name = built?.video.scenes[audio]?.audio;
+  if (!name) return res.writeHead(404).end('not found');
+  const file = join(built.dir, name);
+  let size;
   try {
-    built = await builder.locate(caseId);
+    size = (await stat(file)).size;
+  } catch {
+    return res.writeHead(404).end('not found');
+  }
+  const headers = {
+    'content-type': 'audio/mpeg',
+    'accept-ranges': 'bytes',
+    'cache-control': 'public, max-age=31536000, immutable', // the directory name carries the content hash
+  };
+  const range = parseRange(req.headers.range, size);
+  if (range === 'unsatisfiable') return res.writeHead(416, { ...headers, 'content-range': `bytes */${size}` }).end();
+  const [status, opts] = range
+    ? [206, { start: range.start, end: range.end }]
+    : [200, {}];
+  const length = range ? range.end - range.start + 1 : size;
+  res.writeHead(status, {
+    ...headers,
+    'content-length': length,
+    ...(range && { 'content-range': `bytes ${range.start}-${range.end}/${size}` }),
+  });
+  const stream = createReadStream(file, opts);
+  stream.on('error', () => res.destroy());
+  stream.pipe(res);
+}
+
+async function serveVideoJson(res, { caseId }) {
+  try {
+    return sendJson(res, 200, videoView(await builder.get(caseId)));
   } catch (e) {
     if (e?.code === 'profile_incomplete') return sendJson(res, 409, { error: 'profile_incomplete' });
-    console.error(`[${caseId}] video failed: ${e?.message}`);
-    return sendJson(res, 500, { error: 'video_failed' });
+    throw e;
   }
-  const { video, dir } = built;
-  if (audio === null) return sendJson(res, 200, videoView(video));
-  const name = video.scenes[audio]?.audio;
-  if (!name) return res.writeHead(404).end('not found');
-  const stream = createReadStream(join(dir, name));
-  stream.on('error', () => (res.headersSent ? res.destroy() : res.writeHead(404).end('not found')));
-  stream.on('open', () => {
-    res.writeHead(200, { 'content-type': 'audio/mpeg', 'cache-control': 'no-store' });
-    stream.pipe(res);
+}
+
+function handleVideo(req, res, parsed) {
+  (parsed.audio === null ? serveVideoJson(res, parsed) : serveAudio(req, res, parsed)).catch((e) => {
+    console.error(`[${parsed.caseId}] video request failed: ${e?.message}`);
+    if (res.headersSent) res.destroy();
+    else sendJson(res, 500, { error: 'video_failed' });
   });
 }
 
@@ -100,7 +129,7 @@ const server = createServer((req, res) => {
     return res.end(JSON.stringify({ model: MODEL, cases: caseIds.filter((id) => isAllowedCase(id, caseIds)).map((id) => ({ id, label: caseLabel(id) })) }));
   }
   const video = parseVideoPath(pathname, caseIds);
-  if (video) return void handleVideo(res, video);
+  if (video) return void handleVideo(req, res, video);
   const file = files[pathname];
   if (!file) return res.writeHead(404).end('not found');
   try {
@@ -143,7 +172,7 @@ wss.on('connection', (browser, req) => {
 
   createSession({
     browser, upstream, caseId, source, profilesDir, transcriptsDir,
-    onFinished: (id) => { builder.get(id).catch(() => {}); }, // start building while the closing line plays
+    onFinished: (id) => { builder.get(id).catch((e) => console.error(`[${id}] video build failed: ${e?.message}`)); }, // start building while the closing line plays
   }).catch((e) => {
     console.error(`[${caseId}] session failed:`, e?.message);
     browser.close();

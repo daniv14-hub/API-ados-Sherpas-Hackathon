@@ -24,7 +24,7 @@ const profile = (over = {}) => ({
 });
 const quiet = { warn() {}, log() {} };
 
-async function setup(p = profile(), { failTts = false } = {}) {
+async function setup(p = profile(), { failTts = false, clock } = {}) {
   const base = await fs.mkdtemp(path.join(os.tmpdir(), 'video-build-'));
   const profilesDir = path.join(base, 'profiles');
   const videosDir = path.join(base, 'videos');
@@ -32,7 +32,7 @@ async function setup(p = profile(), { failTts = false } = {}) {
   await fs.writeFile(path.join(profilesDir, `${ID}.json`), JSON.stringify(p));
   const calls = { tts: 0, complete: 0 };
   const builder = createVideoBuilder({
-    source, profilesDir, videosDir, voice: 'test-voice', log: quiet,
+    source, profilesDir, videosDir, voice: 'test-voice', log: quiet, ...(clock && { now: clock }),
     complete: async () => { calls.complete++; throw new Error('no model'); }, // narration falls back to templates
     tts: async () => { calls.tts++; if (failTts) throw new Error('boom'); return Buffer.from('mp3'); },
   });
@@ -92,4 +92,31 @@ test('speech posts to the proxy and never leaks the key in errors', async (t) =>
   assert.deepEqual(JSON.parse(seen.init.body), { model: 'eleven-flash-v2.5', voice: 'v', input: 'hi' });
   globalThis.fetch = async () => new Response('nope', { status: 500 });
   await assert.rejects(speech({ baseUrl: 'https://x.test', key: 'SECRET', voice: 'v' })('hi'), (e) => /500/.test(e.message) && !/SECRET/.test(e.message));
+});
+
+test('partial tts failure is kept 5 minutes, peek never builds', async () => {
+  let t = 1000;
+  const { builder, calls } = await setup(profile(), { failTts: true, clock: () => t });
+  assert.equal(await builder.peek(ID), null); // nothing built yet
+  assert.deepEqual(calls, { tts: 0, complete: 0 });
+  const first = await builder.get(ID);
+  const spent = calls.tts;
+  assert.ok(spent > 0 && first.scenes.every((s) => s.audio === null));
+  assert.deepEqual((await builder.peek(ID)).video, first);
+  t += 4 * 60 * 1000;
+  assert.deepEqual(await builder.get(ID), first);
+  assert.equal(calls.tts, spent);
+  t += 2 * 60 * 1000;
+  await builder.get(ID);
+  assert.equal(calls.tts, spent * 2);
+});
+
+test('peek returns a cached video.json without any calls', async () => {
+  const { builder, calls } = await setup();
+  const v = await builder.get(ID);
+  const before = { ...calls };
+  const peeked = await builder.peek(ID);
+  assert.deepEqual(peeked.video, v);
+  assert.ok(peeked.dir);
+  assert.deepEqual(calls, before);
 });
