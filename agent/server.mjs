@@ -17,6 +17,8 @@ import { createVideoBuilder } from './src/video/build.mjs';
 import { speech } from './src/video/voice.mjs';
 import { chatComplete } from './src/video/narrate.mjs';
 import { parseRange, parseVideoPath, videoView } from './src/video/routes.mjs';
+import { loadMissions } from './src/game/missions.mjs';
+import { parseMissionsPath, missionsView } from './src/game/routes.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(here, '..');
@@ -68,6 +70,11 @@ const files = {
   '/video-stage.mjs': [join(here, 'public', 'video-stage.mjs'), 'text/javascript; charset=utf-8'],
   '/video-shapes.mjs': [join(here, 'public', 'video-shapes.mjs'), 'text/javascript; charset=utf-8'],
   '/video-time.mjs': [join(here, 'public', 'video-time.mjs'), 'text/javascript; charset=utf-8'],
+  '/missions.html': [join(here, 'public', 'missions.html'), 'text/html; charset=utf-8'],
+  '/missions.css': [join(here, 'public', 'missions.css'), 'text/css; charset=utf-8'],
+  '/missions.mjs': [join(here, 'public', 'missions.mjs'), 'text/javascript; charset=utf-8'],
+  '/missions-logic.mjs': [join(here, 'public', 'missions-logic.mjs'), 'text/javascript; charset=utf-8'],
+  '/game-score.mjs': [join(here, 'src', 'game', 'score.mjs'), 'text/javascript; charset=utf-8'],
 };
 
 function sendJson(res, status, body) {
@@ -124,12 +131,24 @@ function handleVideo(req, res, parsed) {
   });
 }
 
+async function serveMissions(res, caseId) {
+  try {
+    sendJson(res, 200, missionsView(await loadMissions(source, caseId), caseLabel(caseId)));
+  } catch (e) {
+    console.error(`[${caseId}] missions failed: ${e?.message}`);
+    if (res.headersSent) res.destroy();
+    else sendJson(res, 500, { error: 'missions_failed' });
+  }
+}
+
 const server = createServer((req, res) => {
   const pathname = new URL(req.url, 'http://localhost').pathname;
   if (pathname === '/config') {
     res.writeHead(200, { 'content-type': 'application/json' });
     return res.end(JSON.stringify({ model: MODEL, cases: caseIds.filter((id) => isAllowedCase(id, caseIds)).map((id) => ({ id, label: caseLabel(id) })) }));
   }
+  const missionsCase = parseMissionsPath(pathname, caseIds);
+  if (missionsCase) return void serveMissions(res, missionsCase);
   const video = parseVideoPath(pathname, caseIds);
   if (video) return void handleVideo(req, res, video);
   const file = files[pathname];
