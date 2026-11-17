@@ -77,3 +77,12 @@ Timestamped entries (Europe/Madrid). Milestones, blockers, surprises and pivots,
   Task 2 conversation screen option A (c3de643; old bench kept at /bench.html). Tests 184/184.
 - Live voice: a subagent saw no audio in headless Chrome; a plain ws client against our /voice got Sherpy's greeting in 1.5 s, so server+proxy work.
   Being diagnosed in Task 3. Spend $3.14.
+
+## 17/11 ~23:20 — journey built and verified (overnight run)
+- Task 3 hand-off (ef18f25): conversation → video (`flow=1`, autoplay or one big "Watch your video") → end card → missions; rotate hint on portrait
+  phones; `/journey/<case>` reports only `{phase1Complete}` for the "Welcome back" screen. Live-voice "no audio" was a test artefact (non-stop
+  fake-mic speech kept the VAD open); with a silent mic Sherpy speaks 1.26 s after Start.
+- Real e2e (synthetic voices, 5 min, ~$0.3): goal disagreement mediated, risk difference named, closing line → `conversation_done` → video built
+  before the page asked for it. Bug seen: `detail_level: low` saved although nobody answered the detail question (Sherpy asked, then closed).
+  Demo profile restored from `data/archive/johnson-demo-profile-backup.json`; e2e profile kept in `data/archive/`.
+- Final review (Opus) on 67850de..HEAD: 0 critical, 5 important fixed (a660df4, 672cf47), 12 minors parked. 195 tests. Spend $3.50.

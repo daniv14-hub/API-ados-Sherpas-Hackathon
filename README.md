@@ -18,10 +18,14 @@ npm install
 npm start
 ```
 
-- Open **http://localhost:5173** (it must be `localhost`) and use headphones or a quiet room. Choose a case and talk to Sherpy.
-- When the conversation ends, the video is built on the server (~10 s, cached in `data/videos/`) and shown at
-  `http://localhost:5173/video.html?case=<caseId>` (best in landscape, with sound).
-- Restart a conversation: move `data/profiles/<caseId>.json` to `data/archive/`.
+- Open **http://localhost:5173** (it must be `localhost`) and use headphones or a quiet room. Press Start and talk to Sherpy
+  (a small "Demo family" selector picks the case).
+- The journey runs by itself: when Sherpy says goodbye, the video is built on the server (~10 s, cached in `data/videos/`)
+  and opens at `video.html?case=<caseId>` (landscape, with sound); when it ends you land on your missions at
+  `missions.html?case=<caseId>` (portrait). Mission progress is kept in the browser ("Reset progress" at the bottom).
+- A family that already finished the conversation sees "Welcome back" with "Watch your video" and "My missions".
+  To start the conversation from zero, move `data/profiles/<caseId>.json` to `data/archive/`.
+- The old debug page is at `/bench.html`.
 - Tests: `cd agent && npm test`. Build a video from the terminal: `node --env-file=../.env scripts/build-video.mjs <caseId>`.
 - Narration voice: ElevenLabs through the proxy (`SHERPY_VOICE`, default `onyx`). Every number comes from the case data.
 

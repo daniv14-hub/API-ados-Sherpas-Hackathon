@@ -30,27 +30,23 @@
 
 ## Last Claude Code session
 (Claude Code updates this block before ending each session.)
-- 15/11: flow-v1 wireframe (rejected). No code.
-- 16/11: mascot Sherpy approved (D15). Voice agent built on **`feat/sherpy-voice-agent`** (D16–D19); live tests 1–2.
-- 17/11 (branch **`feat/explainer-video`**, not pushed, not merged; 154 tests; spend ~$3.1 of $50):
-  - Live test 3/4: half-duplex open mic (Sherpy can't hear itself or be interrupted). Back to the 728c849 instructions
-    + half-duplex. Open conversation flaws: no mediation of the risk disagreement, a guessed `top_worry` "none" is saved
-    after "I don't know", generic questions. Two reverted fixes (closing line cut, stuck on "both") may need to return.
-  - Conversation screen: option A approved (light Sherpas look, portrait + landscape, Sherpy's words only, End =
-    confirm + pause). Spec + mockup committed; **UI not built**.
-  - **Explainer video built** (16:9, hand-made HTML/SVG, no Remotion; ElevenLabs voice `onyx` via the proxy; narration by
-    `gpt-5-mini`, numbers only through placeholders, guards fall back to templates). Approved 7-scene "roller coaster"
-    story (dream, reality, gaps, fragility, turn, act, mission), ~2 min, generated in ~10 s, cached.
-    Johnson video: `http://localhost:5173/video.html?case=daniel-emily-johnson`. Team feedback: voice too monotone
-    (flash-v2.5, clips synthesised one by one, no prosody in the text) — not fixed yet; ideas in devlog.
-  - `/security-review` of the branch (video routes, voice relay): no finding with confidence >= 8. Noted, not reported:
-    no Host-header check (DNS rebinding could read synthetic case data), `GET /video/<case>` from any page can trigger a paid build.
-  - README now has "Run Sherpy". Decisions taken this session (End conversation = confirm and pause; voice `onyx`)
-    are in `devlog.md` for the desktop Claude to move.
-- How to run: README "Run Sherpy". MCP token expires ~19/11 20:30; `gpt-realtime-2.1-mini` returns `expired_secret_key`
-  (tell Sherpas in `#dudas-reto-mcp`).
-- Next: (1) **game, pillar 3** (not started; needs team design, see `docs/pillar3-context.md`); (2) conversation UI;
-  (3) voice expressiveness; (4) whole-branch review + deferred minors; (5) screenshots, 2-min demo video, one-page write-up
-  (due 18/11 23:59); (6) merge decision.
-- Needs from the team: pillar 3 design; screenshots `YYYYMMDD-HHMM-what.png` for `docs/screenshots/`; merge decision.
-- Needs from the desktop Claude: close Q-MASCOT and Q-VOICE; record "End conversation = confirm and pause" and voice `onyx`.
+- 16/11: Sherpy voice agent (`feat/sherpy-voice-agent`). 17/11 day: explainer video (`feat/explainer-video`, approved 7-scene story).
+- 17/11 night (autonomous run approved by Dani; branch **`feat/journey-ui`**, built on `feat/explainer-video`; not pushed, not merged; 195 tests):
+  - **Whole journey on localhost:** conversation screen (option A) → automatic hand-off to the video (landscape, rotate hint, one-tap
+    play if the browser blocks sound) → end card → missions screen (portrait). "Welcome back" start screen for families who already talked.
+  - **Missions (pillar 3):** content from the desktop handoff (`docs/handoff-missions-content.md`): Johnsons 8 missions / 26 steps with
+    kits, every fact tested against its source path, every advice item covered, scores only by exact lookup (52→57→60→60). Other cases get
+    missions derived from `score.top_moves`. Screens: path with progress bar + score chip, mission detail with facts/steps/kits/"I did it",
+    checkpoint with Sherpy and a template line.
+  - **Provisional rulings to review** (see devlog 17/11 ~22:45): Q-CONFIRM self-declared; Q-PROGRESS = bar of steps + score at checkpoints;
+    life cover from the FH JSON (PDF conflict: ask #dudas-reto-mcp); M8 investment mix is a mission; progress in the browser; checkpoint lines are
+    templates (no model, no voice in missions).
+  - Verified: real synthetic conversation end to end (5 min) → video pre-built when Sherpy says goodbye → served in 2 ms. Screens checked in headless
+    Chromium at 390×844, 844×390, 1280×800. Final review (Opus): 0 critical, 5 important fixed, 12 minors parked
+    (`docs/superpowers/2026-11-17-journey-ui-final-review.md`). Security: new routes `/missions/<case>`, `/journey/<case>` allow-listed, no data leaks.
+  - Known issues: in the e2e run Sherpy saved `detail_level: low` without an answer (asked, then closed): the "never save a guess" flaw is still open.
+    Mission views are not in browser history (Back leaves the page). Missions page has no view transition (fade instead). Voice still monotone.
+  - Spend: **$3.50 of $50**. The demo profile `data/profiles/daniel-emily-johnson.json` is the one from the morning test (restored after the e2e run).
+- Next (team): try the whole journey live on a laptop and a phone; review the rulings; screenshots `YYYYMMDD-HHMM-what.png`; 2-min demo video and
+  one-page write-up (due 18/11 23:59); merge decision (`feat/sherpy-voice-agent` → `feat/explainer-video` → `feat/journey-ui` stack).
+- Needs from the desktop Claude: move the rulings and the decisions in devlog to decisions.md/open-questions.md once the team confirms.
