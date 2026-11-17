@@ -76,7 +76,8 @@ function frame() {
   const call = $("call");
   call.classList.toggle("talking", phase === "sherpy");
   call.classList.toggle("listening", phase === "user");
-  $("turn-label").textContent = PHASE_LABEL[phase];
+  const label = $("turn-label"); // a live region: write it only when it changes, or screen readers repeat it every frame
+  if (label.textContent !== PHASE_LABEL[phase]) label.textContent = PHASE_LABEL[phase];
 
   const r = s.reply;
   if (!r) return;
@@ -126,6 +127,7 @@ function conversationDone() {
   $("callstage").classList.add("making", "busy");
   $("callstage").classList.remove("talking", "listening");
   $("end").hidden = true;
+  if ($("confirm").open) $("confirm").close(); // they pressed End just as Sherpy said goodbye: the conversation is complete
   cancelAnimationFrame(raf); raf = 0;
   window.dispatchEvent(new CustomEvent("sherpy:done", { detail: { caseId } }));
 }
@@ -138,7 +140,13 @@ function endCall() {
 // ---------- wiring ----------
 $("end").onclick = () => $("confirm").showModal();
 $("keep").onclick = () => $("confirm").close();
-$("end-now").onclick = () => { $("confirm").close(); endCall(); };
+$("end-now").onclick = () => {
+  $("confirm").close();
+  // Sherpy already said goodbye and the client hangs up on its own in a moment: let the hand-off to the video run
+  // instead of pausing a finished conversation.
+  if (client?.snapshot().finished) return;
+  endCall();
+};
 $("resume").onclick = () => startCall();
 $("go").onclick = () => startCall();
 $("family").onchange = (e) => setCase(e.target.value);

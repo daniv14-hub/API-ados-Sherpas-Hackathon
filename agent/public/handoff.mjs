@@ -11,6 +11,8 @@ export function leaveTo(url) {
   const to = new URL(url, location.href).pathname;
   if (reducedMotion() || (hasCrossDocTransitions() && TRANSITION_PAGES.has(to))) { location.assign(url); return; }
   document.documentElement.classList.add('leaving');
+  // Back button: the browser may restore this page from its back/forward cache, still faded out. Show it again.
+  addEventListener('pageshow', (e) => { if (e.persisted) document.documentElement.classList.remove('leaving'); }, { once: true });
   setTimeout(() => location.assign(url), 320);
 }
 
@@ -74,6 +76,9 @@ export function initConversationHandoff() {
   }
 
   addEventListener('sherpy:done', (e) => run(e.detail?.caseId));
+  // Back from the video: a page restored from the back/forward cache would sit in "putting your video together"
+  // forever. Load it fresh instead (the start screen then offers the video and the missions).
+  addEventListener('pageshow', (e) => { if (e.persisted && $('callstage').classList.contains('making')) location.reload(); });
 }
 
 // Conversation start screen: a family that already talked with Sherpy also gets "Watch your video" and "My missions".
