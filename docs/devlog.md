@@ -66,3 +66,14 @@ Timestamped entries (Europe/Madrid). Milestones, blockers, surprises and pivots,
   comes from the built video; server binds 127.0.0.1 with an Origin check on the WebSocket. Low-confidence notes: no Host check on HTTP (DNS rebinding), and any
   local page can trigger `GET /video/<case>` (a paid build, once per profile hash).
 - README "Run Sherpy" added; `docs/pillar3-context.md` written as a brief for designing the game; STATUS updated.
+
+## 17/11 ~22:45 — overnight run started (branch `feat/journey-ui`, approved by Dani for autonomous work)
+- Plan: `docs/superpowers/plans/2026-11-17-journey-ui.md` (conversation UI → hand-off → video → missions). Mission content from the desktop handoff
+  (copied to `docs/handoff-missions-content.md`).
+- Provisional rulings (team to review): Q-CONFIRM = self-declared "I did it"; Q-PROGRESS = C (bar = steps, score at checkpoints, exact lookups only);
+  life cover uses FH ($1,166,000 added → $1,616,000), PDF conflict to ask in #dudas-reto-mcp; M8 investment mix is a mission, last, no score;
+  progress kept in the browser per case; checkpoint lines are templates with real data (no model/TTS); non-Johnson missions derived from top_moves.
+- Done: Task 1 content (a67f42e: 8 missions/26 steps, listAdvice, exact score lookup, coverage tests); Task 4 missions screen (2631ce9);
+  Task 2 conversation screen option A (c3de643; old bench kept at /bench.html). Tests 184/184.
+- Live voice: a subagent saw no audio in headless Chrome; a plain ws client against our /voice got Sherpy's greeting in 1.5 s, so server+proxy work.
+  Being diagnosed in Task 3. Spend $3.14.
