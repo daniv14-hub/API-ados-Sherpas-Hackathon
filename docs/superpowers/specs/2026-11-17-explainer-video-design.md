@@ -117,3 +117,23 @@ Pipeline, all on the server (`agent/`), each step a pure module with tests excep
 Exact layout and motion of each scene within the look above; icon drawings (flat SVG, drawn by us, no brand assets
 invented); which persona/JSON fields feed each fact; the wording of template lines; loading and error states
 (e.g. TTS budget exhausted → show the video with captions only and say so).
+
+## Revision 2 — the roller-coaster story (team, 17/11, replaces "Five scenes" and "Personalisation by profile")
+Team feedback on the first real Johnson video: too short for all the data; the thread was broken (it showed a
+college gap, then proposed life cover with no link); it repeated their answers instead of using them. Approved story,
+**~2 minutes** (low ≈ 90 s, medium ≈ 120 s, high ≈ 150 s), seven scenes, the "roller coaster":
+- **Up, the dream** — `dream`: what life looks like with their goals met, only their own goals, dates and amounts
+  (Johnson: Oliver starts college in 2033, Sophia in 2035, both retire in 2044 at 62 and 60, a $4,500 vacation every
+  year). Main goal first and biggest. No projections.
+- **Down, the hard truth** (not softened) — `reality`: "Today you're not on track for that": score 52/100 vulnerable,
+  protection 0/20. `gaps`: how far each goal is (college $30,000 saved / $106,552 missing; nothing goes into the
+  401(k)s, retirement gap $1,427,456; cash covers 1 month, 8 to 9 recommended); main goal and top worry first.
+  `fragility`: if one paycheck stops — life cover and shortfall per person (Daniel $250,000 / $1,350,000 short,
+  Emily $200,000 / $1,000,000 short).
+- **Relief, it has a solution** (don't overwhelm) — `turn`: "this has a solution, one step at a time"; free cash flow
+  per year ($15,032) and the plan sets the order; their risk answers transformed ("protect what you have first, then
+  grow it", acknowledging different views when partners differ). `act`: the plan's moves linked to what was just shown
+  (life cover closes the fragility gap 52→57, umbrella 52→56, together 60, then saving more 52→55 toward retirement).
+  `mission`: back to the dream year + Mission 1.
+- Answers are used, never repeated: main goal anchors `dream`/`mission`; top worry orders `gaps`; risk feeds `turn`;
+  style frames lines; detail level sets figures per scene and length.
