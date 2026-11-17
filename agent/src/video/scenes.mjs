@@ -47,7 +47,11 @@ const ACT_LEAD = {
   emotional: '{names}, begin with {move}.',
   mixed: '{names}, start with {move}.',
 };
-const ACT_LIFT = { combined: 'Together they lift your score from {before} to {after}.', single: 'It lifts your score from {before} to {after}.' };
+const ACT_LIFT = {
+  named: 'Together, your score goes from {before} to {after}.',
+  others: 'With your other steps, you reach {after}.',
+  single: 'It lifts your score from {before} to {after}.',
+};
 
 const placeholders = (t) => [...new Set([...t.matchAll(/\{(\w+)\}/g)].map((m) => m[1]))];
 
@@ -86,10 +90,14 @@ export function planScenes(facts, profile) {
 
   if (facts.moves.length) {
     const first = facts.moves[0];
-    const after = facts.combined ? facts.combined.after : first.after;
-    const template = `${ACT_LEAD[style]} ${facts.combined ? ACT_LIFT.combined : ACT_LIFT.single}`;
-    scenes.push(scene('act', { moves: high ? facts.moves : facts.moves.slice(0, 2), combined: facts.combined, before: sc.value }, template,
-      { ...common, move: lowerFirst(first.title), before: String(sc.value), after: String(after) }, maxWords));
+    const c = facts.combined;
+    // Name what is combined (from the data); with more than two moves, or at low detail, lead with the
+    // first move and say the lift comes with the other steps.
+    const named = c && c.moves.length <= 2 && maxWords > MAX_WORDS.low;
+    const lead = ACT_LEAD[style].replace('{move}', named ? '{moves}' : '{move}');
+    const template = `${lead} ${named ? ACT_LIFT.named : c ? ACT_LIFT.others : ACT_LIFT.single}`;
+    scenes.push(scene('act', { moves: high ? facts.moves : facts.moves.slice(0, 2), combined: c, before: first.before }, template,
+      { ...common, move: lowerFirst(first.title), moves: c ? joinNames(c.moves.map(lowerFirst)) : '', before: String(first.before), after: String(c ? c.after : first.after) }, maxWords));
   }
 
   if (facts.firstMission) {

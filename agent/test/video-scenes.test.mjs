@@ -87,3 +87,15 @@ test('every filled template line is grounded and within maxWords, for all cases 
     }
   }
 });
+test('act line: no combined uses single-move wording; combined names the combined moves', () => {
+  const carter = buildFacts(...Object.values(loadCase('michael-carter')));
+  const c = planScenes(carter, profile({ present: ['Michael'], people: { Michael: { style: 'analytical' } }, main_goal: { agreed: 'retirement' }, top_worry: { agreed: 'cash' } }))[3];
+  const ct = fillLine(c.template, c.values).text;
+  assert.match(ct, /It lifts your score from 26 to 31/);
+  const j = planScenes(johnson(), profile({ detail_level: 'medium' }))[3];
+  const jt = fillLine(j.template, j.values).text;
+  assert.match(jt, /raise mortality coverage and add umbrella cover/);
+  assert.match(jt, /from 52 to 60/);
+  const low = planScenes(johnson(), profile({ detail_level: 'low' }))[3];
+  assert.match(fillLine(low.template, low.values).text, /With your other steps, you reach 60/);
+});
