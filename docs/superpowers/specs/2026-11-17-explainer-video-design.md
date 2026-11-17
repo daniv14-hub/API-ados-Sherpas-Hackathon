@@ -1,6 +1,6 @@
 # Personal explainer video — design
 
-Status: **draft, pending team approval** (17/11). Decisions marked *(team, 17/11)* were taken in the session with
+Status: **approved by the team (Dani, 17/11)**. Decisions marked *(team, 17/11)* were taken in the session with
 Dani today; items marked *(Claude's call)* are proposals the team can change.
 
 ## Intent
@@ -17,8 +17,7 @@ For the hackathon the jury only sees it inside the 2-minute demo video, so the J
 ## Non-goals
 - MP4 export or server-side rendering. The demo video is a screen recording of the browser.
 - Asking Sherpy questions **during** the video. D15 left this provisional "if it complicates the build": it does
-  (a live voice session while the narration plays), so the mascot is available from the game on. *(Claude's call
-  under D15's condition — confirm.)*
+  (a live voice session while the narration plays), so the mascot is available from the game on. *(Confirmed by the team, 17/11, under D15's condition.)*
 - Investment risk (`risk` per person) in the video: no Johnson plan action depends on it. Kept for the game.
 
 ## Anti-goals (it fails even if it works)
@@ -111,8 +110,8 @@ Pipeline, all on the server (`agent/`), each step a pure module with tests excep
   replaced by that navigation.
 
 ## Open (theirs)
+- Narration model stays `gpt-5-mini` (team, 17/11): a Claude model was considered but isn't on the proxy.
 - **Which ElevenLabs voice is Sherpy?** Claude generates 3–4 short samples (≈$0.02 total) for the team to choose.
-- Confirm the non-goal "no questions to Sherpy during the video" (D15 condition).
 
 ## Left to the builder
 Exact layout and motion of each scene within the look above; icon drawings (flat SVG, drawn by us, no brand assets
