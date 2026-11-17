@@ -16,10 +16,11 @@
   #frame { flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; }
   #fit { position: relative; overflow: hidden; border-radius: var(--radius-lg); background: var(--surface-raised);
          border: var(--border); box-shadow: 0 8px 30px rgba(11,15,46,.10); }
-  #stage { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; background: var(--surface-frame); }
+  #scaled { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; }
+  #stage { position: absolute; inset: 0; background: var(--surface-frame); }
 
-  #captions { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 64px 26px; min-height: 96px; z-index: 5;
-              text-align: center; font: 500 34px/1.5 var(--font-body); color: var(--brand-950);
+  #captions { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 48px 20px; min-height: 80px; z-index: 5;
+              text-align: center; font: 500 30px/1.4 var(--font-body); color: var(--brand-950);
               background: linear-gradient(to top, rgba(255,255,255,.96) 60%, rgba(255,255,255,0)); pointer-events: none; }
   #captions .w { display: inline-block; padding: 0 6px; margin: 0 2px; border-radius: 8px; }
   #captions .w.key { background: var(--brand-500); color: #fff; font-weight: 700; }
@@ -70,6 +71,7 @@
 <main>
   <div id="frame">
     <div id="fit">
+      <div id="scaled">
       <div id="stage"></div>
       <div id="unavailable" hidden>Narration unavailable</div>
       <div id="captions" aria-live="off"></div>
@@ -78,6 +80,7 @@
       <div class="overlay" id="ov-end"><h1>That is your plan, step by step</h1>
         <button aria-disabled="true" tabindex="-1" title="Coming soon">Start your first mission</button>
         <button class="ghost" id="replay2">Watch again</button></div>
+      </div>
     </div>
   </div>
   <div id="controls">

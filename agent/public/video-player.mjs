@@ -19,6 +19,7 @@ export function wordTimes(segments, duration) {
       } else words.push({ word: p, key: !!seg.key, start: 0 });
     });
     if (parts.length) glue = !/\s$/.test(text);
+    else if (text.length) glue = false; // whitespace-only segment ends the word
   }
   const total = words.reduce((s, w) => s + w.word.length + 1, 0);
   let acc = 0;
@@ -41,12 +42,14 @@ export function timeline(scenes) {
 const $ = (id) => document.getElementById(id);
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
+const CLIP_TIMEOUT_MS = 6000;
 function clipDuration(url) {
   return new Promise((resolve) => {
     const a = new Audio();
     a.preload = 'metadata';
     a.onloadedmetadata = () => resolve(Number.isFinite(a.duration) ? a.duration : null);
     a.onerror = () => resolve(null);
+    setTimeout(() => { a.removeAttribute('src'); resolve(null); }, CLIP_TIMEOUT_MS);
     a.src = url;
   });
 }
@@ -58,32 +61,43 @@ export async function startPlayer() {
   const paused = params.get('paused') === '1';
   const state = (s) => { document.body.dataset.state = s; };
 
-  state('loading');
-  let video;
+  const stageEl = $('stage');
+  const audio = $('clip');
+  const fit = $('fit');
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const applyMotion = () => document.body.classList.toggle('reduced', reduced.matches);
+  applyMotion(); reduced.addEventListener?.('change', applyMotion);
+
+  // Scale the 1280x720 space (stage, captions, overlays) to the room the page leaves for it.
+  function resize() {
+    const box = $('frame').getBoundingClientRect();
+    const k = Math.max(0.01, Math.min(box.width / 1280, box.height / 720));
+    fit.style.width = `${1280 * k}px`; fit.style.height = `${720 * k}px`;
+    $('scaled').style.transform = `scale(${k})`;
+  }
+  addEventListener('resize', resize);
+  addEventListener('orientationchange', resize);
+  state('loading'); resize();
+
+  let scenes;
   try {
     const res = await fetch(`/video/${encodeURIComponent(caseId)}`);
-    if (res.status === 409) return void showMessage('Your plan conversation is not finished yet. Talk with Sherpy first and your video will be ready right after.');
+    if (res.status === 409) return void showMessage('Finish your conversation with Sherpy first. Your video will be ready right after.');
     if (!res.ok) return void showMessage('We could not put your video together. Please try again in a moment.');
-    video = await res.json();
+    const video = await res.json();
+    // Real clip durations; a clip that will not load plays as "Narration unavailable" on the timer clock.
+    scenes = await Promise.all(video.scenes.map(async (s) => {
+      const duration = s.audio ? await clipDuration(s.audio) : null;
+      return { ...s, audio: duration ? s.audio : null, duration };
+    }));
   } catch {
-    return void showMessage('We could not reach the server. Please try again in a moment.');
+    return void showMessage('We could not put your video together. Please try again in a moment.');
   }
-
-  // Real clip durations; a clip that will not load plays as "Narration unavailable" on the timer clock.
-  const scenes = await Promise.all(video.scenes.map(async (s) => {
-    const duration = s.audio ? await clipDuration(s.audio) : null;
-    return { ...s, audio: duration ? s.audio : null, duration };
-  }));
   const tl = timeline(scenes);
   const total = tl.length ? tl.at(-1).start + tl.at(-1).duration : 0;
   const words = scenes.map((s, i) => wordTimes(s.segments, tl[i].duration));
 
-  const stageEl = $('stage');
   const handles = scenes.map(() => null);
-  const audio = $('clip');
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  const applyMotion = () => document.body.classList.toggle('reduced', reduced.matches);
-  applyMotion(); reduced.addEventListener?.('change', applyMotion);
 
   let cur = -1;             // scene on stage
   let playing = false;
@@ -94,9 +108,10 @@ export async function startPlayer() {
 
   function showScene(i) {
     if (i === cur) return;
+    if (cur >= 0) { handles[cur]?.dispose?.(); handles[cur] = null; }
     cur = i;
     stageEl.replaceChildren();
-    handles[i] = renderScene(stageEl, scenes[i]);
+    handles[i] = renderScene(stageEl, scenes[i], { reducedMotion: reduced.matches });
     $('unavailable').hidden = !!scenes[i].audio;
   }
   const sceneTime = () => {
@@ -105,7 +120,7 @@ export async function startPlayer() {
   };
 
   function captions(i, t) {
-    const shown = words[i].filter((w) => w.start <= t + 1e-6).slice(-16);
+    const shown = words[i].filter((w) => w.start <= t + 1e-6).slice(-14);
     const box = $('captions');
     box.replaceChildren(...shown.map((w) => {
       const el = document.createElement('span');
@@ -128,21 +143,23 @@ export async function startPlayer() {
     showScene(i);
     const s = scenes[i];
     timerOffset = offset;
-    if (s.audio) audio.src = s.audio; else audio.removeAttribute('src');
+    audio.pause();
+    if (s.audio) audio.src = s.audio; else { audio.removeAttribute('src'); audio.load(); }
     if (playing) resume();
   }
   function resume() {
     playing = true;
+    ensureAudioGraph();
     timerBase = performance.now() - timerOffset * 1000;
     if (scenes[cur].audio) {
       if (timerOffset > 0) audio.currentTime = timerOffset;
-      audio.play().catch(() => pause());
+      audio.play().catch((e) => { if (e?.name === 'NotAllowedError') pause(); }); // AbortError: a newer load replaced this play
     }
     state('playing'); setPlayLabel();
   }
   function pause() {
     timerOffset = sceneTime();
-    if (scenes[cur]?.audio) audio.pause();
+    audio.pause();
     playing = false;
     if (document.body.dataset.state === 'playing') state('paused');
     setPlayLabel();
@@ -151,6 +168,14 @@ export async function startPlayer() {
     if (cur + 1 < scenes.length) startScene(cur + 1);
     else { playing = false; timerOffset = tl[cur].duration; draw(cur, timerOffset); state('ended'); setPlayLabel(); }
   }
+  audio.addEventListener('error', () => { // clip failed mid-way: finish the scene on the timer clock
+    if (cur < 0 || !scenes[cur].audio) return;
+    const t = playing ? audio.currentTime || 0 : timerOffset;
+    scenes[cur].audio = null;
+    audio.removeAttribute('src'); audio.load();
+    $('unavailable').hidden = false;
+    timerOffset = t; timerBase = performance.now() - t * 1000;
+  });
   audio.addEventListener('ended', () => { if (playing && scenes[cur]?.audio) advance(); });
 
   function setPlayLabel() { $('toggle').textContent = playing ? 'Pause' : 'Play'; }
@@ -161,7 +186,7 @@ export async function startPlayer() {
       analyser = ctx.createAnalyser(); analyser.fftSize = 1024;
       ctx.createMediaElementSource(audio).connect(analyser);
       analyser.connect(ctx.destination);
-    } catch { ctx = null; analyser = null; }
+    } catch { ctx?.close?.().catch(() => {}); ctx = null; analyser = null; }
     ctx?.resume?.();
   }
 
@@ -170,6 +195,7 @@ export async function startPlayer() {
     let i = tl.findIndex((s) => offsetGlobal < s.start + s.duration);
     if (i < 0) i = 0;
     playing = true;
+    if (cur >= 0) { handles[cur]?.dispose?.(); handles[cur] = null; }
     cur = -1;
     startScene(i, Math.max(0, offsetGlobal - tl[i].start));
   }
@@ -194,16 +220,6 @@ export async function startPlayer() {
     stageEl.style.setProperty('--lvl', lvl.toFixed(3));
     requestAnimationFrame(frame);
   }
-
-  // Scale the 1280x720 box to the space the page leaves for it.
-  const fit = $('fit');
-  function resize() {
-    const box = $('frame').getBoundingClientRect();
-    const s = Math.min(box.width / 1280, box.height / 720);
-    fit.style.width = `${1280 * s}px`; fit.style.height = `${720 * s}px`;
-    stageEl.style.transform = `scale(${s})`;
-  }
-  addEventListener('resize', resize);
 
   if (!scenes.length) return void showMessage('We could not put your video together. Please try again in a moment.');
 

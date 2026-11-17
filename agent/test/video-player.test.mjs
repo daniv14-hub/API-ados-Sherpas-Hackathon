@@ -15,6 +15,10 @@ test('wordTimes keeps starts increasing and glues punctuation to the key word', 
   assert.deepEqual(g.map((x) => x.word), ['up', '5%.']);
   assert.ok(g[1].key);
 });
+test('wordTimes does not glue across a whitespace-only segment', () => {
+  const w = wordTimes([{ text: '5', key: true }, { text: ' ', key: false }, { text: '%', key: false }], 1);
+  assert.deepEqual(w.map((x) => x.word), ['5', '%']);
+});
 test('wordTimes on empty input is empty', () => {
   assert.deepEqual(wordTimes([], 2), []);
   assert.deepEqual(wordTimes([{ text: '  ', key: false }], 2), []);
