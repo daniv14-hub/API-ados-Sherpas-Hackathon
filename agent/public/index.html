@@ -28,6 +28,10 @@
           <h1 id="start-title" class="lead-title">Hi, I'm Sherpy</h1>
           <p class="lead-text" id="start-text">Let's talk through your plan together. I'll ask a few questions, and you just answer out loud.</p>
           <button id="go" class="btn primary" type="button" disabled>Start</button>
+          <div id="back-actions" class="back-actions" hidden>
+            <a id="watch-video" class="btn ghost" href="/video.html">Watch your video</a>
+            <a id="my-missions" class="btn ghost" href="/missions.html">My missions</a>
+          </div>
           <label class="demo"><span>Demo family</span><select id="family" aria-label="Demo family"></select></label>
         </div>
       </div>
@@ -39,7 +43,15 @@
         <div class="right">
           <div class="name">Sherpy</div>
           <div id="caption" class="caption" aria-hidden="true"></div>
-          <p id="making" class="making-msg" role="status">Sherpy is putting your video together<span class="dots"><span>.</span><span>.</span><span>.</span></span></p>
+          <div id="making" class="making-msg">
+            <p id="making-title" class="making-title" role="status">Sherpy is putting your video together</p>
+            <div class="loader" aria-hidden="true"><span></span><span></span><span></span></div>
+            <p id="making-sub" class="making-sub">This only takes a few seconds.</p>
+            <div id="making-fail" class="making-fail" hidden>
+              <button id="making-retry" class="btn primary" type="button">Try again</button>
+              <a id="making-missions" class="text-link" href="/missions.html">Go to my missions</a>
+            </div>
+          </div>
           <div id="turn" class="turn" role="status"><span class="dot" data-mic></span><span id="turn-label">Sherpy is joining…</span></div>
           <div id="sentence-live" class="sr-only" aria-live="polite"></div>
         </div>
@@ -80,5 +92,10 @@
 </dialog>
 
 <script type="module" src="/conversation.mjs"></script>
+<script type="module">
+  import { initConversationHandoff, initReturningFamily } from '/handoff.mjs';
+  initConversationHandoff();
+  initReturningFamily();
+</script>
 </body>
 </html>

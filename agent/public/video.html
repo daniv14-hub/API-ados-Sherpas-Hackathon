@@ -42,14 +42,28 @@
   button:focus-visible { outline: 3px solid var(--brand-300); outline-offset: 2px; }
   button[aria-disabled="true"] { background: var(--gray-200); color: var(--gray-500); cursor: not-allowed; }
 
+  /* Overlays sit over the stage box but outside the 1280x720 scaling, sized to the box with container units. */
+  @media (orientation: landscape) { #fit { container-type: size; } } /* not in portrait: containment would trap the fixed overlays */
   .overlay { position: absolute; inset: 0; z-index: 10; display: none; flex-direction: column; align-items: center; justify-content: center;
-             gap: 20px; background: rgba(248,250,253,.94); text-align: center; padding: 40px; }
-  .overlay h1 { font: 600 44px/1.2 var(--font-heading); margin: 0; color: var(--brand-950); }
-  .overlay p { font-size: 22px; color: var(--gray-600); margin: 0; }
-  .overlay button { font-size: 24px; padding: 16px 36px; }
+             gap: clamp(10px, 1.6cqw, 20px); background: rgba(248,250,253,.94); text-align: center; padding: clamp(16px, 3cqw, 40px); }
+  .overlay h1 { font: 600 clamp(19px, 3.5cqw, 44px)/1.2 var(--font-heading); margin: 0; color: var(--brand-950); text-wrap: balance; }
+  .overlay button, .overlay a.btn { font-size: clamp(15px, 1.9cqw, 24px); padding: .65em 1.5em; min-height: 44px; }
+  .overlay .row { display: flex; gap: clamp(8px, 1.3cqw, 16px); flex-wrap: wrap; justify-content: center; }
+  #ov-loading img { width: clamp(80px, 15.6cqw, 200px); animation: bob 1.8s ease-in-out infinite; }
+  #ov-end img, #ov-ready img { width: clamp(72px, 13cqw, 170px); display: none; }
+  body.flow #ov-end img, body.flow #ov-ready img { display: block; animation: bob 1.8s ease-in-out infinite; }
+  body.reduced #ov-end img, body.reduced #ov-ready img { animation: none; }
+  #ov-ready .big { font-size: clamp(18px, 2.7cqw, 34px); padding: .65em 1.55em; box-shadow: 0 10px 28px rgba(70,102,215,.35); }
+  /* Portrait (they chose "play here anyway"): the stage is small, so a state screen takes the whole page instead. */
+  @media (orientation: portrait) {
+    .overlay { position: fixed; z-index: 30; background: var(--surface-base); gap: 18px; padding: 24px; }
+    .overlay h1 { font-size: 26px; }
+    .overlay button, .overlay a.btn { font-size: 17px; }
+    #ov-ready .big { font-size: 20px; }
+    #ov-loading img, #ov-end img, #ov-ready img { width: 150px; }
+  }
   body[data-state="ready"] #ov-ready, body[data-state="ended"] #ov-end { display: flex; }
   body[data-state="loading"] #ov-loading { display: flex; }
-  #ov-loading img { width: 200px; animation: bob 1.8s ease-in-out infinite; }
   body.reduced #ov-loading img { animation: none; }
   @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
   body.still #ov-ready { display: none; }
@@ -60,11 +74,31 @@
   #message p { font-size: 18px; max-width: 480px; margin: 0; color: var(--gray-700); }
   body[data-state="message"] #message { display: flex; }
 
+  /* Portrait phone: a friendly hint to turn sideways; "Play here anyway" dismisses it (never blocks playback). */
   #rotate { position: fixed; inset: 0; z-index: 40; display: none; flex-direction: column; align-items: center; justify-content: center;
-            gap: 16px; background: var(--brand-950); color: #fff; font: 600 20px var(--font-heading); text-align: center; padding: 24px; }
-  #rotate span { max-width: 100%; text-wrap: balance; }
-  #rotate svg { width: 56px; height: 56px; }
-  @media (orientation: portrait) and (max-width: 900px) { #rotate { display: flex; } }
+            gap: 18px; background: var(--brand-950); color: #fff; text-align: center; padding: 24px; }
+  body.rotate-hint #rotate { display: flex; }
+  #rotate h2 { margin: 0; font: 600 26px/1.25 var(--font-heading); text-wrap: balance; }
+  #rotate p { margin: 0; font-size: 16px; line-height: 1.5; color: var(--brand-100); max-width: 28ch; }
+  #rotate .phone { width: 84px; height: 84px; animation: tilt 2.4s ease-in-out infinite; }
+  @keyframes tilt { 0%, 25% { transform: rotate(0); } 55%, 85% { transform: rotate(-90deg); } 100% { transform: rotate(0); } }
+  #rotate button { background: transparent; color: #fff; text-decoration: underline; text-underline-offset: 4px; font-size: 16px; min-height: 44px; }
+  #rotate button:hover { background: rgba(255,255,255,.08); }
+  body.reduced #rotate .phone { animation: none; transform: rotate(-90deg); }
+
+  a.btn { display: inline-flex; align-items: center; justify-content: center; font: 600 15px var(--font-body); border-radius: var(--radius-pill);
+          padding: 10px 20px; background: var(--brand-500); color: #fff; text-decoration: none; }
+  a.btn:hover { background: var(--brand-600); }
+  a.btn:focus-visible { outline: 3px solid var(--brand-300); outline-offset: 2px; }
+  body.flow #ov-end img { display: block; animation: bob 1.8s ease-in-out infinite; }
+  body.reduced #ov-end img { animation: none; }
+  #message .row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+
+  /* page-to-page: cross-document view transition (Sherpy carries over from the conversation), fade as fallback */
+  @view-transition { navigation: auto; }
+  #ov-loading img { view-transition-name: sherpy; }
+  html.leaving body { opacity: 0; transition: opacity .3s ease; }
+  @media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } html.leaving body { transition: none; } }
   body[data-state="loading"] #controls, body[data-state="message"] #controls { visibility: hidden; }
 
   /* Phone held sideways: no header, the stage takes the full height and the controls float small over its bottom edge. */
@@ -303,12 +337,12 @@
       <div id="stage"></div>
       <div id="unavailable" hidden>Narration unavailable</div>
       <div id="captions" aria-live="off"></div>
-      <div class="overlay" id="ov-loading"><img src="/sherpy.svg" alt=""><h1>Putting your video together…</h1></div>
-      <div class="overlay" id="ov-ready"><h1>Your plan, in your own words</h1><button id="play">Play your video</button></div>
-      <div class="overlay" id="ov-end"><h1>That is your plan, step by step</h1>
-        <button aria-disabled="true" tabindex="-1" title="Coming soon">Start your first mission</button>
-        <button class="ghost" id="replay2">Watch again</button></div>
       </div>
+      <div class="overlay" id="ov-loading"><img src="/sherpy.svg" alt=""><h1>Putting your video together…</h1></div>
+      <div class="overlay" id="ov-ready"><img src="/sherpy.svg" alt=""><h1>Your plan, in your own words</h1><button id="play">Play your video</button></div>
+      <div class="overlay" id="ov-end"><img src="/sherpy.svg" alt=""><h1 id="end-title">That is your plan, step by step</h1>
+        <div class="row"><a class="btn" id="to-missions" href="/missions.html">Go to my missions</a>
+        <button class="ghost" id="replay2">Watch again</button></div></div>
     </div>
   </div>
   <div id="controls">
@@ -319,10 +353,13 @@
   </div>
 </main>
 <audio id="clip" preload="auto"></audio>
-<div id="message"><img src="/sherpy.svg" alt=""><p id="message-text"></p></div>
-<div id="rotate" role="alert">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M3 12a9 9 0 0 1 9-9M21 12a9 9 0 0 1-9 9"/></svg>
-  <span>Rotate your phone to watch your video</span>
+<div id="message"><img src="/sherpy.svg" alt=""><p id="message-text"></p>
+  <div class="row"><button id="message-retry" hidden>Try again</button></div></div>
+<div id="rotate" role="dialog" aria-labelledby="rotate-title">
+  <svg class="phone" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M3 12a9 9 0 0 1 9-9M21 12a9 9 0 0 1-9 9"/></svg>
+  <h2 id="rotate-title">Turn your phone sideways</h2>
+  <p>Your video is made for a wide screen.</p>
+  <button type="button" id="rotate-skip">Play here anyway</button>
 </div>
 <script type="module">
   import { startPlayer } from '/video-player.mjs';

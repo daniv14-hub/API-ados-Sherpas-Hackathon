@@ -1,6 +1,8 @@
 // Player for the personal explainer video. Pure helpers are exported (and unit-tested); startPlayer() wires the page.
 import { renderScene } from './video-stage.mjs';
 import { estimateDuration } from './video-time.mjs';
+import { readJourneyParams, showRotateHint, shouldAutoplay, END_CARD_MS, missionsUrl } from './journey-logic.mjs';
+import { leaveTo, limitViewTransitions } from './handoff.mjs';
 
 export { estimateDuration };
 
@@ -99,7 +101,31 @@ export async function startPlayer() {
   const caseId = params.get('case') ?? '';
   const jumpTo = params.has('t') ? Math.max(0, Number(params.get('t')) || 0) : null;
   const paused = params.get('paused') === '1';
+  // flow=1: we arrived straight from the conversation. Autoplay, then the end card hands over to the missions.
+  const { flow } = readJourneyParams(location.search);
   const state = (s) => { document.body.dataset.state = s; };
+  document.body.classList.toggle('flow', flow);
+  limitViewTransitions();
+  $('to-missions').href = missionsUrl(caseId);
+  if (flow) { $('play').textContent = 'Watch your video'; $('play').classList.add('big'); }
+
+  // Portrait phone: "Turn your phone sideways" until they rotate or choose to play here anyway (remembered for the tab).
+  let rotateDismissed = false;
+  try { rotateDismissed = sessionStorage.getItem('sherpy-rotate-ok') === '1'; } catch { /* storage blocked: ask again */ }
+  let onRotateCleared = null; // flow mode: autoplay waits for the hint to go away
+  const rotateHint = () => showRotateHint({ width: innerWidth, height: innerHeight, dismissed: rotateDismissed });
+  function updateRotate() {
+    const on = rotateHint();
+    document.body.classList.toggle('rotate-hint', on);
+    if (!on && onRotateCleared) { const f = onRotateCleared; onRotateCleared = null; f(); }
+  }
+  $('rotate-skip').addEventListener('click', () => {
+    rotateDismissed = true;
+    try { sessionStorage.setItem('sherpy-rotate-ok', '1'); } catch { /* fine: only this page view */ }
+    updateRotate(); // runs inside the click, so a waiting autoplay starts with sound
+  });
+  addEventListener('resize', updateRotate);
+  updateRotate();
 
   const stageEl = $('stage');
   const audio = $('clip');
@@ -123,7 +149,7 @@ export async function startPlayer() {
   try {
     const res = await fetch(`/video/${encodeURIComponent(caseId)}`);
     if (res.status === 409) return void showMessage('Finish your conversation with Sherpy first. Your video will be ready right after.');
-    if (!res.ok) return void showMessage('We could not put your video together. Please try again in a moment.');
+    if (!res.ok) return void showMessage('We could not put your video together. Please try again in a moment.', { retry: true });
     const video = await res.json();
     // Real clip durations; a clip that will not load plays as "Narration unavailable" on the timer clock.
     scenes = await Promise.all(video.scenes.map(async (s) => {
@@ -131,7 +157,7 @@ export async function startPlayer() {
       return { ...s, audio: duration ? s.audio : null, duration };
     }));
   } catch {
-    return void showMessage('We could not put your video together. Please try again in a moment.');
+    return void showMessage('We could not put your video together. Please try again in a moment.', { retry: true });
   }
   const tl = timeline(scenes);
   const total = tl.length ? tl.at(-1).start + tl.at(-1).duration : 0;
@@ -204,7 +230,7 @@ export async function startPlayer() {
     timerBase = performance.now() - timerOffset * 1000;
     if (scenes[cur].audio) {
       if (timerOffset > 0) audio.currentTime = timerOffset;
-      audio.play().catch((e) => { if (e?.name === 'NotAllowedError') pause(); }); // AbortError: a newer load replaced this play
+      audio.play().catch((e) => { if (e?.name === 'NotAllowedError') blocked(); }); // AbortError: a newer load replaced this play
     }
     state('playing'); setPlayLabel();
   }
@@ -215,9 +241,21 @@ export async function startPlayer() {
     if (document.body.dataset.state === 'playing') state('paused');
     setPlayLabel();
   }
+  // The browser refused sound without a tap: back to the big play button, never a silent or dead screen.
+  function blocked() {
+    pause();
+    state('ready');
+  }
+  let endTimer = 0;
+  function ended() {
+    state('ended');
+    if (!flow) return;
+    $('end-title').textContent = 'Your plan, turned into missions';
+    endTimer = setTimeout(() => leaveTo(missionsUrl(caseId)), END_CARD_MS);
+  }
   function advance() {
     if (cur + 1 < scenes.length) startScene(cur + 1);
-    else { playing = false; timerOffset = tl[cur].duration; draw(cur, timerOffset); state('ended'); setPlayLabel(); }
+    else { playing = false; timerOffset = tl[cur].duration; draw(cur, timerOffset); setPlayLabel(); ended(); }
   }
   audio.addEventListener('error', () => { // clip failed mid-way: finish the scene on the timer clock
     if (cur < 0 || !scenes[cur].audio) return;
@@ -242,6 +280,7 @@ export async function startPlayer() {
   }
 
   function begin(offsetGlobal = 0) {
+    clearTimeout(endTimer); endTimer = 0;
     ensureAudioGraph(); ctx?.resume?.();
     let i = tl.findIndex((s) => offsetGlobal < s.start + s.duration);
     if (i < 0) i = 0;
@@ -251,7 +290,7 @@ export async function startPlayer() {
     startScene(i, Math.max(0, offsetGlobal - tl[i].start));
   }
 
-  $('play').addEventListener('click', () => begin(0));
+  $('play').addEventListener('click', () => begin(flow ? jump : 0));
   $('toggle').addEventListener('click', () => { if (document.body.dataset.state === 'ended') begin(0); else if (playing) pause(); else if (cur >= 0) resume(); });
   for (const id of ['replay', 'replay2']) $(id).addEventListener('click', () => begin(0));
 
@@ -286,10 +325,23 @@ export async function startPlayer() {
   if (paused) { state('paused'); document.body.classList.add('still'); }
   requestAnimationFrame(frame);
   setPlayLabel();
+
+  // Flow mode: start on our own. A suspended AudioContext also means "no sound allowed yet" (play() may still resolve).
+  function autoplay() {
+    begin(jump);
+    setTimeout(() => { if (playing && ctx && ctx.state !== 'running') blocked(); }, 400);
+  }
+  if (flow && !paused) {
+    if (shouldAutoplay({ flow, rotateHint: rotateHint() })) autoplay();
+    else onRotateCleared = autoplay;
+  }
 }
 
 function fmt(s) { const m = Math.floor(s / 60); return `${m}:${String(Math.floor(s % 60)).padStart(2, '0')}`; }
-function showMessage(text) {
+function showMessage(text, { retry = false } = {}) {
   document.body.dataset.state = 'message';
   document.getElementById('message-text').textContent = text;
+  const b = document.getElementById('message-retry');
+  b.hidden = !retry;
+  b.onclick = () => location.reload();
 }

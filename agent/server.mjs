@@ -19,6 +19,8 @@ import { chatComplete } from './src/video/narrate.mjs';
 import { parseRange, parseVideoPath, videoView } from './src/video/routes.mjs';
 import { loadMissions } from './src/game/missions.mjs';
 import { parseMissionsPath, missionsView } from './src/game/routes.mjs';
+import { parseJourneyPath, journeyView } from './src/journey.mjs';
+import { loadProfile } from './src/profile.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(here, '..');
@@ -75,6 +77,8 @@ const files = {
   '/video-stage.mjs': [join(here, 'public', 'video-stage.mjs'), 'text/javascript; charset=utf-8'],
   '/video-shapes.mjs': [join(here, 'public', 'video-shapes.mjs'), 'text/javascript; charset=utf-8'],
   '/video-time.mjs': [join(here, 'public', 'video-time.mjs'), 'text/javascript; charset=utf-8'],
+  '/journey-logic.mjs': [join(here, 'public', 'journey-logic.mjs'), 'text/javascript; charset=utf-8'],
+  '/handoff.mjs': [join(here, 'public', 'handoff.mjs'), 'text/javascript; charset=utf-8'],
   '/missions.html': [join(here, 'public', 'missions.html'), 'text/html; charset=utf-8'],
   '/missions.css': [join(here, 'public', 'missions.css'), 'text/css; charset=utf-8'],
   '/missions.mjs': [join(here, 'public', 'missions.mjs'), 'text/javascript; charset=utf-8'],
@@ -151,6 +155,13 @@ const server = createServer((req, res) => {
   if (pathname === '/config') {
     res.writeHead(200, { 'content-type': 'application/json' });
     return res.end(JSON.stringify({ model: MODEL, cases: caseIds.filter((id) => isAllowedCase(id, caseIds)).map((id) => ({ id, label: caseLabel(id) })) }));
+  }
+  const journeyCase = parseJourneyPath(pathname, caseIds);
+  if (journeyCase) {
+    return void loadProfile(profilesDir, journeyCase, []).then(
+      (p) => sendJson(res, 200, journeyView(p)),
+      () => sendJson(res, 200, journeyView(null)),
+    );
   }
   const missionsCase = parseMissionsPath(pathname, caseIds);
   if (missionsCase) return void serveMissions(res, missionsCase);
