@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your Sherpas video</title>
+<link rel="stylesheet" href="/tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--surface-base); color: var(--gray-900); font-family: var(--font-body);
+         display: flex; flex-direction: column; }
+  header { padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+  header img { height: 24px; }
+  main { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; padding: 0 16px 12px; }
+  #frame { flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; }
+  #fit { position: relative; overflow: hidden; border-radius: var(--radius-lg); background: var(--surface-raised);
+         border: var(--border); box-shadow: 0 8px 30px rgba(11,15,46,.10); }
+  #stage { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; background: var(--surface-frame); }
+
+  #captions { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 64px 26px; min-height: 96px; z-index: 5;
+              text-align: center; font: 500 34px/1.5 var(--font-body); color: var(--brand-950);
+              background: linear-gradient(to top, rgba(255,255,255,.96) 60%, rgba(255,255,255,0)); pointer-events: none; }
+  #captions .w { display: inline-block; padding: 0 6px; margin: 0 2px; border-radius: 8px; }
+  #captions .w.key { background: var(--brand-500); color: #fff; font-weight: 700; }
+  #unavailable { position: absolute; top: 14px; right: 18px; z-index: 5; padding: 6px 12px; font-size: 20px;
+                 border-radius: var(--radius-pill); background: var(--gray-100); color: var(--gray-500); }
+
+  #controls { width: 100%; max-width: 1280px; display: flex; align-items: center; gap: 12px; padding-top: 10px; }
+  #progress { flex: 1; height: 6px; border-radius: 3px; background: var(--gray-200); overflow: hidden; }
+  #bar { height: 100%; width: 0; background: var(--brand-500); }
+  #clock { font-size: 13px; color: var(--gray-500); font-variant-numeric: tabular-nums; min-width: 84px; text-align: right; }
+
+  button { font: 600 15px var(--font-body); border: 0; border-radius: var(--radius-pill); padding: 10px 20px; cursor: pointer;
+           background: var(--brand-500); color: #fff; }
+  button:hover { background: var(--brand-600); }
+  button.ghost { background: var(--gray-100); color: var(--brand-950); }
+  button.ghost:hover { background: var(--gray-200); }
+  button:focus-visible { outline: 3px solid var(--brand-300); outline-offset: 2px; }
+  button[aria-disabled="true"] { background: var(--gray-200); color: var(--gray-500); cursor: not-allowed; }
+
+  .overlay { position: absolute; inset: 0; z-index: 10; display: none; flex-direction: column; align-items: center; justify-content: center;
+             gap: 20px; background: rgba(248,250,253,.94); text-align: center; padding: 40px; }
+  .overlay h1 { font: 600 44px/1.2 var(--font-heading); margin: 0; color: var(--brand-950); }
+  .overlay p { font-size: 22px; color: var(--gray-600); margin: 0; }
+  .overlay button { font-size: 24px; padding: 16px 36px; }
+  body[data-state="ready"] #ov-ready, body[data-state="ended"] #ov-end { display: flex; }
+  body[data-state="loading"] #ov-loading { display: flex; }
+  #ov-loading img { width: 200px; animation: bob 1.8s ease-in-out infinite; }
+  body.reduced #ov-loading img { animation: none; }
+  @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+  body.still #ov-ready { display: none; }
+
+  #message { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+             padding: 24px; text-align: center; background: var(--surface-base); z-index: 30; }
+  #message img { width: 120px; }
+  #message p { font-size: 18px; max-width: 480px; margin: 0; color: var(--gray-700); }
+  body[data-state="message"] #message { display: flex; }
+
+  #rotate { position: fixed; inset: 0; z-index: 40; display: none; flex-direction: column; align-items: center; justify-content: center;
+            gap: 16px; background: var(--brand-950); color: #fff; font: 600 20px var(--font-heading); text-align: center; padding: 24px; }
+  #rotate span { max-width: 100%; text-wrap: balance; }
+  #rotate svg { width: 56px; height: 56px; }
+  @media (orientation: portrait) and (max-width: 900px) { #rotate { display: flex; } }
+  body[data-state="loading"] #controls, body[data-state="message"] #controls { visibility: hidden; }
+</style>
+</head>
+<body data-state="loading">
+<header><img src="/sherpas-logo.svg" alt="Sherpas"></header>
+<main>
+  <div id="frame">
+    <div id="fit">
+      <div id="stage"></div>
+      <div id="unavailable" hidden>Narration unavailable</div>
+      <div id="captions" aria-live="off"></div>
+      <div class="overlay" id="ov-loading"><img src="/sherpy.svg" alt=""><h1>Putting your video together…</h1></div>
+      <div class="overlay" id="ov-ready"><h1>Your plan, in your own words</h1><button id="play">Play your video</button></div>
+      <div class="overlay" id="ov-end"><h1>That is your plan, step by step</h1>
+        <button aria-disabled="true" tabindex="-1" title="Coming soon">Start your first mission</button>
+        <button class="ghost" id="replay2">Watch again</button></div>
+    </div>
+  </div>
+  <div id="controls">
+    <button class="ghost" id="toggle">Play</button>
+    <button class="ghost" id="replay">Replay</button>
+    <div id="progress"><div id="bar"></div></div>
+    <span id="clock">0:00 / 0:00</span>
+  </div>
+</main>
+<audio id="clip" preload="auto"></audio>
+<div id="message"><img src="/sherpy.svg" alt=""><p id="message-text"></p></div>
+<div id="rotate" role="alert">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M3 12a9 9 0 0 1 9-9M21 12a9 9 0 0 1-9 9"/></svg>
+  <span>Rotate your phone to watch your video</span>
+</div>
+<script type="module">
+  import { startPlayer } from '/video-player.mjs';
+  startPlayer();
+</script>
+</body>
+</html>
