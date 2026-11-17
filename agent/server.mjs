@@ -66,6 +66,7 @@ const files = {
   '/video.html': [join(here, 'public', 'video.html'), 'text/html; charset=utf-8'],
   '/video-player.mjs': [join(here, 'public', 'video-player.mjs'), 'text/javascript; charset=utf-8'],
   '/video-stage.mjs': [join(here, 'public', 'video-stage.mjs'), 'text/javascript; charset=utf-8'],
+  '/video-shapes.mjs': [join(here, 'public', 'video-shapes.mjs'), 'text/javascript; charset=utf-8'],
 };
 
 function sendJson(res, status, body) {
