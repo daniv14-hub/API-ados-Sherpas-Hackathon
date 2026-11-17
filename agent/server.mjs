@@ -59,6 +59,11 @@ function caseLabel(id) {
 
 const files = {
   '/': [join(here, 'public', 'index.html'), 'text/html; charset=utf-8'],
+  '/bench.html': [join(here, 'public', 'bench.html'), 'text/html; charset=utf-8'],
+  '/conversation.css': [join(here, 'public', 'conversation.css'), 'text/css; charset=utf-8'],
+  '/conversation.mjs': [join(here, 'public', 'conversation.mjs'), 'text/javascript; charset=utf-8'],
+  '/conversation-logic.mjs': [join(here, 'public', 'conversation-logic.mjs'), 'text/javascript; charset=utf-8'],
+  '/voice-client.mjs': [join(here, 'public', 'voice-client.mjs'), 'text/javascript; charset=utf-8'],
   '/mic-worklet.js': [join(here, 'public', 'mic-worklet.js'), 'text/javascript; charset=utf-8'],
   '/speech-gate.mjs': [join(here, 'public', 'speech-gate.mjs'), 'text/javascript; charset=utf-8'],
   '/half-duplex.mjs': [join(here, 'public', 'half-duplex.mjs'), 'text/javascript; charset=utf-8'],

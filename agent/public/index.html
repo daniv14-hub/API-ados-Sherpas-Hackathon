@@ -2,381 +2,83 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Talk with Sherpy</title>
-<!-- Sherpas design tokens: assets/brand/tokens.css, served by server.mjs. Mascot markup and animations copied
-     from prototypes/mascot/index.html (approved by the team 16/11, brown fur). -->
+<meta name="theme-color" content="#f8fafd">
 <link rel="stylesheet" href="/tokens.css">
-<style>
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--surface-base); color: var(--gray-900); font-family: var(--font-body); }
-  .wrap { max-width: 440px; margin: 0 auto; padding: 16px; }
-  header { display: flex; align-items: center; justify-content: space-between; padding: 8px 0 16px; }
-  header img { height: 22px; width: auto; }
-  h1 { font-family: var(--font-heading); font-weight: 600; font-size: 24px; margin: 0 0 4px; }
-  p.lead { color: var(--gray-500); margin: 0 0 16px; font-size: 14px; line-height: 1.45; }
-  .card { background: var(--surface-raised); border: var(--border); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 16px; }
-
-  /* ---------- stage ---------- */
-  .stage { position: relative; border-radius: var(--radius-xl); background: var(--brand-950); border: 1px solid var(--brand-950); height: 360px;
-           display: flex; align-items: flex-end; justify-content: center; overflow: hidden; margin-bottom: 16px; }
-  .bubble { position: absolute; top: 16px; left: 16px; right: 16px; max-height: 120px; overflow-y: auto; background: #fff; border: var(--border);
-            border-radius: var(--radius-lg); padding: 12px 14px; font-size: 15px; line-height: 1.4; box-shadow: 0 6px 20px rgba(21,22,26,.08);
-            opacity: 0; transform: translateY(-8px) scale(.96); transition: .25s ease; }
-  .bubble.show { opacity: 1; transform: none; }
-  .bubble b { font-family: var(--font-heading); font-weight: 600; display: block; margin-bottom: 2px; }
-
-  /* ---------- the yak (approved prototype CSS) ---------- */
-  .yak { width: 82%; max-width: 300px; overflow: visible; display: block;
-         --ink: var(--brand-950); --suit: var(--brand-700); --lapel: var(--brand-800); --shirt: #fff; --tie: var(--brand-400);
-         --pocket: var(--brand-200); --horn: #ffffff; --fur: #ffffff; --fur-dark: #ffffff; --muzzle: var(--gray-100); --cheek: rgba(232,115,138,.28); }
-  .yak.brown { --fur: #8a5f40; --fur-dark: #5c3d29; --muzzle: #e2c3a3; --horn: #f3eadb; }
-  .body-rig, .head-rig, .eyes, .mouth-open { transform-box: fill-box; }
-  .head-rig { transform-origin: 50% 90%; }
-  .body-rig { transform-origin: 50% 100%; }
-  .eyes { transform-origin: 50% 50%; animation: blink 4.5s infinite; }
-  .mouth-open { transform-origin: 50% 0%; transform: scaleY(var(--lvl, 0)); transition: transform 60ms linear; }
-  .stage .yak-wrap { transform-origin: 50% 100%; }
-
-  .idle .head-rig { animation: breathe 3.2s ease-in-out infinite; }
-  .listening .head-rig { animation: lean 2.4s ease-in-out infinite; }
-  .talking .head-rig { transform: translateY(calc(var(--lvl, 0) * -5px)) rotate(calc(var(--lvl, 0) * 2deg)); transition: transform 60ms linear; }
-  .celebrate .yak-wrap { animation: hop .7s cubic-bezier(.3,1.6,.5,1) 2; }
-  .celebrate .mouth-open { transform: scaleY(1); }
-
-  @keyframes breathe { 0%,100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(2px) rotate(-1deg); } }
-  @keyframes lean { 0%,100% { transform: rotate(-5deg); } 50% { transform: rotate(-7deg) translateY(2px); } }
-  @keyframes hop { 0% { transform: translateY(0) scale(1.04,.95); } 40% { transform: translateY(-30px) scale(.97,1.03); } 75% { transform: translateY(0) scale(1.04,.96); } 100% { transform: none; } }
-  @keyframes blink { 0%,94%,100% { transform: scaleY(1); } 96% { transform: scaleY(.1); } }
-
-  .rings { position: absolute; left: 16px; bottom: 16px; display: flex; gap: 4px; opacity: 0; transition: .2s; }
-  .stage.listening .rings { opacity: 1; }
-  .rings i { width: 6px; height: 6px; border-radius: 50%; background: var(--brand-400); animation: dot 1s infinite; }
-  .rings i:nth-child(2) { animation-delay: .15s; } .rings i:nth-child(3) { animation-delay: .3s; }
-  @keyframes dot { 0%,100% { transform: translateY(0); opacity: .4; } 50% { transform: translateY(-5px); opacity: 1; } }
-
-  /* ---------- controls ---------- */
-  label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--gray-500); margin-bottom: 12px; }
-  select { font: 15px var(--font-body); color: var(--gray-900); border: var(--border); border-radius: var(--radius); padding: 10px 12px; background: #fff; }
-  .buttons { display: grid; grid-template-columns: 2fr 1fr; gap: 8px; }
-  button { font: 600 15px var(--font-body); border-radius: var(--radius-pill); border: var(--border); background: #fff; color: var(--gray-900);
-           padding: 12px 14px; cursor: pointer; }
-  button.primary { background: var(--brand-gradient); border-color: transparent; color: #fff; }
-  button:disabled { opacity: .5; cursor: default; }
-  #ptt { width: 100%; margin-top: 12px; display: none; user-select: none; touch-action: none; }
-  #ptt.down { background: var(--brand-700); color: #fff; }
-  .status { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--gray-500); margin-top: 12px; }
-  .status b { color: var(--gray-900); font-weight: 600; }
-  .meter { flex: 0 0 80px; height: 6px; background: var(--gray-100); border-radius: 3px; overflow: hidden; }
-  .meter i { display: block; height: 100%; width: 0; background: var(--success); transition: width 60ms linear; }
-  .hint { font-size: 12px; color: var(--gray-500); margin: 10px 0 0; line-height: 1.4; }
-
-  /* ---------- transcript ---------- */
-  #chat { display: flex; flex-direction: column; gap: 8px; max-height: 40vh; overflow-y: auto; }
-  #chat:empty::before { content: "Your conversation will appear here."; color: var(--gray-400); font-size: 14px; }
-  .msg { padding: 8px 12px; border-radius: var(--radius); max-width: 85%; white-space: pre-wrap; font-size: 14px; line-height: 1.45; }
-  .msg.user { background: var(--brand-50); align-self: flex-end; }
-  .msg.bot { background: var(--surface-frame); border: var(--border); align-self: flex-start; }
-  .msg .meta { display: block; font-size: 11px; color: var(--gray-500); margin-top: 3px; }
-  .msg .meta:empty { display: none; }
-  details { font-size: 13px; color: var(--gray-500); }
-  #log { font: 11px/1.4 ui-monospace, Menlo, monospace; max-height: 30vh; overflow-y: auto; white-space: pre-wrap; }
-</style>
+<link rel="stylesheet" href="/conversation.css">
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <img src="/sherpas-logo.svg" alt="Sherpas">
+<!-- Product conversation screen (option A). The voice test bench lives at /bench.html. -->
+<template id="sherpy-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="20 40 280 336" aria-label="Sherpy"><g class="body-rig"><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="#1738b1" d="M28,372 C32,318 52,288 96,272 L224,272 C268,288 288,318 292,372 Z"/><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" fill="#fff" d="M110,272 L210,272 L160,384 Z"/><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" fill="#112980" d="M94,272 L110,272 L158,380 L130,334 L106,302 L116,292 Z"/><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" fill="#112980" d="M226,272 L210,272 L162,380 L190,334 L214,302 L204,292 Z"/><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" fill="#6485fb" d="M150,278 L170,278 L165,293 L173,326 L160,344 L147,326 L155,293 Z"/><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" fill="#c6d2fd" d="M224,318 L250,318 L246,330 L240,322 L234,330 L228,322 Z"/><line stroke="#0b0f2e" stroke-width="5" stroke-linecap="round" x1="220" y1="330" x2="256" y2="330"/></g><g class="head-rig"><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" fill="#f3eadb" d="M86,114 C60,110 40,90 36,54 C50,76 70,86 94,96 Z"/><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" fill="#f3eadb" d="M234,114 C260,110 280,90 284,54 C270,76 250,86 226,96 Z"/><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" fill="#5c3d29" d="M268.0,160.0 Q270.2,182.5 257.3,201.7 Q248.3,223.0 227.3,235.1 Q209.0,251.0 184.0,253.6 Q160.0,261.0 136.0,253.6 Q111.0,251.0 92.7,235.1 Q71.7,223.0 62.7,201.7 Q49.8,182.5 52.0,160.0 Q49.8,137.5 62.7,118.3 Q71.7,97.0 92.7,84.9 Q111.0,69.0 136.0,66.4 Q160.0,59.0 184.0,66.4 Q209.0,69.0 227.3,84.9 Q248.3,97.0 257.3,118.3 Q270.2,137.5 268.0,160.0Z"/><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" fill="#5c3d29" d="M215.2,243.4 Q222.2,254.3 206.8,250.3 Q210.2,262.9 195.6,255.9 Q195.2,269.5 182.2,259.7 Q178.1,273.6 167.6,261.7 Q160.0,275.0 152.4,261.7 Q141.9,273.6 137.8,259.7 Q124.8,269.5 124.4,255.9 Q109.8,262.9 113.2,250.3 Q97.8,254.3 104.8,243.4"/><ellipse stroke="#0b0f2e" stroke-width="5" fill="#8a5f40" cx="62" cy="150" rx="22" ry="12" transform="rotate(-18 62 150)"/><ellipse stroke="#0b0f2e" stroke-width="5" fill="#8a5f40" cx="258" cy="150" rx="22" ry="12" transform="rotate(18 258 150)"/><ellipse fill="#8a5f40" cx="160" cy="172" rx="76" ry="76"/><ellipse fill="rgba(232,115,138,.28)" cx="112" cy="196" rx="13" ry="8"/><ellipse fill="rgba(232,115,138,.28)" cx="208" cy="196" rx="13" ry="8"/><ellipse fill="#0b0f2e" cx="130" cy="162" rx="10" ry="12"/><ellipse fill="#0b0f2e" cx="190" cy="162" rx="10" ry="12"/><circle fill="#fff" cx="134" cy="157" r="3.6"/><circle fill="#fff" cx="194" cy="157" r="3.6"/><path fill="#0b0f2e" d="M110,146 C118,132 136,128 150,136 C138,136 124,140 113,151 Z"/><path fill="#0b0f2e" d="M210,146 C202,132 184,128 170,136 C182,136 196,140 207,151 Z"/><ellipse stroke="#0b0f2e" stroke-width="5" fill="#e2c3a3" cx="160" cy="214" rx="46" ry="30"/><ellipse fill="#0b0f2e" cx="145" cy="206" rx="6" ry="4.5"/><ellipse fill="#0b0f2e" cx="175" cy="206" rx="6" ry="4.5"/><path class="mouth-open" fill="#0b0f2e" d="M144,224 Q160,226 176,224 Q174,246 160,248 Q146,246 144,224 Z"/><path class="smile" fill="none" stroke="#0b0f2e" stroke-width="4.5" stroke-linecap="round" d="M144,224 Q160,236 176,224"/></g></svg></template>
+<template id="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></template>
+
+<div id="app">
+  <header class="topbar">
+    <img src="/sherpas-logo.svg" alt="Sherpas" width="74" height="18">
+    <button id="end" class="btn end" type="button" hidden><span class="short">End</span><span class="long">End conversation</span></button>
   </header>
-  <h1>Talk with Sherpy</h1>
-  <p class="lead">Sherpy, your Sherpas advisor, will get to know your family and then answer your questions about your plan. Just talk.</p>
 
-  <div class="stage idle" id="stage">
-    <div class="bubble" id="bubble"><b>Sherpy</b><span id="bubbleText"></span></div>
-    <div class="yak-wrap"><svg id="yak" class="yak brown" viewBox="20 40 280 336" role="img" aria-label="Sherpy, the Sherpas advisor mascot">
-<g class="body-rig">
-  <!-- suit -->
-  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--suit)" d="M28,372 C32,318 52,288 96,272 L224,272 C268,288 288,318 292,372 Z"/>
-  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--shirt)" d="M110,272 L210,272 L160,384 Z"/>
-  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--lapel)" d="M94,272 L110,272 L158,380 L130,334 L106,302 L116,292 Z"/>
-  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--lapel)" d="M226,272 L210,272 L162,380 L190,334 L214,302 L204,292 Z"/>
-  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--tie)" d="M150,278 L170,278 L165,293 L173,326 L160,344 L147,326 L155,293 Z"/>
-  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--pocket)" d="M224,318 L250,318 L246,330 L240,322 L234,330 L228,322 Z"/>
-  <line stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" x1="220" y1="330" x2="256" y2="330"/>
-</g>
-<g class="head-rig">
-  <!-- horns -->
-  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--horn)" d="M86,114 C60,110 40,90 36,54 C50,76 70,86 94,96 Z"/>
-  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--horn)" d="M234,114 C260,110 280,90 284,54 C270,76 250,86 226,96 Z"/>
-  <!-- shaggy head and beard -->
-  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur-dark)" d="M268.0,160.0 Q270.2,182.5 257.3,201.7 Q248.3,223.0 227.3,235.1 Q209.0,251.0 184.0,253.6 Q160.0,261.0 136.0,253.6 Q111.0,251.0 92.7,235.1 Q71.7,223.0 62.7,201.7 Q49.8,182.5 52.0,160.0 Q49.8,137.5 62.7,118.3 Q71.7,97.0 92.7,84.9 Q111.0,69.0 136.0,66.4 Q160.0,59.0 184.0,66.4 Q209.0,69.0 227.3,84.9 Q248.3,97.0 257.3,118.3 Q270.2,137.5 268.0,160.0Z"/>
-  <path stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur-dark)" d="M215.2,243.4 Q222.2,254.3 206.8,250.3 Q210.2,262.9 195.6,255.9 Q195.2,269.5 182.2,259.7 Q178.1,273.6 167.6,261.7 Q160.0,275.0 152.4,261.7 Q141.9,273.6 137.8,259.7 Q124.8,269.5 124.4,255.9 Q109.8,262.9 113.2,250.3 Q97.8,254.3 104.8,243.4"/>
-  <!-- ears -->
-  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur)" cx="62" cy="150" rx="22" ry="12" transform="rotate(-18 62 150)"/>
-  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--fur)" cx="258" cy="150" rx="22" ry="12" transform="rotate(18 258 150)"/>
-  <!-- face -->
-  <ellipse fill="var(--fur)" cx="160" cy="172" rx="76" ry="76"/>
-  <ellipse fill="var(--cheek)" cx="112" cy="196" rx="13" ry="8"/>
-  <ellipse fill="var(--cheek)" cx="208" cy="196" rx="13" ry="8"/>
-  <!-- eyes -->
-  <g class="eyes">
-    <ellipse fill="var(--ink)" cx="130" cy="162" rx="10" ry="12"/>
-    <ellipse fill="var(--ink)" cx="190" cy="162" rx="10" ry="12"/>
-    <circle fill="#fff" cx="134" cy="157" r="3.6"/>
-    <circle fill="#fff" cx="194" cy="157" r="3.6"/>
-  </g>
-  <!-- fringe over the forehead -->
-  <!-- crescent brows: the dark crescent from the banner yak -->
-  <path fill="var(--ink)" d="M110,146 C118,132 136,128 150,136 C138,136 124,140 113,151 Z"/>
-  <path fill="var(--ink)" d="M210,146 C202,132 184,128 170,136 C182,136 196,140 207,151 Z"/>
-  <!-- muzzle -->
-  <ellipse stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="var(--muzzle)" cx="160" cy="214" rx="46" ry="30"/>
-  <ellipse fill="var(--ink)" cx="145" cy="206" rx="6" ry="4.5"/>
-  <ellipse fill="var(--ink)" cx="175" cy="206" rx="6" ry="4.5"/>
-  <g class="mouth-rig">
-    <path class="mouth-open" fill="var(--ink)" d="M144,224 Q160,226 176,224 Q174,246 160,248 Q146,246 144,224 Z"/>
-    <path class="smile" fill="none" stroke="var(--ink)" stroke-width="4.5" stroke-linecap="round" d="M144,224 Q160,236 176,224"/>
-  </g>
-</g></svg></div>
-    <div class="rings"><i></i><i></i><i></i></div>
-  </div>
+  <main>
+    <section id="start" class="view" aria-labelledby="start-title">
+      <div class="stage row">
+        <div class="halo"><div class="sherpy" data-sherpy></div></div>
+        <div class="right">
+          <div class="name">Sherpy</div>
+          <h1 id="start-title" class="lead-title">Hi, I'm Sherpy</h1>
+          <p class="lead-text" id="start-text">Let's talk through your plan together. I'll ask a few questions, and you just answer out loud.</p>
+          <button id="go" class="btn primary" type="button" disabled>Start</button>
+          <label class="demo"><span>Demo family</span><select id="family" aria-label="Demo family"></select></label>
+        </div>
+      </div>
+    </section>
 
-  <div class="card">
-    <label>Family
-      <select id="case"></select>
-    </label>
-    <label>How you talk
-      <select id="mode">
-        <option value="open">Open mic: just talk</option>
-        <option value="ptt">Push to talk</option>
-      </select>
-    </label>
-    <div class="buttons">
-      <button id="connect" class="primary">Start talking</button>
-      <button id="hangup" disabled>Hang up</button>
-    </div>
-    <button id="ptt">Hold to talk (or hold the space bar)</button>
-    <div class="status">
-      <span>Status: <b id="state">not connected</b></span>
-      <span class="meter" title="Microphone level"><i id="level"></i></span>
-    </div>
-    <p class="hint">Use headphones if you can: if the speaker leaks into the microphone, Sherpy may interrupt itself.</p>
-  </div>
+    <section id="call" class="view" aria-label="Conversation with Sherpy" hidden>
+      <div id="callstage" class="stage row">
+        <div class="halo"><div class="sherpy" data-sherpy></div></div>
+        <div class="right">
+          <div class="name">Sherpy</div>
+          <div id="caption" class="caption" aria-hidden="true"></div>
+          <p id="making" class="making-msg" role="status">Sherpy is putting your video together<span class="dots"><span>.</span><span>.</span><span>.</span></span></p>
+          <div id="turn" class="turn" role="status"><span class="dot" data-mic></span><span id="turn-label">Sherpy is joining…</span></div>
+          <div id="sentence-live" class="sr-only" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
 
-  <div class="card" id="videoSlot" hidden>
-    <b>Your video will appear here</b>
-    <p class="hint">Sherpy is putting together your personal video. (Placeholder: the video is not built yet.)</p>
-  </div>
-  <div class="card"><div id="chat"></div></div>
-  <div class="card">
-    <details><summary>Events</summary><div id="log"></div></details>
-  </div>
+    <section id="pause" class="view" aria-labelledby="pause-title" hidden>
+      <div class="stage row">
+        <div class="halo"><div class="sherpy" data-sherpy></div></div>
+        <div class="right">
+          <div class="name">Sherpy</div>
+          <h1 id="pause-title" class="lead-title">Conversation paused</h1>
+          <p class="lead-text">Sherpy keeps what you've shared so far. Continue whenever you're ready and we'll pick up where we left off.</p>
+          <button id="resume" class="btn primary" type="button">Continue with Sherpy</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="error" class="view" aria-labelledby="err-title" hidden>
+      <div class="stage">
+        <div class="err-icon" aria-hidden="true">!</div>
+        <h1 id="err-title" class="lead-title"></h1>
+        <p id="err-text" class="lead-text" role="alert"></p>
+        <button id="retry" class="btn primary" type="button"></button>
+        <div id="fam-list" class="fam-list" hidden></div>
+      </div>
+    </section>
+  </main>
 </div>
-<script type="module">
-import { createSpeechGate } from "/speech-gate.mjs";
-import { micMuted } from "/half-duplex.mjs";
-const $ = (id) => document.getElementById(id);
-let ws = null, ctx = null, micStream = null, micNode = null, analyser = null, MODEL = "";
-let playHead = 0, playing = [], current = null, lastReply = null, userBubble = null;
-let pttDown = false, listening = false, lvl = 0;
-let finished = false; // set when Sherpy ends the conversation (sherpy.conversation_done)
-const OPENAI = () => MODEL.startsWith("gpt-");
-const ptt = () => $("mode").value === "ptt";
 
-fetch("/config").then((r) => r.json()).then((cfg) => {
-  MODEL = cfg.model;
-  for (const c of cfg.cases) $("case").add(new Option(c.label, c.id));
-}).catch(() => setState("could not load the families"));
+<dialog id="confirm" aria-labelledby="confirm-title">
+  <h2 id="confirm-title">End now?</h2>
+  <p>Sherpy keeps what you've shared so far.</p>
+  <div class="dlg-actions">
+    <button id="keep" class="btn ghost" type="button" autofocus>Keep talking</button>
+    <button id="end-now" class="btn danger" type="button">End now</button>
+  </div>
+</dialog>
 
-function log(line) {
-  const el = $("log");
-  el.textContent += `${new Date().toLocaleTimeString()}  ${line}\n`;
-  if (el.textContent.length > 40000) el.textContent = el.textContent.slice(-30000);
-  el.scrollTop = el.scrollHeight;
-}
-function setState(s) { $("state").textContent = s; }
-function bubble(kind, text = "") {
-  const d = document.createElement("div");
-  d.className = `msg ${kind}`;
-  d.innerHTML = `<span class="text"></span><span class="meta"></span>`;
-  d.querySelector(".text").textContent = text;
-  $("chat").appendChild(d);
-  $("chat").scrollTop = $("chat").scrollHeight;
-  return d;
-}
-function say(text) {
-  $("bubbleText").textContent = text;
-  $("bubble").classList.toggle("show", !!text);
-  $("bubble").scrollTop = $("bubble").scrollHeight;
-}
-const b64 = (buf) => { let s = ""; const u = new Uint8Array(buf); for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode(...u.subarray(i, i + 0x8000)); return btoa(s); };
-
-// Audio from the model is base64 PCM16 at 24 kHz, queued chunk after chunk. It plays through an analyser
-// so Sherpy's mouth follows the volume of what is actually being played (D8: no lip-sync).
-function play(base64) {
-  const bin = atob(base64), n = bin.length >> 1, pcm = new Float32Array(n);
-  for (let i = 0; i < n; i++) { let v = bin.charCodeAt(2 * i) | (bin.charCodeAt(2 * i + 1) << 8); if (v >= 0x8000) v -= 0x10000; pcm[i] = v / 0x8000; }
-  const buf = ctx.createBuffer(1, n, 24000); buf.copyToChannel(pcm, 0);
-  const src = ctx.createBufferSource(); src.buffer = buf; src.connect(analyser);
-  playHead = Math.max(playHead, ctx.currentTime + 0.05); const startAt = playHead; src.start(playHead); playHead += buf.duration;
-  playing.push(src); src.onended = () => { playing = playing.filter((s) => s !== src); };
-  return { startAt, seconds: buf.duration };
-}
-function stopPlayback() { for (const s of playing) { try { s.stop(); } catch {} } playing = []; playHead = ctx?.currentTime ?? 0; }
-const audioPending = () => ctx && playHead > ctx.currentTime + 0.02;
-
-// Mascot state: talking while audio plays, listening while the user speaks, idle otherwise.
-const samples = new Float32Array(1024);
-function animate() {
-  const stage = $("stage");
-  let target = 0;
-  if (analyser && audioPending()) {
-    analyser.getFloatTimeDomainData(samples);
-    let sum = 0; for (let i = 0; i < samples.length; i++) sum += samples[i] * samples[i];
-    target = Math.min(1, Math.sqrt(sum / samples.length) * 6);
-  }
-  lvl = lvl * 0.5 + target * 0.5;
-  stage.style.setProperty("--lvl", lvl.toFixed(3));
-  const mode = audioPending() ? "talking" : listening ? "listening" : "idle";
-  if (!stage.classList.contains(mode)) { stage.classList.remove("idle", "listening", "talking"); stage.classList.add(mode); }
-  requestAnimationFrame(animate);
-}
-requestAnimationFrame(animate);
-
-function cutReply() {
-  const r = lastReply;
-  if (!r || r.cut || !audioPending()) return;
-  r.cut = true;
-  const played = Math.max(0, Math.min(r.seconds, ctx.currentTime - r.startAt));
-  stopPlayback();
-  r.el.querySelector(".meta").textContent = "interrupted";
-  // Tell OpenAI what the user actually heard, so the model does not assume they heard it all.
-  if (OPENAI() && r.itemId) ws?.send(JSON.stringify({ type: "conversation.item.truncate", item_id: r.itemId, content_index: 0, audio_end_ms: Math.floor(played * 1000) }));
-}
-
-// The server replaces instructions and tools with Sherpy's own; the page only sets up audio.
-function sessionUpdate() {
-  const ptt = $("mode").value === "ptt";
-  const input = { format: { type: "audio/pcm", rate: 24000 },
-    turn_detection: ptt ? null : { type: "server_vad", silence_duration_ms: 600 } };
-  if (OPENAI()) input.transcription = { model: "gpt-4o-mini-transcribe" };
-  const output = { format: { type: "audio/pcm", rate: 24000 } };
-  if (OPENAI()) output.voice = "marin";
-  return { type: "session.update", session: { type: "realtime", audio: { input, output } } };
-}
-
-function onEvent(ev) {
-  const t = ev.type ?? "?";
-  if (!t.includes("delta")) log(t + (ev.error ? `  ${JSON.stringify(ev.error)}` : ""));
-  if (t === "error") {
-    const msg = ev.error?.message === "plan_unavailable" ? "your plan is not available right now, please try again later" : (ev.error?.message ?? "");
-    setState("error: " + msg); return;
-  }
-  if (t === "session.created" || t === "session.updated") setState("connected, talk whenever you like");
-  if (t === "sherpy.conversation_done") {
-    // D19: let the closing line finish playing, then hang up and go to the video page.
-    finished = true; setState("conversation finished");
-    const wait = setInterval(() => {
-      if (audioPending()) return;
-      clearInterval(wait);
-      ws?.close();
-      location.href = "/video.html?case=" + encodeURIComponent($("case").value);
-    }, 200);
-    return;
-  }
-  // Open mic is half-duplex (half-duplex.mjs): Sherpy is never cut off, it finishes and then listens.
-  if (t === "input_audio_buffer.speech_started") { listening = true; if (ptt()) cutReply(); }
-  if (t === "input_audio_buffer.speech_stopped") listening = false;
-  if (t.includes("input_audio_transcription")) {
-    if (!userBubble) userBubble = bubble("user");
-    const el = userBubble.querySelector(".text");
-    el.textContent = t.endsWith("completed") ? (ev.transcript ?? el.textContent) : el.textContent + (ev.delta ?? "");
-    if (t.endsWith("completed")) userBubble = null;
-  }
-  if (t === "response.created") {
-    listening = false;
-    current = { audioDone: false, el: null, text: "" };
-    lastReply = { el: null, itemId: null, startAt: 0, seconds: 0, cut: false };
-  }
-  if ((t === "response.output_audio.delta" || t === "response.audio.delta") && ev.delta && ctx) {
-    const chunk = play(ev.delta);
-    if (lastReply) { if (!lastReply.seconds) lastReply.startAt = chunk.startAt; lastReply.seconds += chunk.seconds; lastReply.itemId ??= ev.item_id ?? null; }
-  }
-  if ((t === "response.output_audio_transcript.delta" || t === "response.audio_transcript.delta") && current) {
-    if (!current.el) { current.el = bubble("bot"); if (lastReply) lastReply.el = current.el; }
-    current.text += ev.delta ?? "";
-    current.el.querySelector(".text").textContent = current.text;
-    say(current.text);
-  }
-  if (t === "response.output_audio.done" || t === "response.audio.done") { if (current) current.audioDone = true; }
-  if (t === "response.done" && current) {
-    // Gemini through the proxy: a reply cut short by the user ends without output_audio.done.
-    if (ptt() && !current.audioDone && lastReply?.seconds && lastReply.el) cutReply();
-    current = null;
-  }
-}
-
-async function connect() {
-  if (!$("case").value) { setState("choose a family first"); return; }
-  $("connect").disabled = true; setState("asking for the microphone…");
-  finished = false; $("videoSlot").hidden = true;
-  try {
-    ctx = new AudioContext({ sampleRate: 24000 }); // the browser resamples the mic to 24 kHz for us
-    analyser = ctx.createAnalyser(); analyser.fftSize = 1024; analyser.connect(ctx.destination);
-    micStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } });
-    await ctx.audioWorklet.addModule("/mic-worklet.js");
-    const srcNode = ctx.createMediaStreamSource(micStream);
-    micNode = new AudioWorkletNode(ctx, "mic-frames");
-    srcNode.connect(micNode);
-  } catch (e) { setState("no microphone: " + e.message); cleanup(); return; }
-  const ptt = $("mode").value === "ptt";
-  const gate = createSpeechGate(); // one per call: it keeps a short audio history
-  ws = new WebSocket(`${location.origin.replace(/^http/, "ws")}/voice?${new URLSearchParams({ case: $("case").value })}`);
-  ws.onopen = () => { ws.send(JSON.stringify(sessionUpdate())); setState("connecting…"); };
-  ws.onmessage = (m) => { try { onEvent(JSON.parse(m.data)); } catch (e) { log("bad event " + e.message); } };
-  ws.onclose = (e) => { if (!finished && !$("state").textContent.startsWith("error")) setState(e.code === 1008 ? "unknown family" : "not connected"); cleanup(); };
-  micNode.port.onmessage = (e) => {
-    const frame = new Int16Array(e.data);
-    let sum = 0; for (let i = 0; i < frame.length; i++) sum += frame[i] * frame[i];
-    $("level").style.width = `${Math.min(100, Math.sqrt(sum / frame.length) / 32768 * 600)}%`;
-    if (ws?.readyState !== 1) return;
-    if (ptt && !pttDown) return; // push to talk: nothing is sent while the button is up
-    // Open mic: breaths and coughs are replaced by silence before they reach the model (speech-gate.mjs),
-    // and so is everything while Sherpy is speaking, so it can't hear its own voice (half-duplex.mjs).
-    const muted = !ptt && micMuted(ctx.currentTime, playHead);
-    const out = ptt ? frame : gate.push(muted ? new Int16Array(frame.length) : frame);
-    // Lightweight counters to check the mic path in tests and in the console (no audio is kept).
-    const d = (window.sherpyMic ??= { frames: 0, sentVoice: 0, muted: 0, peak: 0 });
-    d.frames++; if (out.some((v) => v !== 0)) d.sentVoice++; if (muted) d.muted++;
-    for (let i = 0; i < frame.length; i += 16) d.peak = Math.max(d.peak, Math.abs(frame[i]));
-    ws.send(JSON.stringify({ type: "input_audio_buffer.append", audio: b64(out.buffer) }));
-  };
-  $("ptt").style.display = ptt ? "block" : "none";
-  $("hangup").disabled = false;
-  ["case", "mode"].forEach((id) => ($(id).disabled = true));
-}
-function cleanup() {
-  stopPlayback();
-  micStream?.getTracks().forEach((t) => t.stop()); micStream = null;
-  ctx?.close(); ctx = null; analyser = null; ws = null; current = null; lastReply = null; listening = false; userBubble = null;
-  say("");
-  $("connect").disabled = false; $("hangup").disabled = true; $("ptt").style.display = "none";
-  ["case", "mode"].forEach((id) => ($(id).disabled = false));
-}
-function pttPress(down) {
-  if (!ws || $("mode").value !== "ptt" || pttDown === down) return;
-  pttDown = down; listening = down; $("ptt").classList.toggle("down", down);
-  if (down) { stopPlayback(); return; }
-  ws.send(JSON.stringify({ type: "input_audio_buffer.commit" }));
-  ws.send(JSON.stringify({ type: "response.create" })); // OpenAI needs it with turn detection off; the proxy drops it for Gemini
-}
-$("connect").onclick = connect;
-$("hangup").onclick = () => ws?.close();
-$("ptt").onpointerdown = () => pttPress(true);
-$("ptt").onpointerup = $("ptt").onpointerleave = () => pttPress(false);
-addEventListener("keydown", (e) => { if (e.code === "Space" && e.target.tagName !== "SELECT") { e.preventDefault(); pttPress(true); } });
-addEventListener("keyup", (e) => { if (e.code === "Space" && e.target.tagName !== "SELECT") pttPress(false); });
-addEventListener("pagehide", () => ws?.close()); // voice is billed per session: never leave one open
-</script>
+<script type="module" src="/conversation.mjs"></script>
 </body>
 </html>
