@@ -25,7 +25,7 @@ D14, D15 in `docs/decisions.md`.
 - Product copy and narration in **English**; code, identifiers, comments, commits in English.
 - Secrets (`TEAM_KEY`, `MCP_TOKEN`) only in the server process; the browser gets scene JSON and audio only.
 - ElevenLabs budget $1.40 total: TTS only on a cache miss; cache key includes the voice id and the script text.
-  Model `eleven-flash-v2.5`. Voice from env `SHERPY_VOICE`, default `alloy` until the team picks (samples:
+  Model `eleven-flash-v2.5`. Voice from env `SHERPY_VOICE`, default `onyx` (team pick, 17/11; other samples:
   `alloy`, `ash`, `onyx`, `sage`; `echo` and `fable` return `voice_not_found`).
 - `gpt-5-mini`: never send `max_tokens`.
 - Format 16:9; phone held upright shows a "Rotate your phone" overlay.
@@ -286,7 +286,7 @@ test('parseVideoPath accepts known cases and audio indexes only', () => {
 
 - [ ] **Step 2: Run** → FAIL.
 - [ ] **Step 3: Implement** the routes in `server.mjs` using `parseVideoPath` (audio index must be < scene count,
-else 404). `TEAM_KEY` stays in the server: `speech({ baseUrl: PROXY_URL, key: TEAM_KEY, voice: process.env.SHERPY_VOICE || 'alloy' })`.
+else 404). `TEAM_KEY` stays in the server: `speech({ baseUrl: PROXY_URL, key: TEAM_KEY, voice: process.env.SHERPY_VOICE || 'onyx' })`.
 - [ ] **Step 4: Run** `npm test` → green. Then `npm start` and
   `curl -s -o /dev/null -w "%{http_code}" localhost:5173/video/nobody` → `404`;
   with no profile for the Johnsons, `curl -s localhost:5173/video/daniel-emily-johnson` → `{"error":"profile_incomplete"}`.
