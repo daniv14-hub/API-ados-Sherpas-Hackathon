@@ -46,7 +46,11 @@
     (`docs/superpowers/2026-11-17-journey-ui-final-review.md`). Security: new routes `/missions/<case>`, `/journey/<case>` allow-listed, no data leaks.
   - Known issues: in the e2e run Sherpy saved `detail_level: low` without an answer (asked, then closed): the "never save a guess" flaw is still open.
     Mission views are not in browser history (Back leaves the page). Missions page has no view transition (fade instead). Voice still monotone.
-  - Spend: **$3.50 of $50**. The demo profile `data/profiles/daniel-emily-johnson.json` is the one from the morning test (restored after the e2e run).
+  - After the review: Back button inside missions, focus on view change, quieter screen-reader announcements, in-page reset (99902c6). 198 tests.
+  - **Voice (team to choose by ear):** 6 samples at `data/voice-samples/compare.html` (local only); options, costs and the exact code change in
+    `docs/voice-options.md`. The proxy offers eleven-flash-v2.5, eleven-multilingual-v2, eleven-v3, any ElevenLabs voice_id, and passes
+    voice_settings/speed. Default voice NOT changed.
+  - Spend: **~$3.55 of $50**. The demo profile `data/profiles/daniel-emily-johnson.json` is the one from the morning test (restored after the e2e run).
 - Next (team): try the whole journey live on a laptop and a phone; review the rulings; screenshots `YYYYMMDD-HHMM-what.png`; 2-min demo video and
   one-page write-up (due 18/11 23:59); merge decision (`feat/sherpy-voice-agent` → `feat/explainer-video` → `feat/journey-ui` stack).
 - Needs from the desktop Claude: move the rulings and the decisions in devlog to decisions.md/open-questions.md once the team confirms.

@@ -86,3 +86,8 @@ Timestamped entries (Europe/Madrid). Milestones, blockers, surprises and pivots,
   before the page asked for it. Bug seen: `detail_level: low` saved although nobody answered the detail question (Sherpy asked, then closed).
   Demo profile restored from `data/archive/johnson-demo-profile-backup.json`; e2e profile kept in `data/archive/`.
 - Final review (Opus) on 67850de..HEAD: 0 critical, 5 important fixed (a660df4, 672cf47), 12 minors parked. 195 tests. Spend $3.50.
+
+## 17/11 ~23:40 — overnight run finished
+- UI minors fixed after the review (99902c6). 198 tests green.
+- Voice options for the monotone narration: `docs/voice-options.md` + 6 samples in `data/voice-samples/compare.html` (1,057 TTS characters, ~$0.06).
+  Recommendation to try first (same cost): prosody-rewritten text and stability 0.25; then eleven-v3 with tags (2× cost) vs voice "Brian". Not applied.
