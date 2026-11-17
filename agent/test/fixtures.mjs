@@ -7,5 +7,6 @@ export function loadCase(id) {
   return {
     fh: JSON.parse(readFileSync(new URL('financial-health.json', dir), 'utf8')),
     personaMd: readFileSync(new URL('persona.md', dir), 'utf8'),
+    ia: JSON.parse(readFileSync(new URL('investment-analysis.json', dir), 'utf8')),
   };
 }
