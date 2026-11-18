@@ -10,14 +10,42 @@
 
 Our project: a voice conversation led by the mascot **Sherpy**, then a personal narrated explainer video built from the
 family's own plan, then a mission path that turns every recommendation into small guided steps, with Sherpy one tap
-away by voice. Requires Node 22+ and the keys in the root `.env`
-(`TEAM_KEY`, `MCP_URL`, `MCP_TOKEN`, see "Save your keys" below). The keys stay in the backend; the page never sees them.
+away by voice. The keys stay in our backend; the page never sees them.
 
-```
-cd agent
-npm install
-npm start
-```
+### Run it on your computer (macOS or Windows)
+
+You need **Node.js 22 or later** (nodejs.org), **Git**, and **Chrome or Edge** (for the microphone). Only one key is
+required: the hackathon AI key `TEAM_KEY`. The case data is read from the `cases/` folder of this repo, so no MCP token
+is needed (if `MCP_URL` and `MCP_TOKEN` are set and valid, the live Sherpas MCP is used instead; same data).
+
+1. Clone and enter the repo:
+   ```
+   git clone https://github.com/daniv14-hub/API-ados-Sherpas-Hackathon.git
+   cd API-ados-Sherpas-Hackathon
+   ```
+2. Create a file named `.env` in that folder (the repo root) with one line, `TEAM_KEY=<your hackathon AI key>`:
+   - macOS / Linux (Terminal): `printf 'TEAM_KEY=your-key-here\n' > .env`
+   - Windows (PowerShell): `"TEAM_KEY=your-key-here" | Out-File -Encoding ascii .env`
+     (plain `Set-Content`/`>` in Windows PowerShell 5 writes UTF-16, which Node cannot read)
+3. Install and start (same commands on macOS and Windows):
+   ```
+   cd agent
+   npm install
+   npm start
+   ```
+   It prints `Sherpy on http://localhost:5173 (… 4 cases from cases/ folder)`.
+4. Open **http://localhost:5173** in Chrome or Edge. It must be `localhost` (the server refuses other host names).
+   - **To watch the demo without speaking:** open `http://localhost:5173/reset.html` and click
+     **Start the demo (recorded family)**, then **Start**: Daniel and Emily Johnson are recorded voices that answer
+     Sherpy on their own. To talk yourself, click "Start with a real microphone" (headphones or a quiet room).
+5. `npm test` (inside `agent/`) runs the 230 automated tests; no key needed.
+
+What is the same on every computer: every figure, the missions and the scores (they come from `cases/`). What varies
+between runs: the wording of Sherpy's live conversation and of the video narration (written by AI models within our
+rules), and the answers Sherpy saves depend on what the family says. The AI proxy and its credits end on 21/11; after
+that the conversation and the video cannot run; the missions keep working (start the server with any `TEAM_KEY` value).
+
+### More details
 
 - Open **http://localhost:5173** (it must be `localhost`) and use headphones or a quiet room. Press Start and talk to Sherpy
   (a small "Demo family" selector picks the case).
