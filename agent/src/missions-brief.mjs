@@ -13,7 +13,17 @@ export function missionsBrief(view) {
     if (facts.length) lines.push(`  Facts: ${facts.join('; ')}`);
     (m.steps ?? []).forEach((s, j) => lines.push(`  Step ${j + 1}: "${oneLine(s.title)}". ${oneLine(s.body)}`));
     return lines.join('\n');
-  }).join('\n');
+  }).join('\n') + moreAdvice(view.keepInView);
+}
+
+// The plan's other advice (not a mission): Sherpy knows all of it.
+function moreAdvice(items) {
+  if (!items?.length) return '';
+  const line = (k) => {
+    const facts = (k.facts ?? []).map((f) => `${oneLine(f.label)}: ${formatFact(f)}`);
+    return `- ${oneLine(k.body)}${facts.length ? ` (${facts.join('; ')})` : ''}`;
+  };
+  return `\nMORE ADVICE FROM THEIR PLAN (shown under "More advice from your plan"; not a mission, nothing to do now):\n${items.map(line).join('\n')}`;
 }
 
 // Untrusted page input -> { view, mission, done } with known ids only, or null.

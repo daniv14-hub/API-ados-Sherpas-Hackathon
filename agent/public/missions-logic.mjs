@@ -176,3 +176,23 @@ export function resolveView(data, state, view) {
   if (view.name === 'checkpoint' && !state.completed.includes(view.id)) return { name: 'mission', id: view.id };
   return view;
 }
+
+// One "More advice from your plan" card: a topic label from keywords, the headline when the advice has one
+// ("Headline — text", or a hand-written title), and the full text. A title that is only the cut-off start of
+// the text (derived cases) is dropped, so nothing reads as truncated.
+const TOPICS = [
+  ['Taxes', /\btax/i], ['College', /college|529/i], ['Retirement', /retire|401\(k\)|\bira\b|social security/i],
+  ['Protection', /insur|\bcover(age)?\b|umbrella|protect/i], ['Debt', /credit card|debt|loan/i], ['Cash', /cash|liquidity|cushion|reserve/i],
+  ['Investing', /invest|portfolio|stocks|bonds|\bmix\b|market|risk/i], ['Home', /\bhome\b|\bhouse\b/i],
+];
+export function adviceCard(k) {
+  const body = String(k.body ?? '').trim();
+  const dash = body.indexOf(' — ');
+  let headline = null, text = body;
+  if (dash > 0 && dash < 90) { headline = body.slice(0, dash).trim(); text = body.slice(dash + 3).trim(); }
+  else if (k.title && !body.startsWith(k.title)) headline = k.title;
+  // The topic named first wins ("retirement saving against college" is about retirement).
+  const first = (t) => TOPICS.map(([name, re]) => [name, t.search(re)]).filter(([, i]) => i >= 0).sort((a, b) => a[1] - b[1])[0]?.[0];
+  const topic = (headline && first(headline)) ?? first(body) ?? 'Your plan';
+  return { topic, headline, text };
+}

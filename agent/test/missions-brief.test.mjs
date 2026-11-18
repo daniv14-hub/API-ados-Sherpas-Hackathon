@@ -31,3 +31,8 @@ test('screenText says where they are and what they marked done', () => {
   assert.equal(screenText({ view: 'checkpoint', mission: 'M1', done: ['M1-1'] }, view),
     'They just completed mission 1: "Life cover". Steps marked done: mission 1 step 1.');
 });
+
+test('missionsBrief also lists the advice that is not a mission, in full', () => {
+  const t = missionsBrief({ ...view, keepInView: [{ id: 'K1', title: 'Two paychecks', body: 'Your salaries are a large share.', facts: [{ label: 'Salaries share', value: 0.5479, fmt: 'pct' }] }] });
+  assert.match(t, /MORE ADVICE FROM THEIR PLAN[^\n]*\n- Your salaries are a large share\. \(Salaries share: 54\.79%\)/);
+});

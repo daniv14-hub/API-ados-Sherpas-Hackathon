@@ -150,3 +150,14 @@ test('resolveView: unknown missions and checkpoints of unfinished missions go to
   assert.deepEqual(L.resolveView(data, s, { name: 'checkpoint', id: data.order[0], fromDone: null }), { name: 'checkpoint', id: data.order[0], fromDone: null });
   assert.deepEqual(L.resolveView(data, s, { name: 'checkpoint', id: 'nope', fromDone: null }), { name: 'overview' });
 });
+
+test('adviceCard: topic from keywords, headline before an em dash, never a cut-off title', async () => {
+  const { adviceCard } = await import('../public/missions-logic.mjs');
+  assert.deepEqual(adviceCard({ title: 'Rebuild a liquidity cushion — Your $30,000 of acc', body: 'Rebuild a liquidity cushion — Your $30,000 of accessible cash covers a month.' }),
+    { topic: 'Cash', headline: 'Rebuild a liquidity cushion', text: 'Your $30,000 of accessible cash covers a month.' });
+  assert.deepEqual(adviceCard({ title: 'Your household leans on two paychecks', body: 'Your salaries are a large share of your net worth.' }),
+    { topic: 'Your plan', headline: 'Your household leans on two paychecks', text: 'Your salaries are a large share of your net worth.' });
+  assert.deepEqual(adviceCard({ title: 'Weigh retirement saving against college funding as one tradeoff with a clear pla', body: 'Weigh retirement saving against college funding as one tradeoff with a clear plan.' }),
+    { topic: 'Retirement', headline: null, text: 'Weigh retirement saving against college funding as one tradeoff with a clear plan.' });
+  assert.equal(adviceCard({ title: 'x', body: 'Use tax-advantaged accounts if they are open to you.' }).topic, 'Taxes');
+});

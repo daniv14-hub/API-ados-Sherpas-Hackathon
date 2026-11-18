@@ -161,11 +161,6 @@ function factList(facts, { yours = false } = {}) {
     h('dd', null, L.formatFact(f)))));
 }
 
-// Derived titles are the first 80 characters of the advice text: tidy a cut-off ending.
-function keepTitle(k) {
-  const cut = k.body.startsWith(k.title) && k.body.length > k.title.length && !/[.!?]$/.test(k.title);
-  return cut ? k.title.replace(/[,;:\s]+\S{0,2}$/, '') + '\u2026' : k.title;
-}
 
 function renderOverview() {
   const next = L.nextMission(data, state);
@@ -179,16 +174,33 @@ function renderOverview() {
     h('h2', { class: 'section-title' }, 'Your path'),
     h('div', { class: 'path-wrap' }, pathTrail(missions.length), h('ol', { class: 'path' }, missions.map((m, i) => missionNode(m, st[m.id], i + 1, i)))),
   ];
-  if (data.keepInView.length) {
-    nodes.push(
-      h('h2', { class: 'section-title' }, 'Keep in view'),
-      h('p', { class: 'fine', style: 'margin-bottom:10px' }, 'Nothing to do now. Just good to know. Tap one to read it.'),
-      h('div', { class: 'keep' }, data.keepInView.map((k) => h('details', null,
-        h('summary', null, keepTitle(k)),
-        h('div', { class: 'body' }, h('p', null, k.body), k.facts?.length ? factList(k.facts) : null)))));
-  }
+  if (data.keepInView.length) nodes.push(moreAdvice(data.keepInView));
   nodes.push(footer());
   show(nodes);
+}
+
+// "More advice from your plan": the plan's other advice as a swipeable deck of cards, full text, a topic each.
+const TOPIC_CLASS = { Taxes: 't1', College: 't2', Retirement: 't3', Protection: 't4', Debt: 't5', Cash: 't6', Investing: 't7', Home: 't8', 'Your plan': 't0' };
+function moreAdvice(items) {
+  const deck = h('div', { class: 'deck', tabindex: '0', role: 'region', 'aria-label': 'More advice from your plan, swipe to read' },
+    items.map((k, i) => {
+      const c = L.adviceCard(k);
+      return h('article', { class: `tip ${TOPIC_CLASS[c.topic] ?? 't0'}`, 'aria-label': `${i + 1} of ${items.length}` },
+        h('div', { class: 'tip-top' }, h('span', { class: 'topic' }, c.topic), h('span', { class: 'count' }, `${i + 1} / ${items.length}`)),
+        c.headline && h('h3', null, c.headline),
+        h('p', null, c.text),
+        k.facts?.length ? factList(k.facts) : null,
+        h('button', { type: 'button', class: 'pill small', onclick: () => chat?.open() }, 'Ask Sherpy about this'));
+    }));
+  const step = (dir) => deck.scrollBy({ left: dir * deck.clientWidth * 0.86, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  return h('section', { class: 'more', 'aria-labelledby': 'more-title' },
+    h('div', { class: 'more-head' },
+      h('div', null, h('h2', { class: 'section-title', id: 'more-title' }, 'More advice from your plan'),
+        h('p', { class: 'fine' }, `${items.length} tips · nothing to do now · swipe to read`)),
+      h('div', { class: 'deck-nav' },
+        h('button', { type: 'button', class: 'mv', 'aria-label': 'Previous tip', onclick: () => step(-1) }, '‹'),
+        h('button', { type: 'button', class: 'mv', 'aria-label': 'Next tip', onclick: () => step(1) }, '›'))),
+    deck);
 }
 
 function footer() {

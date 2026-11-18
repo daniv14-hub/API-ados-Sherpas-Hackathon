@@ -145,3 +145,11 @@ Timestamped entries (Europe/Madrid). Milestones, blockers, surprises and pivots,
   (mic/autoplay allowed). `frame-guard.js` sends top-level pages there when the window is ≥700×600 (after the
   viewport meta, or phones read 980 px and got framed too — caught headless). The video always breaks out wide.
 - Verified headless 1280×800 (framed), 390×844 and 844×390 (not framed); 218 tests pass.
+
+## 2026-11-18 ~15:45 — "Keep in view" becomes "More advice from your plan"
+- Team tested Samantha from zero: worked very well; the 12 "Keep in view" boxes (plan advice that is not a
+  mission, titles cut at 80 characters) were unclear.
+- Now "More advice from your plan": a swipeable deck (‹ › buttons too), one card per tip with full text, a topic
+  label from keywords (first topic named wins), a counter "2 / 12" and "Ask Sherpy about this". Headline only when
+  the advice has a real one (text before " — ", or a hand-written title). Nothing removed.
+- Sherpy's phase-2 instructions now list every one of these tips in full (with their facts). 220 tests pass.
