@@ -1,3 +1,5 @@
+// Tests for the conversation -> video -> missions journey rules and the previous/next arrows.
+// Run all tests with: cd agent && npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {

@@ -1,3 +1,5 @@
+// Tests for Sherpy's instructions: rules, the conversation agenda, phase 2 advisor, earlier chat, missions.
+// Run all tests with: cd agent && npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { SHERPY_RULES, GLOSSARY, sherpyInstructions } from '../src/instructions.mjs';

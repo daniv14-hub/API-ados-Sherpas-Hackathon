@@ -7,6 +7,8 @@ import { money, el, html, motion, cue, sentenceCue, icon, goalIcon, topicIcon, m
 
 const SCENES = { dream, reality, gaps, fragility, turn, act, mission };
 
+// Draws one scene of the video at time t (seconds): a 1280x720 stage of flat 'sticker' shapes
+// (navy outlines, hard shadows) in the Sherpas colours. Deterministic: the same t always gives the same frame.
 export function renderScene(stageEl, scene, { reducedMotion = false } = {}) {
   preloadSherpy();
   const root = el('div', `sc sc-${scene.id}`);
@@ -88,6 +90,7 @@ function postcard(g, { main, stamp, retirement }) {
   return card;
 }
 
+// Scene renderers, one per scene id of src/video/scenes.mjs: dream, reality, gaps, fragility, turn, act, mission.
 function dream(root, { people = [], goals = [], retirement = null }, { m, scene, D }) {
   decor(root);
   headline(root, ['Every goal ', ['met']], m, 0);

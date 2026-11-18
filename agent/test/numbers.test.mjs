@@ -1,3 +1,5 @@
+// Tests for number extraction and grounding (every figure in the narration must exist in the facts).
+// Run all tests with: cd agent && npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

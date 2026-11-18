@@ -1,3 +1,5 @@
+// URL parsing for /video/<case> and /video/<case>/audio/<i>.mp3, the Range header, and the JSON the
+// player receives (audio as URLs, never file names).
 import { isAllowedCase } from '../session.mjs';
 
 const VIDEO_RE = /^\/video\/([^/]+)(?:\/audio\/(\d+)\.mp3)?$/;

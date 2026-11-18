@@ -9,6 +9,9 @@ import { adviceRef } from './advice.mjs';
 // Checked in this order: a shared cash-flow decision first, then past-market notes (investing), then tax accounts,
 // then the topic named first in the text.
 const DECISION = /compete|share (your|the)|should share|weigh|trade-?off|talk (it )?through|fit together|fits? alongside|both draw|same (yearly )?cash/i;
+// Keyword rules. Each advice sentence is classified into ONE topic of the catalogue (life cover,
+// property/umbrella, the shared cash-flow decision, cash, retirement, tax accounts, debt, college, investing).
+// Sentences about how the portfolio behaved in past markets belong to the investing mission.
 const PAST_MARKETS = /rally|tariff|pullback|three years|recoveries|shocks?\b|sharpest|smoother|calmer|held up|steady through|earned about|fair picture|real market events/i;
 const TAX = /\bhsa\b|health savings|\bira\b|roth|\btax/i;
 const NAMED = [
@@ -21,6 +24,7 @@ const NAMED = [
   ['invest', /invest|portfolio|stocks?\b|bonds?\b|\bmix\b|allocation|concentrat|exposure|single-name|\brisk\b/i],
 ];
 
+// Text of one advice item -> topic key, or null (then it goes to 'More advice from your plan').
 export function topicOf(text) {
   const t = String(text ?? '');
   if (DECISION.test(t)) return 'decision';
@@ -30,6 +34,7 @@ export function topicOf(text) {
   return hits[0]?.[0] ?? null;
 }
 
+// Maps each scored move of the plan (score.top_moves) to its topic, so its mission shows the score change.
 const MOVE_TOPIC = [[/mortality|life/i, 'life'], [/umbrella|coverage gap|property/i, 'property'], [/card|revolving|debt/i, 'debt'],
   [/withdraw|saving/i, 'retirement'], [/allocation|glide|concentrat/i, 'invest'], [/cash|reserve|liquid/i, 'cash']];
 const moveTopic = (title) => MOVE_TOPIC.find(([re]) => re.test(title))?.[1] ?? null;
@@ -71,12 +76,15 @@ const T = {
     fields: [{ key: 'accounts', label: 'Accounts to review' }],
     prepare: 'Get ready to review your mix', done: 'Make the change after your review' },
 };
+// Fixed order of topics on the path, and the labels used when the family ranks their needs.
 const ORDER = ['life', 'property', 'decision', 'cash', 'retirement', 'tax', 'debt', 'college', 'invest'];
 const NEED_LABEL = { life: 'Protection: life cover', property: 'Protection: umbrella and property', cash: 'The cash reserve',
   retirement: 'Retirement saving', tax: 'Tax-advantaged accounts', debt: 'Paying down debt', college: 'The college fund' };
 
 // ---------- facts (value + where it comes from) ----------
 const num = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+// Plan figures shown in a mission. Every fact keeps `src`, the JSON path it comes from, and tests check
+// each value against the case file: nothing is computed or invented here.
 function factsFor(topic, fh, people, move, moveIndex) {
   const f = [];
   const add = (key, label, value, fmt, src) => { if (value !== null && value !== undefined && value !== '') f.push({ key, label, value, fmt, src }); };
@@ -113,6 +121,9 @@ function factsFor(topic, fh, people, move, moveIndex) {
 
 // ---------- steps ----------
 const stepId = (m, n) => `${m}-${n}`;
+// Builds the 3-4 steps of a mission: learn (the plan's own words), prepare (write down what you have),
+// act (tick what the plan recommends; amounts agreed in the decision are shown), close. The decision
+// mission instead has rank (each person) and agree (shared order + optional amounts).
 function missionSteps(id, topic, t, items, move, owner, perPerson, decisionNeeds, hasDecision) {
   const steps = [];
   const quotes = { kind: 'quotes', items: items.map((x) => x.text) };

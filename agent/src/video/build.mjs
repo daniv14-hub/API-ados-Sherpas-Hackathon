@@ -1,3 +1,7 @@
+// Builds the personal video on the server and caches it in data/videos/<case>-<hash>/:
+//   facts (facts.mjs) -> scenes with template lines (scenes.mjs) -> wording by gpt-5-mini (narrate.mjs,
+//   numbers only through placeholders) -> one TTS clip per scene (voice.mjs, ElevenLabs via the proxy).
+// The hash covers the profile answers, so the same answers never pay twice.
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
@@ -43,6 +47,7 @@ async function mapLimit(items, limit, fn) {
   return out;
 }
 
+// get(caseId) builds or returns the cached video; peek(caseId) never builds (used to serve audio).
 export function createVideoBuilder({ source, profilesDir, videosDir, complete, tts, voice, log = console, now = Date.now, retryDelayMs = 1500 }) {
   const speak = async (text) => {
     try { return await tts(text); } catch (e) {

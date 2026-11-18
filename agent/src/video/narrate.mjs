@@ -1,3 +1,6 @@
+// Asks gpt-5-mini to reword each scene line for this family (style and detail level). The model never
+// writes digits: figures enter through {placeholders} filled from facts, and every line is checked; any
+// doubtful line falls back to the safe template text.
 import { fillLine, styleOf } from './scenes.mjs';
 import { extractMentions, isGrounded } from '../numbers.mjs';
 

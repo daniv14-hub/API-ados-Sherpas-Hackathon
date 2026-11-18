@@ -6,6 +6,7 @@ import { createVoiceClient } from '/voice-client.mjs';
 import { demoFamilyOn, loadManifest, createFamilyVoice, createAutopilot } from '/demo-family.mjs';
 import { tokenize, wordTimes, revealedCount, currentSentence, turnPhase, PHASE_LABEL, classifyError } from '/conversation-logic.mjs';
 
+// Voice is billed while the session is open: after 90 s with nobody talking, the bubble hangs up.
 const IDLE_HANGUP_MS = 90_000; // nobody spoke and Sherpy is quiet for this long -> hang up
 // Demo mode (demo-family.mjs): after Sherpy's greeting, Emily asks one recorded question about the open mission.
 const DEMO = demoFamilyOn();

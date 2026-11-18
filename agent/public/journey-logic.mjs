@@ -1,5 +1,6 @@
 // Pure rules for the journey hand-off: conversation -> video -> missions. No DOM here (unit-tested in node).
 
+// Pure rules of the three-screen journey (conversation -> video -> missions), tested in node.
 export const DEFAULT_CASE = 'daniel-emily-johnson';
 
 // Waits (ms) between GET /video/<case> attempts that answer 409: the profile write can land a moment after

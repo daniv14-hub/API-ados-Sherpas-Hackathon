@@ -1,3 +1,5 @@
+// Tests for security headers (CSP...) and the rate limiter.
+// Run all tests with: cd agent && npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { securityHeaders, createRateLimiter, ALLOWED_METHODS } from '../src/security.mjs';

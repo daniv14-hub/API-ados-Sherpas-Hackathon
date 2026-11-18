@@ -74,6 +74,7 @@ export function turnPhase({ connected, speaking, muted, thinking, done }) {
   return "user";
 }
 
+// Text of the turn pill for each phase of the call.
 export const PHASE_LABEL = {
   connecting: "Sherpy is joining…",
   sherpy: "Sherpy is speaking",

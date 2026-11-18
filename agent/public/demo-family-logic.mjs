@@ -3,6 +3,7 @@
 // The story: they disagree on the main goal (college vs retirement) and on risk (growth vs moderate);
 // Sherpy mediates both. Answers match the Johnsons' persona (Daniel growth, Emily moderate).
 
+// The recorded lines (audio files in agent/data/demo-family/, made by scripts/demo-family-audio.mjs).
 export const LINES = [
   { id: 'present', who: 'Daniel', text: "Hi Sherpy! It's both of us here, Daniel and Emily." },
   { id: 'goal-daniel', who: 'Daniel', text: "Daniel here. For me it's college. Oliver starts in just a few years, and I want that covered." },

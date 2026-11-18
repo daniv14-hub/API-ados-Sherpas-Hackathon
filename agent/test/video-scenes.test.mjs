@@ -1,3 +1,5 @@
+// Tests for the seven scenes, templates within word limits, grounded in all cases and styles.
+// Run all tests with: cd agent && npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadCase, CASES } from './fixtures.mjs';

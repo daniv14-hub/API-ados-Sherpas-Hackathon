@@ -4,6 +4,7 @@
 
 const S3_FH_FIELDS = ['retirement', 'assets', 'debt', 'savings'].map((a) => `${a}_what_to_look_into`);
 
+// Markdown bullets ('- text') of a narrative field -> list of clean sentences.
 function bullets(text) {
   if (typeof text !== 'string') return [];
   return text.split('\n')
@@ -19,6 +20,8 @@ function single(text) {
 
 export const adviceRef = (item) => `${item.source}:${item.field}:${item.index}`;
 
+// Every piece of advice the family sees, from the three sources: S1 web app recommendations,
+// S2 report recommendations (+ the allocation chart), S3 'We should look into' notes. Same fields in all cases.
 export async function listAdvice(source, caseId) {
   const fh = await source.getPart(caseId, 'financial-health');
   const ia = await source.getPart(caseId, 'investment-analysis');

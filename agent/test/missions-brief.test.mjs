@@ -1,3 +1,5 @@
+// Tests for what Sherpy knows about the missions and the screen the family is on.
+// Run all tests with: cd agent && npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { missionsBrief, parseScreen, screenText } from '../src/missions-brief.mjs';

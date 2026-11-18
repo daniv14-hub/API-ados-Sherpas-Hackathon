@@ -1,3 +1,5 @@
+// Tests for GET /missions/<case> shape (no internal paths leave the server).
+// Run all tests with: cd agent && npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseMissionsPath, missionsView } from '../src/game/routes.mjs';

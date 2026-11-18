@@ -1,3 +1,4 @@
+// Test helpers: loads the four cases from cases/ (financial-health, investment-analysis, persona).
 import { readFileSync } from 'node:fs';
 
 export const CASES = ['timothy-melanie-weah', 'michael-carter', 'daniel-emily-johnson', 'samantha-lewis'];

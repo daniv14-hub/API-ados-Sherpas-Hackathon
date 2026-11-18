@@ -1,6 +1,8 @@
 // Pure score lookup (D6, handoff R2). No imports: this file is also served to the browser.
 // table = { base, moves: { [title]: score_after }, combos: [{ moves: [title], score_after }] }
 
+// Sherpas score after a SET of moves, only by exact lookup in the plan (decision D6: scores do not add up).
+// Unknown combination -> null, and the screen keeps the last exact score instead of guessing.
 export function scoreFor(table, doneMoveTitles) {
   const done = [...new Set(doneMoveTitles ?? [])];
   if (done.length === 0) return table.base;

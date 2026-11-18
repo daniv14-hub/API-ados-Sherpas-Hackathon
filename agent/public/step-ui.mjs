@@ -29,6 +29,8 @@ function copyBtn(ctx, text, aria) {
   } }, 'Copy'), note);
 }
 
+// One renderer per block kind. Each gets ctx (data, answers, set/redraw/ready callbacks) and the block spec
+// from the missions JSON, and returns DOM nodes built with text only (no innerHTML with data).
 const RENDER = {
   // The plan's own advice for this topic, word for word (generated missions).
   quotes(ctx, b) {

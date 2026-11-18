@@ -6,6 +6,7 @@ import { createSpeechGate } from "/speech-gate.mjs";
 import { micMuted } from "/half-duplex.mjs";
 import { isFatalServerError } from "/conversation-logic.mjs";
 
+// PCM16 audio bytes -> base64, the format the realtime API expects for audio frames.
 const b64 = (buf) => { let s = ""; const u = new Uint8Array(buf); for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode(...u.subarray(i, i + 0x8000)); return btoa(s); };
 
 // handlers: onConnected(), onError({source, name?, message?}), onClosed({code}) (unexpected close only), onDone() (closing line played)

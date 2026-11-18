@@ -50,6 +50,7 @@ function balance(ws, maxChars) {
   return [ws.slice(0, cut + 1), ...balance(ws.slice(cut + 1), maxChars)];
 }
 
+// Captions: the narration of each scene is cut into short sentences timed to the audio.
 export function captionChunks(words, maxChars = 110) {
   const sentences = [];
   let cur = [];
@@ -96,6 +97,9 @@ function clipDuration(url) {
   });
 }
 
+// VIDEO PAGE ENTRY POINT. Fetches GET /video/<case>, preloads the audio clips and plays the scenes:
+// the audio clock drives the animation (video-stage.mjs), so pause/seek always show the right frame.
+// In flow mode (?flow=1, coming from the conversation) it autoplays and hands over to the missions at the end.
 export async function startPlayer() {
   const params = new URLSearchParams(location.search);
   const caseId = params.get('case') ?? '';

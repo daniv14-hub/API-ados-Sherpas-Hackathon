@@ -1,3 +1,5 @@
+// Tests for advice sources, hand-written Johnson missions, the generator standard on every case, scores.
+// Run all tests with: cd agent && npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

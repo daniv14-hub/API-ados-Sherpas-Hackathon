@@ -16,6 +16,7 @@ export function demoFamilyOn() {
   } catch { return new URLSearchParams(location.search).get('family') === 'demo'; }
 }
 
+// List of recorded lines and their mp3 files, served by the server from agent/data/demo-family/.
 export async function loadManifest() {
   const r = await fetch('/demo-family/manifest.json', { cache: 'no-store' });
   if (!r.ok) throw new Error('demo family audio missing: run scripts/demo-family-audio.mjs');

@@ -1,3 +1,5 @@
+// Tests for the Ask Sherpy chat memory (per case, limited, expires).
+// Run all tests with: cd agent && npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createChatMemory } from '../src/chat-memory.mjs';

@@ -1,3 +1,6 @@
+// The seven scenes of the video story ('roller coaster'): dream -> reality -> gaps -> fragility -> turn ->
+// act -> mission. Each scene has a template line with {placeholders}, the values to fill them, and props for
+// the animation. Style (analytical / emotional / mixed) and detail level change wording and length.
 import { money } from './facts.mjs';
 
 // The roller-coaster story (spec, Revision 2): up (dream) -> down (reality, gaps, fragility) -> relief
@@ -308,6 +311,7 @@ function missionScene(facts, ctx) {
   return scene('mission', { mission: facts.firstMission, year: goal?.year ?? null, goal: goal?.type ?? null }, compose(parts, all, maxWords), maxWords);
 }
 
+// Entry point: facts + profile -> the list of scenes for this family.
 export function planScenes(facts, profile) {
   const names = profile.present?.length ? profile.present : facts.people;
   const detail = MAX_WORDS[profile.detail_level] ? profile.detail_level : 'medium';

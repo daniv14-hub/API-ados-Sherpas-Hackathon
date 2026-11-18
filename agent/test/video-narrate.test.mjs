@@ -1,3 +1,5 @@
+// Tests for model wording with placeholders and the fallback to templates.
+// Run all tests with: cd agent && npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadCase } from './fixtures.mjs';

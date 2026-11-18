@@ -20,6 +20,7 @@ export function whoFor(step, block, people) {
 
 const filled = (v) => (typeof v === 'number' ? Number.isFinite(v) : typeof v === 'string' && v.trim() !== '');
 
+// Is one block of a step filled in? (fields typed, boxes ticked, order saved, choice made...)
 export function blockReady(step, block, i, answers, people) {
   const a = answers?.[step.id]?.[i] ?? {};
   const who = whoFor(step, block, people);

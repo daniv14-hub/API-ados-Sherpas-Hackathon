@@ -1,3 +1,6 @@
+// Loads the missions of a case. If data/missions/<case>.json exists (the Johnsons), that hand-written
+// file is used as is; otherwise generate.mjs builds them from the plan's three advice sources.
+// Also orders missions: protection first, then the shared cash-flow decision, then the rest, investing last.
 import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { listAdvice, adviceRef } from './advice.mjs';
@@ -18,6 +21,7 @@ export function orderMissions(missions, choice) {
   return [...pick('first'), ...pick('decision'), ...chosen, ...competing.filter((m) => !chosenSet.has(m.id)), ...pick('last')];
 }
 
+// -> { caseId, base score, score table, missions, keepInView (more advice), order, source }.
 export async function loadMissions(source, caseId, { dir = DEFAULT_DIR } = {}) {
   const fh = await source.getPart(caseId, 'financial-health');
   const table = buildScoreTable(fh);

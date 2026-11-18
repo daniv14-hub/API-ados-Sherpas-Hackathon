@@ -1,3 +1,10 @@
+// MISSIONS SCREEN (missions.html). Draws, with plain DOM and no framework:
+//   - overview: the path of missions (zigzag nodes), progress bar, plan score, 'More advice from your plan'
+//   - mission: its steps, only the current one unfolded, with interactive blocks (step-ui.mjs)
+//   - checkpoint: celebration when a mission is complete, with the exact score change from the plan
+// Data: GET /missions/<case>. Progress and the family's answers are saved in this browser (localStorage).
+// Views live in the URL hash (#m-<id>, #checkpoint-<id>) so the Back button works.
+// Also mounts the bottom dock: the '< Video' arrow and the 'Ask Sherpy' voice bubble (sherpy-chat.mjs).
 import { scoreFor } from '/game-score.mjs';
 import * as L from '/missions-logic.mjs';
 import { mountJourneyNav } from '/journey-nav.mjs';
@@ -32,6 +39,7 @@ const chip = (text, cls = '') => h('span', { class: `chip ${cls}` }, text);
 
 // ---------- storage ----------
 const key = () => `sherpas.missions.v1.${caseId}`;
+// Progress saved in this browser, cleaned against the current missions (unknown steps are dropped).
 function load() {
   try {
     const raw = JSON.parse(localStorage.getItem(key()));
@@ -75,6 +83,7 @@ function announce(text) {
   setTimeout(() => { status.textContent = text; }, 60);
 }
 
+// Building blocks of the screen (logo, Sherpy speech bubble, score chip, progress bar).
 function header() {
   return h('header', { class: 'top' },
     h('img', { src: '/sherpas-logo.svg', alt: 'Sherpas' }),
@@ -118,6 +127,7 @@ function greeting(next) {
 // One level on the path: a big round node (number, ✓ or the next one with Sherpy) and a label card beside it.
 const PATH_X = [0, 40, 80, 40]; // zigzag offsets in px, repeating
 const ROW_H = 132;
+// One level of the path: a round node (number, check mark, or Sherpy on the next one) and its label.
 function missionNode(m, status, n, i) {
   const pr = L.missionProgress(m, state);
   const alone = L.aloneScore(data, m, scoreFor);
@@ -162,6 +172,7 @@ function factList(facts, { yours = false } = {}) {
 }
 
 
+// The overview: greeting, progress, the path of missions and the advice deck.
 function renderOverview() {
   const next = L.nextMission(data, state);
   const st = L.missionStatuses(data, state);
@@ -181,6 +192,7 @@ function renderOverview() {
 
 // "More advice from your plan": the plan's other advice as a swipeable deck of cards, full text, a topic each.
 const TOPIC_CLASS = { Taxes: 't1', College: 't2', Retirement: 't3', Protection: 't4', Debt: 't5', Cash: 't6', Investing: 't7', Home: 't8', 'Your plan': 't0' };
+// Advice from the plan that is not a mission, as a swipeable deck of cards (full text, topic label).
 function moreAdvice(items) {
   const deck = h('div', { class: 'deck', tabindex: '0', role: 'region', 'aria-label': 'More advice from your plan, swipe to read' },
     items.map((k, i) => {
@@ -258,6 +270,7 @@ function kitBlock(step) {
       ' ', note));
 }
 
+// Stores what the family typed or chose in a step (answers[stepId][block][person]) and saves it.
 function setAnswer(stepId, i, who, value) {
   const answers = { ...(state.answers ?? {}) };
   const st = { ...(answers[stepId] ?? {}) };
@@ -280,6 +293,7 @@ function redrawMission(id) {
 // Which steps are unfolded: the current one, plus any the family opened; a step they folded stays folded.
 let fold = { mission: null, open: new Set(), closed: new Set() };
 const currentStepId = (m) => m.steps.find((s) => !state.done[s.id])?.id ?? null;
+// Which steps are unfolded: the current one, plus any the family opened by hand.
 function isOpen(m, id) {
   if (fold.mission !== m.id) fold = { mission: m.id, open: new Set(), closed: new Set() };
   return fold.open.has(id) || (id === currentStepId(m) && !fold.closed.has(id));
@@ -289,6 +303,8 @@ function toggleFold(m, id) {
   redrawMission(m.id);
 }
 
+// One step: folded to a single line, or open with its text, interactive blocks and the 'I did it' button
+// (which waits until the step's blocks are filled in, checked by step-logic.mjs).
 function stepCard(m, step, idx, whyStepId) {
   const open = isOpen(m, step.id);
   const done = !!state.done[step.id];
@@ -353,6 +369,7 @@ function stepCard(m, step, idx, whyStepId) {
       h('div', { class: 'actions' }, btn, locked ? h('span', { class: 'fine' }, 'Finish the step above first.') : hint)));
 }
 
+// A mission page: title, chips, the plan's figures (folded) and its steps on a rail.
 function renderMission(id, { keepScroll = null, focusStep = null } = {}) {
   const m = data.missions.find((x) => x.id === id);
   if (!m) return goto({ name: 'overview' }, { replace: true });
@@ -431,6 +448,7 @@ function failure(text) {
     h('p', { style: 'margin-top:14px' }, h('button', { type: 'button', class: 'pill primary', onclick: () => location.reload() }, 'Try again')))], { focus: false });
 }
 
+// Page start: find the case, mount the dock and the bubble, load the missions and draw the right view.
 async function boot() {
   try {
     if (!caseId) {

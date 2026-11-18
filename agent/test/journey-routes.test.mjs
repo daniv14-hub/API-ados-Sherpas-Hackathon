@@ -1,3 +1,5 @@
+// Tests for GET /journey/<case> (only says whether the conversation is complete).
+// Run all tests with: cd agent && npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseJourneyPath, journeyView } from '../src/journey.mjs';

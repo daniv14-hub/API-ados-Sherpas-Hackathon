@@ -1,3 +1,5 @@
+// Tests for the Origin and Host allow-lists (only localhost may use the server).
+// Run all tests with: cd agent && npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { isAllowedOrigin } from '../src/origin.mjs';

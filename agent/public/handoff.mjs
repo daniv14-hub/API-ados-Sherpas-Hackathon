@@ -7,6 +7,8 @@ const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').match
 // PageRevealEvent ships with them. Others get a short fade-out first.
 const hasCrossDocTransitions = () => typeof window.PageRevealEvent === 'function';
 
+// Smooth page change: a short fade (or the browser's view transition) before navigating.
+// From inside the phone frame, the video always opens in the full window.
 export function leaveTo(url) {
   const to = new URL(url, location.href).pathname;
   // Inside the phone frame (phone.html) the video opens full window, wide.
@@ -21,6 +23,7 @@ export function leaveTo(url) {
 // Only the conversation and the video pages opt in to cross-document view transitions (the missions page does not:
 // Chrome aborts captures of it with "invalid state"). Going anywhere else, drop the transition quietly.
 const TRANSITION_PAGES = new Set(['/', '/index.html', '/video.html']);
+// Cross-page animations only between conversation and video (Chrome fails them on the missions page).
 export function limitViewTransitions() {
   addEventListener('pageswap', (e) => {
     const vt = e.viewTransition;
