@@ -75,7 +75,7 @@ export function createFamilyVoice({ lines, onLine = () => {} }) {
 // Answers Sherpy on its own: after each Sherpy turn has finished playing and nothing new started for a moment,
 // picks the scripted reply. Keys (no visible UI, for the person recording): N = answer now, R = repeat the
 // last line, P = pause/resume the autopilot.
-export function createAutopilot({ voice, client, script = createFamilyScript(), quietMs = 900, log = () => {} }) {
+export function createAutopilot({ voice, client, script = createFamilyScript(), quietMs = 1300, noQuestionMs = 3500, log = () => {} }) {
   let heard = '';
   let timer = 0;
   let paused = false;
@@ -93,11 +93,13 @@ export function createAutopilot({ voice, client, script = createFamilyScript(), 
     if (paused || doneAll || !heard.trim()) return;
     const s = client.snapshot();
     if (s.speaking || s.thinking || voice.busy()) { timer = setTimeout(check, 200); return; }
+    // No question yet ("Got it, I've saved that."): Sherpy is usually about to continue after saving, so wait longer.
+    const wait = heard.includes('?') ? quietMs : noQuestionMs;
     timer = setTimeout(() => {
       const t = client.snapshot();
       if (t.speaking || t.thinking || voice.busy()) return check();
       answer();
-    }, quietMs);
+    }, wait);
   }
   function onKey(e) {
     if (e.target?.closest?.('input, textarea, select')) return;

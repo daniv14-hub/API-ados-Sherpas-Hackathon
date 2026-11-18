@@ -56,3 +56,26 @@ test('real wording: risk mediation mentions drops again, Emily answers with the 
   f.reply('Emily, how would you react if your investments dropped twenty percent in a single year?');
   assert.equal(f.reply("Emily, it's completely normal to feel nervous about drops. Daniel, you'd buy more, and Emily, you'd wait it out. This means we have to balance both views for your shared plan. What feels at stake for each of you regarding market drops?"), 'risk-agree');
 });
+
+test('18/11 take: Sherpy saves the goal for both and moves on; the family never goes back to the goal', () => {
+  const f = createFamilyScript();
+  f.reply('Who is joining me today?');
+  assert.equal(f.reply('What is your main goal right now?'), 'goal-daniel');
+  assert.equal(f.reply("Great, I've saved college as your main goal. What worries you most about your money?"), 'worry');
+  assert.notEqual(f.reply('And what matters most to you about your goals, Emily?'), 'goal-emily');
+});
+
+test('Sherpy repeating the same question: the family moves on instead of repeating itself', () => {
+  const f = createFamilyScript();
+  f.reply('Who is joining me today?');
+  const a = f.reply('Is that okay with both of you?');
+  const b = f.reply('Is that okay with both of you?');
+  assert.notEqual(a, b);
+  assert.equal(b, 'goal-daniel');
+});
+
+test('risk asked to Emily first, then Daniel: both answer (no skipping inside a topic)', () => {
+  const f = createFamilyScript();
+  assert.equal(f.reply('Emily, if your investments dropped twenty percent, what would you do?'), 'risk-emily');
+  assert.equal(f.reply('Daniel, how about you? If investments dropped twenty percent, what would your reaction be?'), 'risk-daniel');
+});

@@ -28,9 +28,22 @@ const has = (s, re) => re.test(s);
 export function createFamilyScript() {
   const said = new Set();
   let lastGeneric = false;
-  const once = (id) => { said.add(id); lastGeneric = false; return id; };
+  let lastQ = '';
+  let lastAnswer = null;
   // Story order, used when Sherpy didn't understand a generic answer: say the next line not said yet.
   const STORY = ['present', 'goal-daniel', 'goal-emily', 'goal-agree', 'worry', 'risk-daniel', 'risk-emily', 'risk-agree', 'style-daniel', 'style-emily', 'detail'];
+  // Topics in Sherpy's agenda. The story never goes back: once Sherpy moves to a later topic, earlier ones are closed
+  // (18/11 take: Sherpy saved "college" for both right after Daniel, and the family kept going back to the goal).
+  const GROUP = { present: 0, 'goal-daniel': 1, 'goal-emily': 1, 'goal-agree': 1, worry: 2, 'risk-daniel': 3, 'risk-emily': 3, 'risk-agree': 3, 'style-daniel': 4, 'style-emily': 4, detail: 5 };
+  const nextUnsaid = (except) => STORY.find((id) => !said.has(id) && id !== except) ?? null;
+  const once = (id) => {
+    // Never the same story line twice: if the rule picks one already said, move on to the next one not said.
+    if (said.has(id) && id in GROUP) id = nextUnsaid(id) ?? (id.endsWith('emily') ? 'yes-emily' : 'yes-daniel');
+    said.add(id);
+    if (id in GROUP) for (const [k, g] of Object.entries(GROUP)) if (g < GROUP[id]) said.add(k);
+    lastGeneric = false;
+    return id;
+  };
   return {
     said: () => [...said],
     reply(sherpyText) {
@@ -42,6 +55,14 @@ export function createFamilyScript() {
       const q = (asks.length ? asks.join(' ') : sentences.pop() ?? '').toLowerCase();
       const s = all.toLowerCase();
       const to = /\bemily\b/.test(q) && !/\bdaniel\b/.test(q) ? 'Emily' : /\bdaniel\b/.test(q) && !/\bemily\b/.test(q) ? 'Daniel' : null;
+      // Sherpy asking exactly the same question again means our last answer did not land: move the story on.
+      const repeated = q && q === lastQ && lastAnswer;
+      lastQ = q;
+      const pick = (id) => { lastAnswer = id; return id; };
+      if (repeated) { const n = nextUnsaid(lastAnswer); if (n) return pick(once(n)); }
+      return pick(this.choose(q, s, to));
+    },
+    choose(q, s, to) {
 
       if (has(s, /video now|putting together your video/)) return null; // the closing line: nothing to answer
       if (!said.has('present') && has(q, /who (do i|am i)|pleasure|speaking with|talking (to|with)|first names?|your names?|introduce|who('s| is)? (here|joining|with)|joining (us|me|today)|both (of you )?here/)) return once('present');
