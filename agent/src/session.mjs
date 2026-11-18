@@ -9,8 +9,10 @@ import { buildOptions } from './options.mjs';
 import { isSafeCaseId, loadProfile } from './profile.mjs';
 import { sherpyInstructions } from './instructions.mjs';
 import { toolDefinitions, handleToolCall } from './tools.mjs';
+import { missionsBrief, parseScreen, screenText } from './missions-brief.mjs';
 
 const OPEN = 1;
+const NOTE_REPLY_MS = 3000;
 const CLOSING = 2;
 
 export function isAllowedCase(id, ids) {
@@ -45,7 +47,7 @@ function parse(raw) {
   }
 }
 
-export async function createSession({ browser, upstream, caseId, source, profilesDir, transcriptsDir, log = console, finishGraceMs = 20000, onFinished, chatMemory }) {
+export async function createSession({ browser, upstream, caseId, source, profilesDir, transcriptsDir, log = console, finishGraceMs = 20000, onFinished, chatMemory, loadMissionsView, screen }) {
   const startISO = new Date().toISOString();
   const transcriptFile = path.join(transcriptsDir, `${caseId}-${startISO.replace(/[:.]/g, '-')}.jsonl`);
 
@@ -55,7 +57,26 @@ export async function createSession({ browser, upstream, caseId, source, profile
   let ended = false;
   let notifiedFinished = false;
   const pending = []; // page messages waiting for case data and for the upstream socket to open
-  const state = { phase: 1, brief: '', options: null, profile: null, earlier: [] };
+  const state = { phase: 1, brief: '', options: null, profile: null, earlier: [], missionsView: null, screen: null };
+  let lastScreenText = null;
+  // Gemini treats a screen note as a turn and sometimes answers it. A reply that starts soon after a note, before the
+  // family speaks, is cancelled and never reaches the page (live test 18/11: "I'm here when you're ready to continue.").
+  let noteAt = 0;
+  let muting = false;
+  function dropReplyToNote(ev) {
+    if (!ev || typeof ev.type !== 'string') return false;
+    if (ev.type === 'input_audio_buffer.speech_started') { noteAt = 0; muting = false; return false; }
+    if (ev.type === 'response.created' && noteAt && Date.now() - noteAt < NOTE_REPLY_MS) {
+      noteAt = 0; muting = true;
+      sendUp({ type: 'response.cancel' });
+      return true;
+    }
+    if (muting && ev.type.startsWith('response.')) {
+      if (ev.type === 'response.done') muting = false;
+      return true;
+    }
+    return false;
+  }
   let toolChain = Promise.resolve(); // tool calls run one at a time so profile updates never race
   let writeChain = Promise.resolve();
   const transcriptBuf = new Map(); // response id -> assistant transcript so far
@@ -73,7 +94,10 @@ export async function createSession({ browser, upstream, caseId, source, profile
 
   function sessionConfig() {
     return {
-      instructions: sherpyInstructions({ phase: state.phase, brief: state.brief, profile: state.profile, options: state.options, earlier: state.earlier }),
+      instructions: sherpyInstructions({
+        phase: state.phase, brief: state.brief, profile: state.profile, options: state.options, earlier: state.earlier,
+        missions: state.missionsView ? missionsBrief(state.missionsView) : '', screen: state.screen ? screenText(state.screen, state.missionsView) : null,
+      }),
       tools: toolDefinitions(state.phase, state.options),
       tool_choice: 'auto',
     };
@@ -97,6 +121,17 @@ export async function createSession({ browser, upstream, caseId, source, profile
         return { type: ev.type };
       case 'conversation.item.truncate':
         return { type: ev.type, item_id: ev.item_id, content_index: ev.content_index, audio_end_ms: ev.audio_end_ms };
+      case 'sherpy.screen': {
+        // The family moved to another missions screen while the chat is open (phase 2): tell Sherpy, don't ask for a reply.
+        if (state.phase !== 2 || !state.missionsView) return null;
+        const sc = parseScreen(ev.screen, state.missionsView);
+        if (!sc) return null;
+        const text = screenText(sc, state.missionsView);
+        if (text === lastScreenText) return null;
+        lastScreenText = text;
+        noteAt = Date.now();
+        return { type: 'conversation.item.create', item: { type: 'message', role: 'user', content: [{ type: 'input_text', text: `(Screen update, not a question: ${text} Don't reply to this.)` }] } };
+      }
       case 'session.update': {
         sentSessionUpdate = true;
         const session = { type: 'realtime', ...sessionConfig() };
@@ -235,6 +270,7 @@ export async function createSession({ browser, upstream, caseId, source, profile
   upstream.on('message', (data) => {
     let raw = data.toString();
     const ev = parse(raw);
+    if (dropReplyToNote(ev)) return;
     // session.* events echo our instructions and tools: never let them reach the page.
     if (ev && typeof ev.type === 'string' && ev.type.startsWith('session.') && ev.session && typeof ev.session === 'object') {
       delete ev.session.instructions;
@@ -262,7 +298,20 @@ export async function createSession({ browser, upstream, caseId, source, profile
     state.options = buildOptions(fh, personaMd);
     state.profile = await loadProfile(profilesDir, caseId, state.options.present);
     state.phase = state.profile.phase1Complete ? 2 : 1;
-    if (state.phase === 2) state.earlier = chatMemory?.get(caseId) ?? [];
+    if (state.phase === 2) {
+      // Only a chat where the family actually spoke counts as one to carry on (a lone greeting doesn't).
+      const earlier = chatMemory?.get(caseId) ?? [];
+      state.earlier = earlier.some((l) => l.role === 'user') ? earlier : [];
+      if (loadMissionsView) {
+        try {
+          state.missionsView = await loadMissionsView(caseId);
+          state.screen = parseScreen(screen, state.missionsView);
+          if (state.screen) lastScreenText = screenText(state.screen, state.missionsView);
+        } catch (e) {
+          log.error(`[${caseId}] missions for the chat failed:`, e?.message); // Sherpy still answers from the brief
+        }
+      }
+    }
     // The getting-to-know-you conversation only needs the short brief (D19); it also costs less per turn.
     state.brief = state.phase === 1 ? buildInterviewBrief(fh, personaMd) : buildBrief(fh, personaMd);
   } catch (e) {

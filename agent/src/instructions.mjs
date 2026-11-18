@@ -159,8 +159,15 @@ const earlierBlock = (earlier) => `EARLIER IN THIS CHAT (they closed the chat an
 ${earlier.map((l) => `${l.role === 'user' ? 'Family' : 'Sherpy'}: ${l.text}`).join('\n')}
 Do not greet and do not introduce yourself again. Say nothing until they speak, then carry on from where you left off.`;
 
+const missionsBlock = (missions, screen) => `THEIR MISSIONS (the plan turned into missions on their screen; you may use these figures too):
+${missions}
+When they say "this mission", "the second step" or similar, they mean the screen they are on. Use the missions and
+steps as numbered here. You may get short screen updates while you talk: they are not questions, never reply to them.
+WHERE THEY ARE NOW: ${screen ?? 'They are on the missions map.'}`;
+
 // earlier: lines of an "Ask Sherpy" chat that was closed and opened again (phase 2 only).
-export function sherpyInstructions({ brief, profile, options, phase = profile?.phase1Complete ? 2 : 1, earlier = [] }) {
+// missions / screen: missionsBrief() and screenText() texts from missions-brief.mjs (phase 2 only, optional).
+export function sherpyInstructions({ brief, profile, options, phase = profile?.phase1Complete ? 2 : 1, earlier = [], missions = '', screen = null }) {
   if (phase === 1) {
     return [
       SHERPY_RULES,
@@ -172,7 +179,7 @@ export function sherpyInstructions({ brief, profile, options, phase = profile?.p
   if (phase === 2) {
     const start = earlier.length ? earlierBlock(earlier) : OPENING;
     const script = `PHASE TWO: ANSWERING QUESTIONS ABOUT THEIR PLAN\n\n${ADVISOR_GUIDANCE}\n\n${start}\n\nFamily profile:\n${profileJson(profile)}`;
-    return [SHERPY_RULES, script, briefBlock(brief)].join('\n\n');
+    return [SHERPY_RULES, script, briefBlock(brief), missions ? missionsBlock(missions, screen) : null].filter(Boolean).join('\n\n');
   }
   throw new Error(`unknown phase: ${phase}`);
 }

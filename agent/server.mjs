@@ -190,7 +190,10 @@ const wss = new WebSocketServer({
   verifyClient: ({ origin }) => isAllowedOrigin(origin, PORT),
 });
 wss.on('connection', (browser, req) => {
-  const caseId = new URL(req.url, 'http://localhost').searchParams.get('case');
+  const query = new URL(req.url, 'http://localhost').searchParams;
+  const caseId = query.get('case');
+  let screen = null; // which missions screen the "Ask Sherpy" chat was opened on (validated in the session)
+  try { screen = JSON.parse((query.get('screen') ?? 'null').slice(0, 4000)); } catch { screen = null; }
   // Refuse before any MCP or file access.
   if (!isAllowedCase(caseId, caseIds)) return browser.close(1008, 'unknown case');
 
@@ -212,7 +215,8 @@ wss.on('connection', (browser, req) => {
   browser.on('close', () => console.log(`[${caseId}] session closed`));
 
   createSession({
-    browser, upstream, caseId, source, profilesDir, transcriptsDir, chatMemory,
+    browser, upstream, caseId, source, profilesDir, transcriptsDir, chatMemory, screen,
+    loadMissionsView: async (id) => missionsView(await loadMissions(source, id), caseLabel(id)),
     onFinished: (id) => { builder.get(id).catch((e) => console.error(`[${id}] video build failed: ${e?.message}`)); }, // start building while the closing line plays
   }).catch((e) => {
     console.error(`[${caseId}] session failed:`, e?.message);

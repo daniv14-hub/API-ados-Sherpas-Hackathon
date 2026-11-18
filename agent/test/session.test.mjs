@@ -539,3 +539,75 @@ test('phase 1 never uses or fills the chat memory', async () => {
   assert.deepEqual(chatMemory.get(ID), []);
   assert.equal(upstream.json()[1].type, 'conversation.item.create');
 });
+
+test('a chat where only Sherpy spoke does not count as an earlier chat', async () => {
+  const { createChatMemory } = await import('../src/chat-memory.mjs');
+  const chatMemory = createChatMemory();
+  chatMemory.add(ID, 'assistant', "Hi, I'm Sherpy. How can I help you today?");
+  const profilesDir = await phase2Profile();
+  const browser = new FakeSocket();
+  const upstream = new FakeSocket();
+  await createSession({ browser, upstream, caseId: ID, source: fakeSource(), profilesDir, transcriptsDir: await tmp('transcripts-'), log, chatMemory });
+  assert.deepEqual(upstream.json().map((e) => e.type), ['session.update', 'conversation.item.create', 'response.create']);
+  assert.doesNotMatch(upstream.json()[0].session.instructions, /EARLIER IN THIS CHAT/);
+});
+
+const missionsView = {
+  order: ['M1'],
+  missions: [{ id: 'M1', title: 'Life cover', facts: [], steps: [{ id: 'M1-1', title: 'Get quotes', body: 'Ask two insurers.' }, { id: 'M1-2', title: 'Sign', body: 'Sign it.' }] }],
+};
+
+test('phase 2 knows the missions and the screen, and hears about screen changes without answering them', async () => {
+  const profilesDir = await phase2Profile();
+  const browser = new FakeSocket();
+  const upstream = new FakeSocket();
+  await createSession({
+    browser, upstream, caseId: ID, source: fakeSource(), profilesDir, transcriptsDir: await tmp('transcripts-'), log,
+    loadMissionsView: async () => missionsView, screen: { view: 'mission', mission: 'M1', done: [] },
+  });
+  const instr = upstream.json()[0].session.instructions;
+  assert.match(instr, /THEIR MISSIONS/);
+  assert.match(instr, /Mission 1: "Life cover"/);
+  assert.match(instr, /They have mission 1 open: "Life cover"/);
+  upstream.sent.length = 0;
+  const move = { type: 'sherpy.screen', screen: { view: 'checkpoint', mission: 'M1', done: ['M1-1', 'M1-2'] } };
+  browser.emit('message', Buffer.from(JSON.stringify(move)));
+  browser.emit('message', Buffer.from(JSON.stringify(move))); // same screen again: no second note
+  await until(() => upstream.sent.length >= 1);
+  await new Promise((r) => setTimeout(r, 20));
+  const sent = upstream.json();
+  assert.deepEqual(sent.map((e) => e.type), ['conversation.item.create']);
+  assert.match(sent[0].item.content[0].text, /^\(Screen update, not a question: They just completed mission 1: "Life cover"\./);
+});
+
+test('phase 1 drops sherpy.screen', async () => {
+  const { browser, upstream } = await start();
+  browser.emit('message', Buffer.from(JSON.stringify({ type: 'sherpy.screen', screen: { view: 'overview' } })));
+  await new Promise((r) => setTimeout(r, 20));
+  assert.equal(upstream.sent.length, 0);
+});
+
+test('a reply to a screen note is cancelled and never reaches the page; replies after they speak do', async () => {
+  const profilesDir = await phase2Profile();
+  const browser = new FakeSocket();
+  const upstream = new FakeSocket();
+  await createSession({
+    browser, upstream, caseId: ID, source: fakeSource(), profilesDir, transcriptsDir: await tmp('transcripts-'), log,
+    loadMissionsView: async () => missionsView, screen: { view: 'overview' },
+  });
+  const up = (ev) => upstream.emit('message', Buffer.from(JSON.stringify(ev)));
+  const reply = (id) => {
+    up({ type: 'response.created', response: { id } });
+    up({ type: 'response.output_audio.delta', response_id: id, delta: 'AAAA' });
+    up({ type: 'response.done', response: { id, output: [] } });
+  };
+  browser.sent.length = 0; upstream.sent.length = 0;
+  browser.emit('message', Buffer.from(JSON.stringify({ type: 'sherpy.screen', screen: { view: 'mission', mission: 'M1' } })));
+  await until(() => upstream.sent.length === 1);
+  reply('r-note');
+  assert.equal(browser.sent.length, 0);
+  assert.deepEqual(upstream.json().map((e) => e.type), ['conversation.item.create', 'response.cancel']);
+  up({ type: 'input_audio_buffer.speech_started' });
+  reply('r-question');
+  assert.deepEqual(browser.json().map((e) => e.type), ['input_audio_buffer.speech_started', 'response.created', 'response.output_audio.delta', 'response.done']);
+});

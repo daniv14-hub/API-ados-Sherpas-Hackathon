@@ -111,3 +111,13 @@ Timestamped entries (Europe/Madrid). Milestones, blockers, surprises and pivots,
   (`sherpy.resumed`). Lost on server restart.
 - ‹ Video arrow only on the missions map. 206 tests pass. Live: greeting verified, reopen silent with "Your turn".
   Answer length on a real question not verified live (silent fake mic).
+
+## 2026-11-18 ~13:55 — Ask Sherpy knows the missions and the screen
+- Dani's test 12:42: no greeting (my test's lone greeting had been kept as an "earlier chat") and Sherpy didn't know
+  the missions ("the second step of the mission" -> answered the plan's second move).
+- Fixes: a chat counts as earlier only if the family spoke; phase 2 gets every mission with its steps and facts,
+  numbered as on screen (`missions-brief.mjs`), plus where they are (`?screen=` at connect, `sherpy.screen` while open).
+- Gemini answered a screen note once ("I'm here when you're ready to continue."): a reply that starts within 3 s of a
+  note, before the family speaks, is now cancelled and dropped by the server.
+- Live (fake mic): in mission 3 "What is the second step of this mission?" -> "put the needs in your own order";
+  after moving to mission 1 -> "find your current life policy…"; two screen changes -> no reply. 213 tests pass.

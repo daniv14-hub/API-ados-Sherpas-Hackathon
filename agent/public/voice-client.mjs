@@ -9,7 +9,7 @@ import { isFatalServerError } from "/conversation-logic.mjs";
 const b64 = (buf) => { let s = ""; const u = new Uint8Array(buf); for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode(...u.subarray(i, i + 0x8000)); return btoa(s); };
 
 // handlers: onConnected(), onError({source, name?, message?}), onClosed({code}) (unexpected close only), onDone() (closing line played)
-export function createVoiceClient({ caseId, model = "", handlers = {} }) {
+export function createVoiceClient({ caseId, model = "", handlers = {}, params = {} }) {
   const OPENAI = model.startsWith("gpt-");
   let ws = null, ctx = null, micStream = null, micNode = null;
   let playHead = 0, playing = [];
@@ -97,7 +97,7 @@ export function createVoiceClient({ caseId, model = "", handlers = {} }) {
       audio.createMediaStreamSource(stream).connect(micNode);
     } catch (e) { fail({ source: "mic", name: e?.name }); return; }
     const gate = createSpeechGate(); // one per call: it keeps a short audio history
-    const sock = new WebSocket(`${location.origin.replace(/^http/, "ws")}/voice?${new URLSearchParams({ case: caseId })}`);
+    const sock = new WebSocket(`${location.origin.replace(/^http/, "ws")}/voice?${new URLSearchParams({ ...params, case: caseId })}`);
     ws = sock;
     sock.onopen = () => sock.send(JSON.stringify(sessionUpdate()));
     sock.onmessage = (m) => { try { onEvent(JSON.parse(m.data)); } catch { /* ignore a malformed event */ } };
@@ -130,8 +130,11 @@ export function createVoiceClient({ caseId, model = "", handlers = {} }) {
   // End by the user: closes the voice session (and so stops billing).
   function stop() { closedByUs = true; cleanup(); }
 
+  // Small page events for the server (only types it allows, e.g. sherpy.screen); dropped while not connected.
+  function send(obj) { if (ws?.readyState === 1) ws.send(JSON.stringify(obj)); }
+
   return {
-    start, stop,
+    start, stop, send,
     snapshot: () => ({
       connected, thinking, finished,
       now: ctx?.currentTime ?? 0,

@@ -12,6 +12,7 @@ let single = false;
 let state = L.emptyState();
 let view = { name: 'overview' };
 let storageOk = true;
+let chat = null; // the Ask Sherpy bubble
 
 // ---------- tiny DOM helper (text only, never innerHTML with data) ----------
 function h(tag, attrs, ...kids) {
@@ -321,6 +322,7 @@ function renderCheckpoint(v) {
 function render() {
   if (!data) return;
   document.body.dataset.view = view.name; // the ‹ Video arrow shows on the missions map only
+  chat?.screenChanged();
   if (view.name === 'mission') return renderMission(view.id);
   if (view.name === 'checkpoint') return renderCheckpoint(view);
   return renderOverview();
@@ -343,7 +345,7 @@ async function boot() {
     const dock = h('div', { class: 'dock' });
     document.body.append(dock);
     mountJourneyNav({ step: 'missions', caseId, parent: dock, look: 'sticker' });
-    mountSherpyChat({ caseId });
+    chat = mountSherpyChat({ caseId, getScreen: () => ({ view: view.name, mission: view.id ?? null, done: Object.keys(state.done ?? {}) }) });
     const res = await fetch(`/missions/${encodeURIComponent(caseId)}`);
     if (!res.ok) return failure(res.status === 404 ? 'We could not find that plan.' : 'We could not load your missions. Please try again in a moment.');
     data = await res.json();

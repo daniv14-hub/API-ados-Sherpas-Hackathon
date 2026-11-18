@@ -19,8 +19,9 @@ function el(tag, attrs, ...kids) {
   return e;
 }
 
-export function mountSherpyChat({ caseId, parent = document.body }) {
-  let client = null, raf = 0, lastActivity = 0, lastReplyLen = -1, lastReplyId = 0;
+// getScreen(): { view, mission, done } of the missions screen on show, so Sherpy knows what "this mission" means.
+export function mountSherpyChat({ caseId, parent = document.body, getScreen = () => null }) {
+  let client = null, raf = 0, lastActivity = 0, lastReplyLen = -1, lastReplyId = 0, lastScreen = 'null';
 
   const fab = el('button', { type: 'button', class: 'schat-fab', 'aria-label': 'Talk to Sherpy', 'aria-expanded': 'false', 'aria-controls': 'schat-panel' },
     el('img', { src: '/sherpy.svg', alt: '' }),
@@ -84,8 +85,11 @@ export function mountSherpyChat({ caseId, parent = document.body }) {
     errBox.hidden = true; turn.hidden = false; caption.textContent = '';
     setTurn(PHASE_LABEL.connecting);
     lastActivity = performance.now(); lastReplyId = 0; lastReplyLen = -1;
+    const screen = getScreen();
+    lastScreen = JSON.stringify(screen);
     const c = createVoiceClient({
       caseId,
+      params: screen ? { screen: lastScreen } : {},
       handlers: {
         onError: (e) => { if (c === client) { hangUp(); showError(classifyError(e)); } },
         onClosed: (e) => { if (c === client) { hangUp(); showError(classifyError({ source: 'close', code: e.code })); } },
@@ -124,5 +128,15 @@ export function mountSherpyChat({ caseId, parent = document.body }) {
   panel.addEventListener('keydown', (e) => { if (e.key === 'Escape') shut(); });
   addEventListener('pagehide', hangUp); // never leave a paid voice session open
 
-  return { open, close: shut };
+  // The family moved to another missions screen: tell Sherpy if the chat is open.
+  function screenChanged() {
+    if (!client) return;
+    const screen = getScreen();
+    const key = JSON.stringify(screen);
+    if (key === lastScreen) return;
+    lastScreen = key;
+    client.send({ type: 'sherpy.screen', screen });
+  }
+
+  return { open, close: shut, screenChanged };
 }
