@@ -132,4 +132,4 @@ Timestamped entries (Europe/Madrid). Milestones, blockers, surprises and pivots,
   recall earlier answers; M6-2 keep $450 or pay more. "I did it" waits until the step is filled in.
 - Removed kits that were general knowledge (where to look in a bank app, what insurers ask, etc.); M3-3 kit kept
   (plan-backed). M3-1 now names the credit card among the needs (it is in M3's facts and M6 uses the decision).
-- Bug found headless and fixed: each field overwrote the others (stale answers copy). 223 tests pass.
+- Bug found headless and fixed: each field overwrote the others (stale answers copy). 218 tests pass.
