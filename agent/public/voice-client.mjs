@@ -61,6 +61,12 @@ export function createVoiceClient({ caseId, model = "", handlers = {} }) {
       }, 200);
       return;
     }
+    if (t === "sherpy.resumed") {
+      // A reopened "Ask Sherpy" chat: Sherpy stays quiet. Show its last line as already said, so it is their turn.
+      if (!connected) { connected = true; handlers.onConnected?.(); }
+      reply = { id: ++replyCount, text: typeof ev.last === "string" ? ev.last : "", startAt: ctx?.currentTime ?? 0, seconds: 0, audioDone: true };
+      return;
+    }
     if (t === "input_audio_buffer.speech_started") thinking = false;
     if (t === "input_audio_buffer.speech_stopped") thinking = true;
     if (t === "response.created") { thinking = true; reply = { id: ++replyCount, text: "", startAt: 0, seconds: 0, audioDone: false }; }

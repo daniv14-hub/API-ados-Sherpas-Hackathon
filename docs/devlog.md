@@ -102,3 +102,12 @@ Timestamped entries (Europe/Madrid). Milestones, blockers, surprises and pivots,
   the phase-2 advisor. Hangs up on close, on leaving the page and after 90 s of silence (voice is billed while open).
 - Verified headless at 390×844, 844×390, 1280×800 (no horizontal scroll) and one live call: phase 2 greeting in ~5 s,
   turn switched to the family, close → "session closed" in the server log.
+
+## 2026-11-18 ~13:45 — Shorter Sherpy chat, chat that carries on, no ‹ Video inside a mission
+- Dani's test (transcript 12:32): long greeting and long answers, a reply even to "Mmm". Phase 2 now opens with exactly
+  "Hi, I'm Sherpy. How can I help you today?" and answers in at most three short sentences, no filler follow-ups.
+- Closed and reopened chat: the server keeps the phase-2 lines per case in memory (2 h, 24 lines, `chat-memory.mjs`);
+  a reopened chat gets them in its instructions, Sherpy doesn't greet and waits; the page shows its last line
+  (`sherpy.resumed`). Lost on server restart.
+- ‹ Video arrow only on the missions map. 206 tests pass. Live: greeting verified, reopen silent with "Your turn".
+  Answer length on a real question not verified live (silent fake mic).

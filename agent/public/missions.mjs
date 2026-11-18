@@ -320,6 +320,7 @@ function renderCheckpoint(v) {
 
 function render() {
   if (!data) return;
+  document.body.dataset.view = view.name; // the ‹ Video arrow shows on the missions map only
   if (view.name === 'mission') return renderMission(view.id);
   if (view.name === 'checkpoint') return renderCheckpoint(view);
   return renderOverview();

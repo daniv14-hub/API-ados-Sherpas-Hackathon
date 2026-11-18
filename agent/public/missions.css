@@ -142,6 +142,7 @@ dl { margin: 0; }
 .dock .jnav { max-width: 480px; margin: 0 auto; padding-right: 84px; }
 .dock .jnav-btn { pointer-events: auto; }
 .dock .jnav-hint { display: none; }
+body[data-view="mission"] .dock .jnav, body[data-view="checkpoint"] .dock .jnav { display: none; }
 
 .schat { position: fixed; z-index: 50; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom));
          display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }

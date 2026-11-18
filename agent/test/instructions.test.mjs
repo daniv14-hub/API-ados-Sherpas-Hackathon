@@ -140,3 +140,18 @@ test('couples: risk differences must be mediated before moving on', () => {
   const text = sherpyInstructions({ phase: 1, brief, profile, options });
   assert.ok(text.includes('If their risk answers differ, do not move on yet.'), 'risk mediation line');
 });
+
+test('phase 2 opens with one short line and keeps answers short', () => {
+  const text = sherpyInstructions({ phase: 2, brief: 'B', profile: { phase1Complete: true }, options: null });
+  assert.match(text, /"Hi, I'm Sherpy\. How can I help you today\?"/);
+  assert.match(text, /at most three short sentences/i);
+  assert.doesNotMatch(text, /EARLIER IN THIS CHAT/);
+});
+
+test('phase 2 with earlier lines: no greeting, the chat continues', () => {
+  const earlier = [{ role: 'user', text: 'What about life cover?' }, { role: 'assistant', text: 'Your cover is low.' }];
+  const text = sherpyInstructions({ phase: 2, brief: 'B', profile: { phase1Complete: true }, options: null, earlier });
+  assert.match(text, /EARLIER IN THIS CHAT/);
+  assert.match(text, /Family: What about life cover\?\nSherpy: Your cover is low\./);
+  assert.match(text, /Do not greet/);
+});

@@ -20,6 +20,8 @@ import { parseRange, parseVideoPath, videoView } from './src/video/routes.mjs';
 import { loadMissions } from './src/game/missions.mjs';
 import { parseMissionsPath, missionsView } from './src/game/routes.mjs';
 import { parseJourneyPath, journeyView } from './src/journey.mjs';
+import { createChatMemory } from './src/chat-memory.mjs';
+const chatMemory = createChatMemory();
 import { loadProfile } from './src/profile.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -210,7 +212,7 @@ wss.on('connection', (browser, req) => {
   browser.on('close', () => console.log(`[${caseId}] session closed`));
 
   createSession({
-    browser, upstream, caseId, source, profilesDir, transcriptsDir,
+    browser, upstream, caseId, source, profilesDir, transcriptsDir, chatMemory,
     onFinished: (id) => { builder.get(id).catch((e) => console.error(`[${id}] video build failed: ${e?.message}`)); }, // start building while the closing line plays
   }).catch((e) => {
     console.error(`[${caseId}] session failed:`, e?.message);

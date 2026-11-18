@@ -136,6 +136,9 @@ Some answers may already be saved in the profile below. Skip topics already answ
 }
 
 const ADVISOR_GUIDANCE = `Answer the family's questions about their own plan, in plain words.
+Keep every answer to at most three short sentences. Answer only what they asked, then stop and let them talk.
+If they want more, they will ask. Don't add summaries, extra advice or a follow-up question to every answer.
+If they only acknowledge (like "okay", "mm", "great") or say thanks, reply with a few words at most.
 Use the family brief first. For anything not in the brief, call get_plan_section to look it up before answering.
 If the lookup does not have the answer either, use the exact decline line from the rules.
 
@@ -150,7 +153,14 @@ const profileJson = (profile) => JSON.stringify(profile, null, 2);
 
 // phase 1 = profile incomplete: the getting-to-know-you conversation (D19), which ends with the video.
 // phase 2 = profile complete: advisor answering plan questions (after the video, in the game).
-export function sherpyInstructions({ brief, profile, options, phase = profile?.phase1Complete ? 2 : 1 }) {
+const OPENING = `Start: say only "Hi, I'm Sherpy. How can I help you today?" Then wait for their question.`;
+
+const earlierBlock = (earlier) => `EARLIER IN THIS CHAT (they closed the chat and opened it again):
+${earlier.map((l) => `${l.role === 'user' ? 'Family' : 'Sherpy'}: ${l.text}`).join('\n')}
+Do not greet and do not introduce yourself again. Say nothing until they speak, then carry on from where you left off.`;
+
+// earlier: lines of an "Ask Sherpy" chat that was closed and opened again (phase 2 only).
+export function sherpyInstructions({ brief, profile, options, phase = profile?.phase1Complete ? 2 : 1, earlier = [] }) {
   if (phase === 1) {
     return [
       SHERPY_RULES,
@@ -160,7 +170,8 @@ export function sherpyInstructions({ brief, profile, options, phase = profile?.p
     ].join('\n\n');
   }
   if (phase === 2) {
-    const script = `PHASE TWO: ANSWERING QUESTIONS ABOUT THEIR PLAN\n\n${ADVISOR_GUIDANCE}\n\nFamily profile:\n${profileJson(profile)}`;
+    const start = earlier.length ? earlierBlock(earlier) : OPENING;
+    const script = `PHASE TWO: ANSWERING QUESTIONS ABOUT THEIR PLAN\n\n${ADVISOR_GUIDANCE}\n\n${start}\n\nFamily profile:\n${profileJson(profile)}`;
     return [SHERPY_RULES, script, briefBlock(brief)].join('\n\n');
   }
   throw new Error(`unknown phase: ${phase}`);

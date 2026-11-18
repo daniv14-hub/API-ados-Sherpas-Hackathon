@@ -45,7 +45,7 @@ function parse(raw) {
   }
 }
 
-export async function createSession({ browser, upstream, caseId, source, profilesDir, transcriptsDir, log = console, finishGraceMs = 20000, onFinished }) {
+export async function createSession({ browser, upstream, caseId, source, profilesDir, transcriptsDir, log = console, finishGraceMs = 20000, onFinished, chatMemory }) {
   const startISO = new Date().toISOString();
   const transcriptFile = path.join(transcriptsDir, `${caseId}-${startISO.replace(/[:.]/g, '-')}.jsonl`);
 
@@ -55,7 +55,7 @@ export async function createSession({ browser, upstream, caseId, source, profile
   let ended = false;
   let notifiedFinished = false;
   const pending = []; // page messages waiting for case data and for the upstream socket to open
-  const state = { phase: 1, brief: '', options: null, profile: null };
+  const state = { phase: 1, brief: '', options: null, profile: null, earlier: [] };
   let toolChain = Promise.resolve(); // tool calls run one at a time so profile updates never race
   let writeChain = Promise.resolve();
   const transcriptBuf = new Map(); // response id -> assistant transcript so far
@@ -73,7 +73,7 @@ export async function createSession({ browser, upstream, caseId, source, profile
 
   function sessionConfig() {
     return {
-      instructions: sherpyInstructions({ phase: state.phase, brief: state.brief, profile: state.profile, options: state.options }),
+      instructions: sherpyInstructions({ phase: state.phase, brief: state.brief, profile: state.profile, options: state.options, earlier: state.earlier }),
       tools: toolDefinitions(state.phase, state.options),
       tool_choice: 'auto',
     };
@@ -127,6 +127,12 @@ export async function createSession({ browser, upstream, caseId, source, profile
   function kickoff() {
     if (kickedOff) return;
     kickedOff = true;
+    if (state.earlier.length) {
+      // A reopened chat: Sherpy stays quiet until they speak; the page shows the last thing Sherpy said.
+      const last = [...state.earlier].reverse().find((l) => l.role === 'assistant')?.text ?? '';
+      if (isOpen(browser)) browser.send(JSON.stringify({ type: 'sherpy.resumed', last }));
+      return;
+    }
     upstream.send(JSON.stringify({
       type: 'conversation.item.create',
       item: { type: 'message', role: 'user', content: [{ type: 'input_text', text: KICKOFF }] },
@@ -136,6 +142,7 @@ export async function createSession({ browser, upstream, caseId, source, profile
 
   function writeLine(role, text) {
     if (!text || !text.trim()) return;
+    if (state.phase === 2) chatMemory?.add(caseId, role, text);
     const line = `${JSON.stringify({ t: new Date().toISOString(), role, text })}\n`;
     writeChain = writeChain
       .then(() => fs.mkdir(transcriptsDir, { recursive: true }))
@@ -255,6 +262,7 @@ export async function createSession({ browser, upstream, caseId, source, profile
     state.options = buildOptions(fh, personaMd);
     state.profile = await loadProfile(profilesDir, caseId, state.options.present);
     state.phase = state.profile.phase1Complete ? 2 : 1;
+    if (state.phase === 2) state.earlier = chatMemory?.get(caseId) ?? [];
     // The getting-to-know-you conversation only needs the short brief (D19); it also costs less per turn.
     state.brief = state.phase === 1 ? buildInterviewBrief(fh, personaMd) : buildBrief(fh, personaMd);
   } catch (e) {

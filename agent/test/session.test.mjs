@@ -489,3 +489,53 @@ test('finish_conversation success calls onFinished once with the case id', async
   upstream.emit('message', Buffer.from(JSON.stringify({ type: 'response.output_audio.delta', delta: 'AAAA' })));
   await until(() => browser.sent.length > 0);
 });
+
+async function phase2Profile() {
+  const opts = options();
+  const profilesDir = await tmp('profiles-');
+  const p = newProfile(ID, opts.present);
+  p.present = [...opts.present];
+  for (const n of opts.present) p.people[n] = { risk: 'growth', style: 'emotional' };
+  p.main_goal.agreed = opts.main_goal[0].value;
+  p.top_worry.agreed = opts.top_worry[0];
+  p.detail_level = 'medium';
+  p.phase1Complete = true;
+  await saveProfile(profilesDir, p);
+  return profilesDir;
+}
+
+test('phase 2 chat reopened: earlier lines in the instructions, no greeting, page told to resume', async () => {
+  const { createChatMemory } = await import('../src/chat-memory.mjs');
+  const chatMemory = createChatMemory();
+  const profilesDir = await phase2Profile();
+  const open = async () => {
+    const browser = new FakeSocket();
+    const upstream = new FakeSocket();
+    await createSession({ browser, upstream, caseId: ID, source: fakeSource(), profilesDir, transcriptsDir: await tmp('transcripts-'), log, chatMemory });
+    return { browser, upstream };
+  };
+  const first = await open();
+  assert.deepEqual(first.upstream.json().map((e) => e.type), ['session.update', 'conversation.item.create', 'response.create']);
+  first.upstream.emit('message', Buffer.from(JSON.stringify({ type: 'conversation.item.input_audio_transcription.completed', transcript: 'What about life cover?' })));
+  first.upstream.emit('message', Buffer.from(JSON.stringify({ type: 'response.output_audio_transcript.delta', response_id: 'r1', delta: 'Your cover is low.' })));
+  first.upstream.emit('message', Buffer.from(JSON.stringify({ type: 'response.done', response: { id: 'r1', output: [] } })));
+  first.browser.close();
+
+  const again = await open();
+  const sent = again.upstream.json();
+  assert.deepEqual(sent.map((e) => e.type), ['session.update']); // Sherpy waits for them to speak
+  assert.match(sent[0].session.instructions, /Family: What about life cover\?\nSherpy: Your cover is low\./);
+  const resumed = again.browser.json().find((e) => e.type === 'sherpy.resumed');
+  assert.deepEqual(resumed, { type: 'sherpy.resumed', last: 'Your cover is low.' });
+});
+
+test('phase 1 never uses or fills the chat memory', async () => {
+  const { createChatMemory } = await import('../src/chat-memory.mjs');
+  const chatMemory = createChatMemory();
+  const browser = new FakeSocket();
+  const upstream = new FakeSocket();
+  await createSession({ browser, upstream, caseId: ID, source: fakeSource(), profilesDir: await tmp('profiles-'), transcriptsDir: await tmp('transcripts-'), log, chatMemory });
+  upstream.emit('message', Buffer.from(JSON.stringify({ type: 'conversation.item.input_audio_transcription.completed', transcript: 'Hi' })));
+  assert.deepEqual(chatMemory.get(ID), []);
+  assert.equal(upstream.json()[1].type, 'conversation.item.create');
+});
