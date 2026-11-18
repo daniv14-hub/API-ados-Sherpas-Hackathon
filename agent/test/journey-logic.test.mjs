@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  readJourneyParams, videoUrl, missionsUrl, nextVideoStep, PROFILE_RETRY_MS, showRotateHint, shouldAutoplay, DEFAULT_CASE,
+  readJourneyParams, videoUrl, missionsUrl, nextVideoStep, PROFILE_RETRY_MS, showRotateHint, shouldAutoplay, DEFAULT_CASE, journeyNav,
 } from '../public/journey-logic.mjs';
 
 test('readJourneyParams reads case and flow; only flow=1 turns the flow on', () => {
@@ -65,4 +65,29 @@ test('awaitVideo gives up: 500 at once, 409 after the schedule, network error at
   assert.deepEqual(await awaitVideo('c', { fetchFn: async () => { n++; return { status: 409 }; }, sleep }), { ok: false, reason: 'incomplete' });
   assert.equal(n, PROFILE_RETRY_MS.length + 1);
   assert.deepEqual(await awaitVideo('c', { fetchFn: async () => { throw new Error('offline'); }, sleep }), { ok: false, reason: 'error' });
+});
+
+test('journeyNav: talk -> video is locked until the conversation is complete', () => {
+  assert.deepEqual(journeyNav('talk', { caseId: 'a-b', complete: false }), {
+    prev: null,
+    next: { label: 'Video', href: '/video.html?case=a-b', locked: true },
+  });
+  assert.equal(journeyNav('talk', { caseId: 'a-b', complete: true }).next.locked, false);
+});
+
+test('journeyNav: video goes back to the talk and on to the missions', () => {
+  assert.deepEqual(journeyNav('video', { caseId: 'a-b', complete: true }), {
+    prev: { label: 'Talk', href: '/?case=a-b', locked: false },
+    next: { label: 'Missions', href: '/missions.html?case=a-b', locked: false },
+  });
+  assert.equal(journeyNav('video', { caseId: 'a-b', complete: false }).next.locked, true);
+  assert.equal(journeyNav('video', { caseId: 'a-b', complete: false }).prev.locked, false);
+});
+
+test('journeyNav: missions only go back, never locked; ids are URL-encoded', () => {
+  assert.deepEqual(journeyNav('missions', { caseId: 'a b', complete: false }), {
+    prev: { label: 'Video', href: '/video.html?case=a%20b', locked: false },
+    next: null,
+  });
+  assert.throws(() => journeyNav('nope', { caseId: 'x' }), /unknown step/);
 });

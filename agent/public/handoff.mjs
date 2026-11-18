@@ -82,7 +82,7 @@ export function initConversationHandoff() {
 }
 
 // Conversation start screen: a family that already talked with Sherpy also gets "Watch your video" and "My missions".
-export function initReturningFamily() {
+export function initReturningFamily({ onStatus } = {}) {
   const $ = (id) => document.getElementById(id);
   const copy = {
     first: { title: "Hi, I'm Sherpy", text: "Let's talk through your plan together. I'll ask a few questions, and you just answer out loud.", go: 'Start' },
@@ -98,6 +98,7 @@ export function initReturningFamily() {
       back = r.ok && (await r.json()).phase1Complete === true;
     } catch { back = false; }
     if (mine !== seq) return; // the family changed meanwhile
+    onStatus?.(caseId, back);
     const c = back ? copy.back : copy.first;
     $('start-title').textContent = c.title;
     $('start-text').textContent = c.text;

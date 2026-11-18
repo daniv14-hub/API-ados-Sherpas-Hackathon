@@ -135,6 +135,51 @@ dl { margin: 0; }
   .sherpy-row img { width: 64px; }
   .cp .stage img { width: 110px; }
 }
+/* Bottom dock: ‹ Video arrow on the left (journey-nav.mjs), Sherpy bubble on the right (sherpy-chat.mjs). */
+#app { padding-bottom: 120px; }
+.dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; pointer-events: none;
+        padding: 0 max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+.dock .jnav { max-width: 480px; margin: 0 auto; padding-right: 84px; }
+.dock .jnav-btn { pointer-events: auto; }
+.dock .jnav-hint { display: none; }
+
+.schat { position: fixed; z-index: 50; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom));
+         display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+.schat-fab { position: relative; width: 68px; height: 68px; border-radius: 50%; padding: 0; display: grid; place-items: center;
+             background: var(--brand-100); border: 3px solid var(--ink); box-shadow: var(--shadow); overflow: visible; }
+.schat-fab img { width: 56px; height: 56px; margin-top: 8px; display: block; border-radius: 0 0 28px 28px; }
+.schat-fab:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+.schat-fab::after { content: ""; position: absolute; top: 2px; right: 2px; width: 14px; height: 14px; border-radius: 50%;
+                    background: var(--success); border: 3px solid var(--ink); }
+.schat-fab-label { position: absolute; right: 78px; top: 50%; translate: 0 -50%; white-space: nowrap; padding: 6px 12px;
+                   background: #fff; border: 3px solid var(--ink); border-radius: 999px; box-shadow: 3px 3px 0 var(--ink); font-weight: 700; font-size: 14px; }
+.schat.open .schat-fab-label { display: none; }
+.schat.open .schat-fab::after { display: none; }
+@media (max-width: 520px) { .schat-fab-label { display: none; } }
+
+.schat-panel { width: min(340px, calc(100vw - 32px)); background: #fff; border: 3px solid var(--ink); border-radius: 22px; box-shadow: 5px 5px 0 var(--ink);
+               padding: 12px 16px 14px; transform-origin: bottom right; animation: schat-pop .22s cubic-bezier(.3,1.4,.5,1); }
+@keyframes schat-pop { from { transform: scale(.6); opacity: 0; } }
+.schat-head { display: flex; align-items: center; justify-content: space-between; }
+.schat-head h2 { font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--brand-600); font-family: var(--font-body); font-weight: 700; }
+.schat-close { width: 44px; height: 44px; margin-right: -10px; border: 0; background: none; font-size: 28px; line-height: 1; color: var(--ink); }
+.schat-body { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+.schat-avatar { width: 112px; height: 112px; padding: 10px 6px 0; border-radius: 50%; background: var(--brand-100); border: 3px solid var(--ink); object-fit: contain; }
+.schat-panel.talking .schat-avatar { animation: schat-bob .5s ease-in-out infinite alternate; }
+@keyframes schat-bob { from { transform: rotate(-2deg); } to { transform: rotate(2deg) translateY(-3px); } }
+.schat-caption { margin: 0; min-height: 3em; max-height: 9em; overflow-y: auto; font: 600 17px/1.4 var(--font-heading); color: var(--ink); text-wrap: balance; }
+.schat-turn { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 6px 16px 6px 10px; border-radius: 999px;
+              background: var(--gray-100); color: var(--gray-600); font-weight: 600; font-size: 14px; border: 2px solid var(--ink); }
+.schat-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--gray-400); }
+.schat-panel.listening .schat-turn { background: var(--brand-500); color: #fff; }
+.schat-panel.listening .schat-dot { background: #fff; animation: schat-ping 1.2s ease-out infinite; }
+@keyframes schat-ping { 50% { transform: scale(1.5); opacity: .6; } }
+.schat-error { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 14px; color: var(--gray-700); }
+.schat-error p { margin: 0; }
+.schat-err-title { font-weight: 700; color: var(--ink); }
+.schat-fine { margin: 10px 0 0; font-size: 12.5px; color: var(--gray-500); text-align: center; }
+@media (max-height: 560px) { .schat-avatar { width: 72px; height: 72px; } .schat-caption { max-height: 5em; } }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
   .confetti { display: none; }

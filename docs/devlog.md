@@ -91,3 +91,14 @@ Timestamped entries (Europe/Madrid). Milestones, blockers, surprises and pivots,
 - UI minors fixed after the review (99902c6). 198 tests green.
 - Voice options for the monotone narration: `docs/voice-options.md` + 6 samples in `data/voice-samples/compare.html` (1,057 TTS characters, ~$0.06).
   Recommendation to try first (same cost): prosody-rewritten text and stability 0.25; then eleven-v3 with tags (2× cost) vs voice "Brian". Not applied.
+
+## 2026-11-18 ~10:30 — Journey arrows and the Sherpy bubble
+- Team (Dani, 18/11) asked: every screen can go to the previous/next one, and Sherpy is always reachable through a bubble.
+  Choices (Dani, via question): ‹ Previous / Next › arrows at the bottom; the video and the missions stay locked until the
+  conversation is complete ("hasta que no acabe la conversación… no se puede saltar"); bubble only on the missions
+  (map and every mission), bottom right.
+- `journey-nav.mjs` + `journeyNav()` (3 new tests, 201 pass). Locked "Video ›" explains why on tap.
+- `sherpy-chat.mjs`: tap → panel with Sherpy, live captions, turn pill; reuses the voice client, so the server runs it as
+  the phase-2 advisor. Hangs up on close, on leaving the page and after 90 s of silence (voice is billed while open).
+- Verified headless at 390×844, 844×390, 1280×800 (no horizontal scroll) and one live call: phase 2 greeting in ~5 s,
+  turn switched to the family, close → "session closed" in the server log.

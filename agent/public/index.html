@@ -81,6 +81,7 @@
       </div>
     </section>
   </main>
+  <div id="journey" class="journey"></div>
 </div>
 
 <dialog id="confirm" aria-labelledby="confirm-title">
@@ -95,8 +96,12 @@
 <script type="module" src="/conversation.mjs"></script>
 <script type="module">
   import { initConversationHandoff, initReturningFamily } from '/handoff.mjs';
+  import { mountJourneyNav } from '/journey-nav.mjs';
+  import { readJourneyParams } from '/journey-logic.mjs';
+  const nav = mountJourneyNav({ step: 'talk', caseId: readJourneyParams(location.search).caseId, parent: document.getElementById('journey'), complete: false });
   initConversationHandoff();
-  initReturningFamily();
+  initReturningFamily({ onStatus: (caseId, complete) => nav.update({ caseId, complete }) });
+  addEventListener('sherpy:done', (e) => nav.update({ caseId: e.detail?.caseId, complete: true }));
 </script>
 </body>
 </html>

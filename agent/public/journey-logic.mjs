@@ -38,3 +38,16 @@ export function showRotateHint({ width, height, dismissed }) {
 export function shouldAutoplay({ flow, rotateHint }) {
   return flow && !rotateHint;
 }
+
+export const talkUrl = (caseId) => `/?${q(caseId)}`;
+
+// The ‹ previous / next › arrows of the three journey screens. Nobody gets stuck on a screen, except that the
+// video and the missions only open once the conversation is complete (team, 18/11): Sherpy needs the answers first.
+// -> { prev, next }, each null or { label, href, locked }.
+export function journeyNav(step, { caseId, complete = false }) {
+  const link = (label, href, locked = false) => ({ label, href, locked });
+  if (step === 'talk') return { prev: null, next: link('Video', videoUrl(caseId), !complete) };
+  if (step === 'video') return { prev: link('Talk', talkUrl(caseId)), next: link('Missions', missionsUrl(caseId), !complete) };
+  if (step === 'missions') return { prev: link('Video', videoUrl(caseId)), next: null };
+  throw new Error(`unknown step: ${step}`);
+}

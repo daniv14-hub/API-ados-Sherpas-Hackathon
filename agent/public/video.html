@@ -101,6 +101,13 @@
   @media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } html.leaving body { transition: none; } }
   body[data-state="loading"] #controls, body[data-state="message"] #controls { visibility: hidden; }
 
+  /* ‹ Talk / Missions › arrows (journey-nav.mjs): always reachable, above the full-page state screens too. */
+  #journey { width: 100%; max-width: 1280px; padding-top: 10px; position: relative; z-index: 35; }
+  @media (orientation: portrait) {
+    body[data-state="loading"] #journey, body[data-state="ready"] #journey, body[data-state="ended"] #journey, body[data-state="message"] #journey {
+      position: fixed; left: 0; right: 0; bottom: 0; max-width: none; padding: 0 16px max(14px, env(safe-area-inset-bottom)); }
+  }
+
   /* Phone held sideways: no header, the stage takes the full height and the controls float small over its bottom edge. */
   @media (orientation: landscape) and (max-height: 500px) {
     header { display: none; }
@@ -111,6 +118,10 @@
     #controls button { font-size: 12px; padding: 4px 10px; }
     #progress { height: 4px; }
     #clock { font-size: 11px; min-width: 64px; }
+    #controls { width: min(520px, calc(100% - 240px)); }
+    #journey { position: absolute; left: 0; right: 0; bottom: 4px; padding: 0 8px; pointer-events: none; }
+    #journey .jnav-btn { pointer-events: auto; min-height: 36px; padding: 0 12px; font-size: 13px; background: rgba(255,255,255,.85); }
+    #journey .jnav-hint { font-size: 12px; }
     #captions { bottom: 52px; padding-bottom: 8px; background: linear-gradient(to top, rgba(255,255,255,.96) 75%, rgba(255,255,255,0)); }
   }
 
@@ -351,6 +362,7 @@
     <div id="progress"><div id="bar"></div></div>
     <span id="clock">0:00 / 0:00</span>
   </div>
+  <div id="journey"></div>
 </main>
 <audio id="clip" preload="auto"></audio>
 <div id="message"><img src="/sherpy.svg" alt=""><p id="message-text"></p>
@@ -363,6 +375,9 @@
 </div>
 <script type="module">
   import { startPlayer } from '/video-player.mjs';
+  import { mountJourneyNav } from '/journey-nav.mjs';
+  import { readJourneyParams } from '/journey-logic.mjs';
+  mountJourneyNav({ step: 'video', caseId: readJourneyParams(location.search).caseId, parent: document.getElementById('journey') });
   startPlayer();
 </script>
 </body>

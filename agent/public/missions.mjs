@@ -1,5 +1,7 @@
 import { scoreFor } from '/game-score.mjs';
 import * as L from '/missions-logic.mjs';
+import { mountJourneyNav } from '/journey-nav.mjs';
+import { mountSherpyChat } from '/sherpy-chat.mjs';
 
 const app = document.getElementById('app');
 const status = document.getElementById('status');
@@ -170,7 +172,6 @@ function footer() {
   return h('footer', { class: 'footer' },
     h('small', null, "You tell us when it's done. Nothing is checked for you."),
     !storageOk && h('small', null, "This browser can't save your progress, so it will reset when you close the page."),
-    h('a', { class: 'pill', href: `/video.html?case=${encodeURIComponent(caseId)}` }, 'Back to my video'),
     resetControl());
 }
 
@@ -327,8 +328,7 @@ function render() {
 // ---------- boot ----------
 function failure(text) {
   show([header(), h('section', { class: 'sticker state-msg' }, h('p', null, text),
-    h('p', { style: 'margin-top:14px' }, h('button', { type: 'button', class: 'pill primary', onclick: () => location.reload() }, 'Try again'))),
-    caseId ? h('div', { class: 'footer' }, h('a', { class: 'pill', href: `/video.html?case=${encodeURIComponent(caseId)}` }, 'Back to my video')) : null], { focus: false });
+    h('p', { style: 'margin-top:14px' }, h('button', { type: 'button', class: 'pill primary', onclick: () => location.reload() }, 'Try again')))], { focus: false });
 }
 
 async function boot() {
@@ -338,6 +338,11 @@ async function boot() {
       caseId = cfg.cases?.[0]?.id ?? null;
     }
     if (!caseId) return failure('Pick a plan first.');
+    // ‹ Video arrow (bottom left) and the Sherpy bubble (bottom right) stay on every missions view.
+    const dock = h('div', { class: 'dock' });
+    document.body.append(dock);
+    mountJourneyNav({ step: 'missions', caseId, parent: dock, look: 'sticker' });
+    mountSherpyChat({ caseId });
     const res = await fetch(`/missions/${encodeURIComponent(caseId)}`);
     if (!res.ok) return failure(res.status === 404 ? 'We could not find that plan.' : 'We could not load your missions. Please try again in a moment.');
     data = await res.json();
