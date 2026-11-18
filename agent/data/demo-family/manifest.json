@@ -115,7 +115,7 @@
     {
       "id": "ask-mission",
       "who": "Emily",
-      "text": "What's the second step of this mission?",
+      "text": "We're on the life cover mission. How much cover should each of us ask for, and what do we do first?",
       "voice": "cgSgspJ2msm6clMCkdW9",
       "model": "eleven-v3",
       "file": "ask-mission.mp3"

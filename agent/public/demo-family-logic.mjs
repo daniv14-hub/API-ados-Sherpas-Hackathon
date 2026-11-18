@@ -19,7 +19,7 @@ export const LINES = [
   { id: 'yes-emily', who: 'Emily', text: 'Yes, exactly.' },
   { id: 'thanks', who: 'Emily', text: 'Thank you, Sherpy!' },
   // Missions screen, "Ask Sherpy" bubble.
-  { id: 'ask-mission', who: 'Emily', text: "What's the second step of this mission?" },
+  { id: 'ask-mission', who: 'Emily', text: "We're on the life cover mission. How much cover should each of us ask for, and what do we do first?" },
 ];
 
 const has = (s, re) => re.test(s);

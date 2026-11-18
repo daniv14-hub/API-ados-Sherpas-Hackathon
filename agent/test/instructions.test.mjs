@@ -155,3 +155,11 @@ test('phase 2 with earlier lines: no greeting, the chat continues', () => {
   assert.match(text, /Family: What about life cover\?\nSherpy: Your cover is low\./);
   assert.match(text, /Do not greet/);
 });
+
+test('phase 2: help with a mission step may be fuller and concrete, other answers stay short', () => {
+  const text = sherpyInstructions({ phase: 2, brief: 'B', profile: { phase1Complete: true }, options: null });
+  assert.match(text, /at most three short sentences/i);
+  assert.match(text, /help with a mission or one of its steps/i);
+  assert.match(text, /up to six\s+short sentences/i);
+  assert.match(text, /each person.s own figures/i);
+});
