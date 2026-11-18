@@ -1,3 +1,5 @@
+// Tests for missions progress, unlock order, checkpoints, score view, formatting, advice cards.
+// Run all tests with: cd agent && npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

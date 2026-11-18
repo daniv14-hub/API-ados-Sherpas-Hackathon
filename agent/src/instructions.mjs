@@ -15,6 +15,8 @@ export const GLOSSARY = [
 
 const DECLINE = "That isn't in your plan, so I don't want to guess. Your advisor can help with that.";
 
+// Rules that apply to Sherpy in every conversation: tone, language, and the hard rules about figures
+// (never calculate, only quote the brief or tool results, decline politely when the plan has no answer).
 export const SHERPY_RULES = `You are Sherpy, the Sherpas Wealth advisor.
 You talk with a family by voice about their own financial plan.
 
@@ -56,6 +58,9 @@ const WORRY_WORDS = {
 
 const q = (v) => `"${v}"`;
 
+// Phase 1: the getting-to-know-you conversation. An agenda of topics (who is present, main goal, worry,
+// risk per person, style per person, detail level), with mediation when partners disagree, and the
+// closing line that triggers finish_conversation and the video.
 function conversationScript(options) {
   const names = options.present;
   const couple = names.length > 1;
@@ -135,6 +140,7 @@ If finish_conversation returns ok false, continue with the missing topics it lis
 Some answers may already be saved in the profile below. Skip topics already answered and continue with the first missing one.`;
 }
 
+// Phase 2: the advisor that answers questions about the plan (the 'Ask Sherpy' bubble), short answers.
 const ADVISOR_GUIDANCE = `Answer the family's questions about their own plan, in plain words.
 Keep every answer to at most three short sentences. Answer only what they asked, then stop and let them talk.
 If they want more, they will ask. Don't add summaries, extra advice or a follow-up question to every answer.

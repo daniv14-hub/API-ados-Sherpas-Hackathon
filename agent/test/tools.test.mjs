@@ -1,3 +1,5 @@
+// Tests for save_answer, finish_conversation and get_plan_section.
+// Run all tests with: cd agent && npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';

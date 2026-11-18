@@ -1,8 +1,13 @@
+// Where the case data comes from. Two sources with the same interface { getPart, listCaseIds }:
+//   - createCaseSource(mcp): the official Sherpas MCP server (needs MCP_URL + MCP_TOKEN, token lasts 72 h).
+//   - createLocalCaseSource(dir): the same JSON files from the repo's cases/ folder (never expire).
+// Parts: 'financial-health' (JSON), 'investment-analysis' (JSON), 'persona' (Markdown text).
 import { readFile, readdir } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
+// Error type for any failure reading case data; callers log it without exposing tokens or data.
 export class CaseSourceError extends Error {
   constructor(message, options) {
     super(message, options);
@@ -24,6 +29,7 @@ function extractText(res) {
   return text;
 }
 
+// MCP-backed source: calls the MCP tools get_case / list_cases and unwraps their JSON text.
 export function createCaseSource({ callTool }) {
   async function call(name, args) {
     try {
@@ -65,6 +71,7 @@ export function createCaseSource({ callTool }) {
   };
 }
 
+// Opens an authenticated MCP client over Streamable HTTP (token sent as a Bearer header).
 export async function connectMcp(url, token) {
   const mcp = new Client({ name: "sherpy-agent", version: "1.0.0" });
   await mcp.connect(new StreamableHTTPClientTransport(new URL(url), {

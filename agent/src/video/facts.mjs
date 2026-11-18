@@ -1,3 +1,5 @@
+// Reads the plan JSON and returns plain facts for the video (goals, score, gaps, cash, life cover...).
+// Every value is taken from the case file; nothing is projected or recalculated.
 import { personaSections } from '../persona.mjs';
 import { concernTitle, worryCategory } from '../options.mjs';
 

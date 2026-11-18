@@ -32,6 +32,7 @@ export const VOICE = 'Charon';
 // transcribed as "¿Qué?" and made it start in Spanish, devlog 16/11 21:35).
 const KICKOFF = '(The family has just joined the call. Start the conversation now, in English.)';
 
+// Forces Sherpy's chosen realtime voice whatever audio settings the page sends.
 function withVoice(audio) {
   const a = audio && typeof audio === 'object' ? structuredClone(audio) : structuredClone(DEFAULT_AUDIO);
   a.output = { ...(a.output && typeof a.output === 'object' ? a.output : DEFAULT_AUDIO.output), voice: VOICE };
@@ -47,6 +48,11 @@ function parse(raw) {
   }
 }
 
+// One voice call = one session: browser WebSocket <-> this relay <-> realtime proxy.
+//   - page -> proxy: only allow-listed events (audio, commit, cancel...), rebuilt here (fromPage).
+//   - proxy -> page: everything, minus our instructions/tools (stripped from session.* events).
+//   - tool calls (save_answer, get_plan_section, finish_conversation) run here, one at a time.
+//   - phase 1 = conversation (profile incomplete), phase 2 = advisor (profile complete).
 export async function createSession({ browser, upstream, caseId, source, profilesDir, transcriptsDir, log = console, finishGraceMs = 20000, onFinished, chatMemory, loadMissionsView, screen, saveTranscripts = true }) {
   const startISO = new Date().toISOString();
   const transcriptFile = path.join(transcriptsDir, `${caseId}-${startISO.replace(/[:.]/g, '-')}.jsonl`);

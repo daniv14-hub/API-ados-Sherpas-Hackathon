@@ -1,3 +1,5 @@
+// Tests for caption timing, turn pill phases and error messages of the conversation screen.
+// Run all tests with: cd agent && npm test
 import test from "node:test";
 import assert from "node:assert/strict";
 import { tokenize, isKeyWord, wordTimes, revealedCount, currentSentence, turnPhase, classifyError, isFatalServerError } from "../public/conversation-logic.mjs";

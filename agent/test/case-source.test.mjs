@@ -1,3 +1,5 @@
+// Tests for case data sources: MCP unwrapping and the local cases/ folder (same data, unsafe ids refused).
+// Run all tests with: cd agent && npm test
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createCaseSource, CaseSourceError } from "../src/case-source.mjs";

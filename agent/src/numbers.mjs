@@ -7,6 +7,8 @@ const RE = new RegExp(String.raw`(\$)?\s?(${NUM})(?:\s?(million|billion|thousand
 const YEAR_CONTEXT = new RegExp(String.raw`(?:\b(?:${MONTHS})\.?\s*|\b(?:in|by)\s*)$`, 'i');
 const MULT = { k: 1e3, thousand: 1e3, m: 1e6, million: 1e6, b: 1e9, billion: 1e9 };
 
+// Grounding check used by the video narration: every number the model writes is extracted and must
+// match a number from the case facts (with tolerant formats like '$1.6M', '1,600,000', 'one million').
 export const norm = (v) => Number(v.toPrecision(12));
 
 // Returns [{ value, percent, raw }]; percent is true when written as 24.9% / 24.9 percent.

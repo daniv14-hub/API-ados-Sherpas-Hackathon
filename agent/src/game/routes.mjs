@@ -1,3 +1,5 @@
+// HTTP shape of the missions data: parses /missions/<case> and builds the JSON the browser gets
+// (only what the screen needs: no file paths, no source references).
 import { isAllowedCase } from '../session.mjs';
 
 const MISSIONS_RE = /^\/missions\/([^/]+)$/;
@@ -8,6 +10,7 @@ export function parseMissionsPath(pathname, caseIds) {
   return m && isAllowedCase(m[1], caseIds) ? m[1] : null;
 }
 
+// Drops the internal fields (src path, verify rule) from facts before they leave the server.
 const strip = ({ src, verify, ...rest }) => rest; // data paths stay on the server
 
 // What the browser gets: missions, facts (values and labels only) and the score table for exact lookups.

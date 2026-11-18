@@ -1,3 +1,5 @@
+// Allowed answers for each question of the conversation, built from the case (names of the adults,
+// the family's goals, the worries the persona file mentions). save_answer refuses anything outside them.
 import { personaSections } from './persona.mjs';
 
 const WORRY_RULES = [

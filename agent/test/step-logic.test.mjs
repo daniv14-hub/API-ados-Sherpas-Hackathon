@@ -1,3 +1,5 @@
+// Tests for interactive steps: who fills what, when a step is ready, agreed amounts, safe answers.
+// Run all tests with: cd agent && npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as S from '../public/step-logic.mjs';

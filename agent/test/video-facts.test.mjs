@@ -1,3 +1,5 @@
+// Tests for facts extracted from the plan for the video.
+// Run all tests with: cd agent && npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadCase, CASES } from './fixtures.mjs';

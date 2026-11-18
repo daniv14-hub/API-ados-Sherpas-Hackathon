@@ -1,3 +1,5 @@
+// Tests for the family brief given to Sherpy (facts only from the case).
+// Run all tests with: cd agent && npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildBrief, buildInterviewBrief } from '../src/brief.mjs';

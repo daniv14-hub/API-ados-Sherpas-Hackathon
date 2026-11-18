@@ -1,8 +1,12 @@
+// The family profile: what Sherpy learns in the conversation, saved as data/profiles/<case>.json.
+// Fields: present, people {name: {risk, style}}, main_goal, top_worry (agreed + per person), detail_level,
+// phase1Complete. Validated on every write; unknown or unsafe values are refused.
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
 const QUESTIONS = ['present', 'main_goal', 'top_worry', 'risk', 'style', 'detail_level'];
 
+// Case ids are used in file paths, so only lowercase words joined by '-' are accepted (no '..' or '/').
 export function isSafeCaseId(id) {
   return typeof id === 'string' && /^[a-z]+(-[a-z]+)*$/.test(id);
 }
@@ -46,6 +50,7 @@ function allowed(question, options) {
 
 const fail = (error) => ({ ok: false, error });
 
+// Applies one save_answer call to the profile and returns { profile } or { error, allowed } for Sherpy.
 export function applyAnswer(profile, { question, person, value }, options) {
   if (!QUESTIONS.includes(question)) return fail(`unknown question: ${question}`);
   const next = structuredClone(profile);

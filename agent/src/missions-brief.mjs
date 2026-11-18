@@ -36,6 +36,7 @@ export function parseScreen(raw, view) {
   return { view: raw.view, mission: mission.id, done };
 }
 
+// One sentence for Sherpy: which missions screen the family is on and which steps they marked done.
 export function screenText(screen, view) {
   const ordered = orderedMissions(view);
   const num = new Map(ordered.map((m, i) => [m.id, i + 1]));

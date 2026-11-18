@@ -1,3 +1,7 @@
+// Function tools Sherpy can call during the conversation:
+//   save_answer        - store one confirmed answer in the profile (validated against the allowed options)
+//   finish_conversation - only accepted when every topic is saved; ends phase 1 and starts the video
+//   get_plan_section   - phase 2: look up a section of the plan (capped in size) to answer a question
 import { applyAnswer, missingTopics, saveProfile } from './profile.mjs';
 
 // Whitelisted plan lookups. Empty list = the whole part, no section.
@@ -141,6 +145,7 @@ async function getPlanSection(args, ctx) {
   }
 }
 
+// Entry point from session.mjs: parses the JSON arguments and dispatches to the right tool.
 export async function handleToolCall(name, argsJson, ctx) {
   const args = parseArgs(argsJson);
   if (name === 'save_answer') return saveAnswer(args, ctx);

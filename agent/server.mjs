@@ -4,6 +4,15 @@
 //
 // Secrets (TEAM_KEY, MCP_TOKEN) stay in this process. The page never sees them or the case data;
 // it only gets audio, transcripts and the relayed realtime events.
+// HOW THE APP FITS TOGETHER (start here when reading the code)
+//   1. Conversation  (public/index.html + conversation.mjs): Sherpy talks with the family by voice and saves
+//      their answers (profile) through tool calls handled in src/session.mjs + src/tools.mjs.
+//   2. Video          (public/video.html + video-player.mjs): built on the server by src/video/* from the
+//      plan facts + the profile, then played in the browser as animated scenes with narration.
+//   3. Missions       (public/missions.html + missions.mjs): the plan turned into guided steps, from
+//      data/missions/<case>.json (hand-written) or src/game/generate.mjs (any other case).
+// This file wires everything: configuration, case data source, HTTP routes, the /voice WebSocket relay,
+// security layers (headers, Host/Origin checks, rate limits) and data retention.
 import { createServer } from 'node:http';
 import { readFileSync, createReadStream } from 'node:fs';
 import { stat } from 'node:fs/promises';
@@ -28,6 +37,7 @@ import { loadProfile } from './src/profile.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(here, '..');
+// Configuration from the root .env (loaded by `node --env-file=../.env`). Only TEAM_KEY is required.
 const PROXY_URL = (process.env.LLM_PROXY_URL || 'https://llm-hackathon.sherpaswealth.com').replace(/\/$/, '');
 const TEAM_KEY = process.env.TEAM_KEY;
 const MCP_URL = process.env.MCP_URL;
@@ -46,6 +56,8 @@ if (!process.env.TEAM_KEY) {
 // Case data: the Sherpas MCP when a token is set and works; otherwise the same JSON from the repo's cases/ folder
 // (the MCP token is personal and lasts 72 h; the files never expire, so anyone can run this later).
 let mcp = null;
+// `source` is the case data provider: getPart(caseId, part) and listCaseIds(). Two implementations with
+// the same interface live in src/case-source.mjs (live MCP, or the JSON files in cases/).
 let source = null;
 let caseIds = null;
 if (MCP_URL && MCP_TOKEN) {
@@ -63,10 +75,12 @@ if (!source) {
   source = createLocalCaseSource(join(repo, 'cases'));
   caseIds = await source.listCaseIds();
 }
+// Label printed at start-up so whoever runs the app knows where the case data comes from.
 const CASE_SOURCE = mcp ? 'MCP' : 'cases/ folder';
 
 // Data protection (docs/privacy.md): transcripts are off unless SAVE_TRANSCRIPTS=1; kept files expire.
 const SAVE_TRANSCRIPTS = process.env.SAVE_TRANSCRIPTS === '1';
+// Retention: expired transcripts (7 days) and archived copies (30 days) are deleted at every start.
 const DAY = 24 * 60 * 60 * 1000;
 const purged = (await purgeOlderThan(transcriptsDir, 7 * DAY)) + (await purgeOlderThan(join(repo, 'data', 'archive'), 30 * DAY));
 if (purged) console.log(`retention: deleted ${purged} expired transcript/archive item(s)`);
@@ -123,11 +137,14 @@ const files = {
   '/game-score.mjs': [join(here, 'src', 'game', 'score.mjs'), 'text/javascript; charset=utf-8'],
 };
 
+// Small helper: JSON response that browsers must never cache.
 function sendJson(res, status, body) {
   res.writeHead(status, { 'content-type': 'application/json', 'cache-control': 'no-store' });
   res.end(JSON.stringify(body));
 }
 
+// Serves one narration clip of an already built video (supports HTTP Range so the <audio> element can seek).
+// It never builds anything: only GET /video/<case> may spend money on TTS.
 async function serveAudio(req, res, { caseId, audio }) {
   const built = await builder.peek(caseId); // never builds: only GET /video/<case> may spend
   const name = built?.video.scenes[audio]?.audio;
@@ -160,6 +177,8 @@ async function serveAudio(req, res, { caseId, audio }) {
   stream.pipe(res);
 }
 
+// GET /video/<case>: returns the video (scenes + captions + audio URLs), building it on first request.
+// 409 = the conversation is not finished yet (profile incomplete); 500 = build failed.
 async function serveVideoJson(res, { caseId }) {
   try {
     return sendJson(res, 200, videoView(await builder.get(caseId)));
@@ -169,6 +188,7 @@ async function serveVideoJson(res, { caseId }) {
   }
 }
 
+// Router for the two video URLs: the JSON (audio === null) or one audio clip.
 function handleVideo(req, res, parsed) {
   (parsed.audio === null ? serveVideoJson(res, parsed) : serveAudio(req, res, parsed)).catch((e) => {
     console.error(`[${parsed.caseId}] video request failed: ${e?.message}`);
@@ -177,6 +197,7 @@ function handleVideo(req, res, parsed) {
   });
 }
 
+// GET /missions/<case>: missions, facts and the score table for the missions screen.
 async function serveMissions(res, caseId) {
   try {
     sendJson(res, 200, missionsView(await loadMissions(source, caseId), caseLabel(caseId)));
@@ -194,6 +215,8 @@ const LIMITS = {
   video: createRateLimiter({ limit: 20, windowMs: 60_000 }),
   voiceOpen: createRateLimiter({ limit: 12, windowMs: 60_000 }),
 };
+// Limits that protect the team budget: voice sessions are billed while open and the proxy
+// only accepts 4 concurrent requests for the whole team.
 const MAX_VOICE_SESSIONS = 3; // the proxy allows 4 concurrent requests for the whole team
 const MAX_WS_MESSAGES_PER_SECOND = 300; // the mic sends 50 frames a second
 let voiceSessions = 0;
@@ -302,6 +325,7 @@ server.listen(PORT, '127.0.0.1', () => {
   console.log(`Sherpy on http://localhost:${PORT}  (model ${MODEL}, ${caseIds.length} cases from ${CASE_SOURCE})`);
 });
 
+// Clean exit on Ctrl+C: closes open voice sessions (they are billed) and the MCP connection.
 async function shutdown() {
   for (const c of wss.clients) c.close();
   server.close();

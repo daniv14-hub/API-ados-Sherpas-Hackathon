@@ -1,3 +1,6 @@
+// Builds the FAMILY BRIEF: the short text of plan facts that goes into Sherpy's instructions, so the
+// voice model can talk about the family's own numbers without inventing any. buildInterviewBrief is the shorter
+// version used during the getting-to-know-you conversation (cheaper per turn); buildBrief is the full one.
 import { personaSections } from './persona.mjs';
 
 const PERSONA_SECTIONS = [/^D4\b/, /^D5\b/, /^D6\b/, /^Objective concerns/, /^Tensions/];

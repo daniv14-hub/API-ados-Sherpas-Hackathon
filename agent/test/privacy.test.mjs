@@ -1,3 +1,5 @@
+// Tests for retention: expired files are deleted.
+// Run all tests with: cd agent && npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';

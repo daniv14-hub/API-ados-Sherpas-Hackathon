@@ -1,3 +1,5 @@
+// Tests for muting the mic while Sherpy's audio plays (so it never hears itself).
+// Run all tests with: cd agent && npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { micMuted, TAIL } from '../public/half-duplex.mjs';

@@ -1,3 +1,5 @@
+// Tests for the speech gate (breaths and coughs never reach the voice model).
+// Run all tests with: cd agent && npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

@@ -1,3 +1,5 @@
+// Tests for which recorded line Daniel or Emily says for each Sherpy question (real wording from rehearsals).
+// Run all tests with: cd agent && npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { LINES, createFamilyScript } from '../public/demo-family-logic.mjs';

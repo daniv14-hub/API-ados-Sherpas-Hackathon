@@ -1,3 +1,5 @@
+// Tests for the voice relay: allow-listed page events, tools, phases, transcripts, chat memory, screen notes.
+// Run all tests with: cd agent && npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';

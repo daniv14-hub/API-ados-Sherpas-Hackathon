@@ -23,6 +23,7 @@ document.querySelectorAll("[data-mic]").forEach((el) => (el.innerHTML = $("mic")
 const VIEWS = ["start", "call", "pause", "error"];
 const HEADING = { start: "start-title", call: "call-title", pause: "pause-title", error: "err-title" };
 let current = null;
+// Shows one view (start / call / pause / error) and moves keyboard focus to its heading.
 function show(name) {
   for (const v of VIEWS) $(v).hidden = v !== name;
   // The button that was pressed has just disappeared: put focus on the new view's heading (not on first load).
@@ -31,6 +32,7 @@ function show(name) {
   $("end").hidden = name !== "call" || making;
   if (name !== "call") { cancelAnimationFrame(raf); raf = 0; }
 }
+// Error view: title, text and a retry button; for an unknown case it lists the demo families.
 function showError(info) {
   $("err-title").textContent = info.title;
   $("err-text").textContent = info.text;
@@ -59,6 +61,7 @@ function setCase(id) {
 
 // ---------- call ----------
 let words = { rid: 0, textLen: -1, tokens: [], shownFloor: 0, sentence: -1, spans: 0, spanEls: [] };
+// Live captions: Sherpy's words appear one by one, timed to its audio, one sentence at a time.
 function resetWords() {
   words = { rid: 0, textLen: -1, tokens: [], shownFloor: 0, sentence: -1, spans: 0, spanEls: [] };
   $("caption").replaceChildren(); $("sentence-live").textContent = "";
@@ -78,6 +81,8 @@ function renderSentence(idx) {
   }
 }
 
+// Runs every animation frame during the call: reads the voice client state, updates the turn pill
+// ('Sherpy is speaking' / 'Your turn') and reveals the caption words in step with the audio.
 function frame() {
   raf = requestAnimationFrame(frame);
   if (!client) return;
@@ -111,6 +116,8 @@ function frame() {
   if (shown && $("sentence-live").dataset.s !== `${r.id}:${idx}`) { $("sentence-live").dataset.s = `${r.id}:${idx}`; $("sentence-live").textContent = live; }
 }
 
+// Starts the voice call: creates the voice client (real mic, or the recorded demo family when
+// ?family=demo), wires its callbacks, and in demo mode starts the autopilot that answers Sherpy.
 async function startCall() {
   if (client) client.stop();
   making = false;
@@ -159,6 +166,7 @@ function showFamilyLine(line) {
   el.hidden = false;
 }
 
+// The family pressed End: close the paid voice session and show the pause view.
 function endCall() {
   autopilot?.stop(); autopilot = null;
   client?.stop(); client = null;
@@ -180,6 +188,7 @@ $("go").onclick = () => startCall();
 $("family").onchange = (e) => setCase(e.target.value);
 addEventListener("pagehide", () => client?.stop()); // voice is billed per session: never leave one open
 
+// Page start: loads /config (the list of cases) and fills the demo family selector.
 async function init() {
   try {
     cfg = await (await fetch("/config")).json();

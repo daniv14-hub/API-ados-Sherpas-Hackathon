@@ -1,3 +1,4 @@
+// Developer check: connects to the Sherpas MCP with the .env token and lists the cases.
 import { connectMcp } from "../src/case-source.mjs";
 
 const { callTool, close } = await connectMcp(process.env.MCP_URL, process.env.MCP_TOKEN);

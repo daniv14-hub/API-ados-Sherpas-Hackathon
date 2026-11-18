@@ -60,6 +60,7 @@ export function toggleStep(data, state, missionId, stepId) {
   return { state: { ...state, v: 1, done, completed }, completedNow }; // ...state keeps the step answers
 }
 
+// Steps done out of all steps, for the progress bar.
 export function progress(data, state) {
   const all = data.missions.flatMap((m) => m.steps);
   return { done: all.filter((s) => state.done[s.id]).length, total: all.length };
@@ -76,6 +77,7 @@ export function missionStatuses(data, state) {
   return out;
 }
 
+// First mission not complete in path order (where Sherpy stands on the path).
 export const nextMission = (data, state, afterId = null) => {
   const st = missionStatuses(data, state);
   const list = orderedMissions(data).filter((m) => st[m.id] !== 'done' && m.id !== afterId);
@@ -105,6 +107,7 @@ export const aloneScore = (data, mission, scoreFor) => (mission.moveTitle ? scor
 // ---- formatting ----
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 export const usd = (v) => '$' + Math.round(v).toLocaleString('en-US');
+// Formats a plan figure for display ($, %, months, dates). Formatting only, never a new number.
 export function formatFact(f) {
   const v = f.value;
   switch (f.fmt) {
@@ -185,6 +188,7 @@ const TOPICS = [
   ['Protection', /insur|\bcover(age)?\b|umbrella|protect/i], ['Debt', /credit card|debt|loan/i], ['Cash', /cash|liquidity|cushion|reserve/i],
   ['Investing', /invest|portfolio|stocks|bonds|\bmix\b|market|risk/i], ['Home', /\bhome\b|\bhouse\b/i],
 ];
+// One card of 'More advice': topic label from keywords, a headline when the advice has one, full text.
 export function adviceCard(k) {
   const body = String(k.body ?? '').trim();
   const dash = body.indexOf(' — ');

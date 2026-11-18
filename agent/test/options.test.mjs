@@ -1,3 +1,5 @@
+// Tests for allowed answers per question, built from the case.
+// Run all tests with: cd agent && npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildOptions } from '../src/options.mjs';

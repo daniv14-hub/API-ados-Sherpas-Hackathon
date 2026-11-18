@@ -1,3 +1,5 @@
+// Tests for profile validation, answers, completion and safe case ids.
+// Run all tests with: cd agent && npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';

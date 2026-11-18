@@ -9,6 +9,7 @@ export function money(v) {
   return `$${m} million`;
 }
 
+// Shared drawing helpers for the video: DOM builders, easing, icons (fixed SVG), the Sherpy mascot.
 export function el(tag, cls, text) {
   const e = document.createElement(tag);
   if (cls) e.className = cls;

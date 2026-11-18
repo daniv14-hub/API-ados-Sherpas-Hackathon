@@ -1,3 +1,5 @@
+// Tests for video URLs, Range header and the JSON for the player.
+// Run all tests with: cd agent && npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseRange, parseVideoPath } from '../src/video/routes.mjs';

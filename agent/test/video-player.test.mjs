@@ -1,3 +1,5 @@
+// Tests for captions and timeline of the player.
+// Run all tests with: cd agent && npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { wordTimes, estimateDuration, timeline, captionChunks } from '../public/video-player.mjs';

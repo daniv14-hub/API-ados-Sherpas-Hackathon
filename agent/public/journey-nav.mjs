@@ -3,6 +3,7 @@
 import { journeyNav } from './journey-logic.mjs';
 import { leaveTo } from './handoff.mjs';
 
+// Styles injected once by this component (shared by the three pages).
 const CSS = `
 .jnav { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; }
 .jnav-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 18px; border-radius: 999px;
