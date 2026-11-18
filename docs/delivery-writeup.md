@@ -40,3 +40,5 @@ and a privacy notice is shown before talking. The demo video uses a recorded "de
 synthetic ElevenLabs voices); Sherpy, the video and the missions run live.
 
 *Team: Dani, Javi, Nico.*
+
+**Demo video:** https://youtu.be/aUdgTwzqXiI · **Code and run steps:** https://github.com/daniv14-hub/API-ados-Sherpas-Hackathon

@@ -8,6 +8,8 @@
 
 ## Run Sherpy (team APIñados)
 
+**Demo video (4 min):** https://youtu.be/aUdgTwzqXiI
+
 Our project: a voice conversation led by the mascot **Sherpy**, then a personal narrated explainer video built from the
 family's own plan, then a mission path that turns every recommendation into small guided steps, with Sherpy one tap
 away by voice. The keys stay in our backend; the page never sees them.
