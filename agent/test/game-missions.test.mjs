@@ -117,25 +117,46 @@ test('orderMissions: plan order first, decision, then the family\'s choice, last
   assert.deepEqual(ids(orderMissions(hand.missions, ['M6', 'M4'])), ['M1', 'M2', 'M3', 'M6', 'M4', 'M5', 'M7', 'M8']);
 });
 
-test('loadMissions: Johnson is handwritten, others derived without invented numbers', async () => {
+test('loadMissions: Johnson stays handwritten (8 missions)', async () => {
   const j = await loadMissions(source, JOHNSON);
   assert.equal(j.source, 'handwritten');
   assert.equal(j.base, 52);
   assert.equal(j.missions.length, 8);
+});
+
+const INTERACTIVE = new Set(['fields', 'checklist', 'rank', 'agree', 'choice', 'email']);
+test('generator standard: every other case, every advice item once, interactive steps, facts from the JSON', async () => {
   for (const id of CASES.filter((c) => c !== JOHNSON)) {
     const r = await loadMissions(source, id);
     const fh = loadCase(id).fh;
     assert.equal(r.source, 'derived');
-    assert.equal(r.missions.length, fh.score.top_moves.length);
-    assert.ok(r.missions.every((m) => m.steps.map((s) => s.type).join() === 'learn,act,close'));
-    const refs = new Set(r.missions.flatMap((m) => m.adviceRefs));
+    assert.ok(r.missions.length >= 5, `${id}: ${r.missions.length} missions`);
+    const refs = [...r.missions.flatMap((m) => m.adviceRefs), ...r.keepInView.flatMap((k) => k.adviceRefs)];
     const advice = await listAdvice(source, id);
-    for (const a of advice) assert.ok(refs.has(adviceRef(a)) || r.keepInView.some((k) => k.adviceRefs.includes(adviceRef(a))), `${id} ${adviceRef(a)}`);
-    r.missions.forEach((m, i) => {
-      for (const f of m.facts.filter((f) => f.fmt === 'usd')) assert.equal(f.value, Math.round(resolve(f.src, { fh })));
-      assert.equal(m.moveTitle, fh.score.top_moves[i].title);
-    });
+    assert.equal(refs.length, advice.length, `${id}: each advice item exactly once`);
+    assert.deepEqual(new Set(refs), new Set(advice.map(adviceRef)));
+    for (const m of r.missions) {
+      assert.ok(m.steps.length >= 3);
+      for (const s of m.steps) {
+        assert.doesNotMatch(`${s.title} ${s.body}`, /\d/, `${id} ${s.id}: template wording has no digits`);
+        if (s.type !== 'learn') assert.ok((s.ui ?? []).some((b) => INTERACTIVE.has(b.kind)), `${id} ${s.id}: interactive`);
+      }
+      for (const f of m.facts.filter((f) => f.fmt === 'usd')) assert.equal(f.value, Math.round(resolve(f.src, { fh })), `${id} ${f.src}`);
+      if (m.moveTitle) assert.ok(fh.score.top_moves.some((t) => t.title === m.moveTitle));
+    }
+    const moveTitles = r.missions.map((m) => m.moveTitle).filter(Boolean);
+    assert.equal(new Set(moveTitles).size, moveTitles.length, `${id}: a move is in one mission only`);
   }
+});
+
+test('generator: a case with missing fields never throws and invents nothing', async () => {
+  const fh = structuredClone(loadCase('samantha-lewis').fh);
+  delete fh.key_metrics; delete fh.narrative; fh.score.top_moves = [fh.score.top_moves[0]];
+  const { generateMissions } = await import('../src/game/generate.mjs');
+  const r = generateMissions(fh, []);
+  assert.equal(r.missions.length, 1); // only the one move remains
+  assert.ok(r.missions[0].facts.every((f) => f.key === 'score'));
+  assert.deepEqual(generateMissions({ case: { household: [] }, score: {} }, []), { missions: [], keepInView: [] });
 });
 
 test('loadMissions: a dir override is used (derived when no file)', async () => {

@@ -30,6 +30,14 @@ function copyBtn(ctx, text, aria) {
 }
 
 const RENDER = {
+  // The plan's own advice for this topic, word for word (generated missions).
+  quotes(ctx, b) {
+    const { h } = ctx;
+    if (!b.items?.length) return null;
+    return h('div', { class: 'quotes' }, h('p', { class: 'qhead' }, 'What your plan says'),
+      h('ul', null, b.items.map((t) => h('li', null, t))));
+  },
+
   bars(ctx, b) {
     const { h, mission } = ctx;
     const val = (k) => Number(S.factOf(mission, k)?.value);

@@ -9,13 +9,15 @@ import { isFatalServerError } from "/conversation-logic.mjs";
 const b64 = (buf) => { let s = ""; const u = new Uint8Array(buf); for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode(...u.subarray(i, i + 0x8000)); return btoa(s); };
 
 // handlers: onConnected(), onError({source, name?, message?}), onClosed({code}) (unexpected close only), onDone() (closing line played)
-export function createVoiceClient({ caseId, model = "", handlers = {}, params = {} }) {
+// family: optional demo family voice (demo-family.mjs). When given, its frames replace the microphone.
+export function createVoiceClient({ caseId, model = "", handlers = {}, params = {}, family = null }) {
   const OPENAI = model.startsWith("gpt-");
   let ws = null, ctx = null, micStream = null, micNode = null;
   let playHead = 0, playing = [];
   let connected = false, thinking = false, finished = false, closedByUs = false, errored = false;
   let reply = null; // {id, text, startAt, seconds, audioDone}; the latest Sherpy reply
   let replyCount = 0;
+  let familyTimer = 0;
 
   function play(base64) {
     const bin = atob(base64), n = bin.length >> 1, pcm = new Float32Array(n);
@@ -79,7 +81,7 @@ export function createVoiceClient({ caseId, model = "", handlers = {}, params = 
     }
     if ((t === "response.output_audio_transcript.delta" || t === "response.audio_transcript.delta") && reply) reply.text += ev.delta ?? "";
     if ((t === "response.output_audio.done" || t === "response.audio.done") && reply) reply.audioDone = true;
-    if (t === "response.done") { thinking = false; if (reply) reply.audioDone = true; }
+    if (t === "response.done") { thinking = false; if (reply) reply.audioDone = true; handlers.onReplyDone?.(reply?.text ?? ""); }
   }
 
   async function start() {
@@ -87,25 +89,43 @@ export function createVoiceClient({ caseId, model = "", handlers = {}, params = 
     try {
       const audio = new AudioContext({ sampleRate: 24000 }); // the browser resamples the mic to 24 kHz for us
       ctx = audio;
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } });
-      // Ended (stop()) while the browser asked for the mic: release it, or the mic stays on with nobody listening.
-      if (closedByUs || ctx !== audio) { stream.getTracks().forEach((tr) => tr.stop()); return; }
-      micStream = stream;
-      await audio.audioWorklet.addModule("/mic-worklet.js");
-      if (closedByUs || ctx !== audio) return; // cleanup() already released the mic and the context
-      micNode = new AudioWorkletNode(audio, "mic-frames");
-      audio.createMediaStreamSource(stream).connect(micNode);
+      if (family) {
+        await family.attach(audio); // demo family: recorded lines instead of a microphone
+        if (closedByUs || ctx !== audio) return;
+      } else {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } });
+        // Ended (stop()) while the browser asked for the mic: release it, or the mic stays on with nobody listening.
+        if (closedByUs || ctx !== audio) { stream.getTracks().forEach((tr) => tr.stop()); return; }
+        micStream = stream;
+        await audio.audioWorklet.addModule("/mic-worklet.js");
+        if (closedByUs || ctx !== audio) return; // cleanup() already released the mic and the context
+        micNode = new AudioWorkletNode(audio, "mic-frames");
+        audio.createMediaStreamSource(stream).connect(micNode);
+      }
     } catch (e) { fail({ source: "mic", name: e?.name }); return; }
     const gate = createSpeechGate(); // one per call: it keeps a short audio history
     const sock = new WebSocket(`${location.origin.replace(/^http/, "ws")}/voice?${new URLSearchParams({ ...params, case: caseId })}`);
     ws = sock;
-    sock.onopen = () => sock.send(JSON.stringify(sessionUpdate()));
+    sock.onopen = () => {
+      sock.send(JSON.stringify(sessionUpdate()));
+      if (family) {
+        // 20 ms frames in real time, like the mic: the family's clip while it speaks, silence otherwise.
+        const t0 = performance.now();
+        let sent = 0;
+        familyTimer = setInterval(() => {
+          if (ws !== sock || sock.readyState !== 1) return;
+          const due = Math.floor((performance.now() - t0) / 20);
+          for (; sent < due; sent++) sock.send(JSON.stringify({ type: "input_audio_buffer.append", audio: b64(family.frame().buffer) }));
+        }, 20);
+      }
+    };
     sock.onmessage = (m) => { try { onEvent(JSON.parse(m.data)); } catch { /* ignore a malformed event */ } };
     sock.onclose = (e) => {
       if (sock !== ws || closedByUs || finished || errored) return;
       errored = true; cleanup();
       handlers.onClosed?.({ code: e.code });
     };
+    if (!micNode) return;
     micNode.port.onmessage = (e) => {
       const frame = new Int16Array(e.data);
       if (!ctx || ws?.readyState !== 1) return;
@@ -120,6 +140,7 @@ export function createVoiceClient({ caseId, model = "", handlers = {}, params = 
   }
 
   function cleanup() {
+    clearInterval(familyTimer); familyTimer = 0;
     stopPlayback();
     micStream?.getTracks().forEach((t) => t.stop()); micStream = null;
     ctx?.close().catch(() => {}); ctx = null; micNode = null;

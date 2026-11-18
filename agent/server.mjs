@@ -65,6 +65,9 @@ const files = {
   '/': [join(here, 'public', 'index.html'), 'text/html; charset=utf-8'],
   '/bench.html': [join(here, 'public', 'bench.html'), 'text/html; charset=utf-8'],
   '/phone.html': [join(here, 'public', 'phone.html'), 'text/html; charset=utf-8'],
+  '/reset.html': [join(here, 'public', 'reset.html'), 'text/html; charset=utf-8'],
+  '/demo-family-logic.mjs': [join(here, 'public', 'demo-family-logic.mjs'), 'text/javascript; charset=utf-8'],
+  '/demo-family.mjs': [join(here, 'public', 'demo-family.mjs'), 'text/javascript; charset=utf-8'],
   '/frame-guard.js': [join(here, 'public', 'frame-guard.js'), 'text/javascript; charset=utf-8'],
   '/conversation.css': [join(here, 'public', 'conversation.css'), 'text/css; charset=utf-8'],
   '/conversation.mjs': [join(here, 'public', 'conversation.mjs'), 'text/javascript; charset=utf-8'],
@@ -175,6 +178,15 @@ const server = createServer((req, res) => {
   if (missionsCase) return void serveMissions(res, missionsCase);
   const video = parseVideoPath(pathname, caseIds);
   if (video) return void handleVideo(req, res, video);
+  // Demo family clips (scripts/demo-family-audio.mjs): fixed names only, nothing from the URL reaches the path.
+  const demo = /^\/demo-family\/(manifest\.json|[a-z]+(?:-[a-z]+)*\.mp3)$/.exec(pathname);
+  if (demo) {
+    try {
+      const body = readFileSync(join(here, 'data', 'demo-family', demo[1]));
+      res.writeHead(200, { 'content-type': demo[1].endsWith('.json') ? 'application/json' : 'audio/mpeg', 'cache-control': 'no-store' });
+      return res.end(body);
+    } catch { return res.writeHead(404).end('not found'); }
+  }
   const file = files[pathname];
   if (!file) return res.writeHead(404).end('not found');
   try {

@@ -3,6 +3,7 @@
 // Hook for the next step: window event "sherpy:done" with detail {caseId} fires once Sherpy has said goodbye and
 // the voice session is closed. This file does not navigate anywhere by itself.
 import { createVoiceClient } from "/voice-client.mjs";
+import { demoFamilyOn, loadManifest, createFamilyVoice, createAutopilot } from "/demo-family.mjs";
 import { tokenize, isKeyWord, wordTimes, revealedCount, currentSentence, turnPhase, PHASE_LABEL, classifyError } from "/conversation-logic.mjs";
 
 const $ = (id) => document.getElementById(id);
@@ -10,6 +11,10 @@ const DEFAULT_CASE = "daniel-emily-johnson";
 const params = new URLSearchParams(location.search);
 let caseId = params.get("case") || DEFAULT_CASE;
 let cfg = null, client = null, making = false, raf = 0;
+// Demo mode (?family=demo): Daniel and Emily are recorded voices that answer Sherpy on their own (demo-family.mjs).
+const DEMO = demoFamilyOn();
+const demoLines = DEMO ? loadManifest().catch((e) => { console.error(e.message); return null; }) : null;
+let autopilot = null;
 
 document.querySelectorAll("[data-sherpy]").forEach((el) => (el.innerHTML = $("sherpy-svg").innerHTML));
 document.querySelectorAll("[data-mic]").forEach((el) => (el.innerHTML = $("mic").innerHTML));
@@ -114,15 +119,21 @@ async function startCall() {
   $("turn-label").textContent = PHASE_LABEL.connecting;
   show("call");
   raf = requestAnimationFrame(frame);
+  autopilot?.stop(); autopilot = null;
+  let family = null;
+  const lines = DEMO ? await demoLines : null;
+  if (lines) family = createFamilyVoice({ lines, onLine: showFamilyLine });
   const c = createVoiceClient({
-    caseId, model: cfg?.model ?? "",
+    caseId, model: cfg?.model ?? "", family,
     handlers: {
+      onReplyDone: (text) => { if (c === client) autopilot?.heard(text); },
       onError: (e) => { if (c === client) showError(classifyError(e)); },
       onClosed: (e) => { if (c === client) showError(classifyError({ source: "close", code: e.code })); },
-      onDone: () => { if (c === client) conversationDone(); },
+      onDone: () => { if (c === client) { autopilot?.stop(); conversationDone(); } },
     },
   });
   client = c;
+  if (family) autopilot = createAutopilot({ voice: family, client: c, log: (m) => console.log(`[demo family] ${m}`) });
   await c.start();
 }
 
@@ -137,7 +148,19 @@ function conversationDone() {
   window.dispatchEvent(new CustomEvent("sherpy:done", { detail: { caseId } }));
 }
 
+// Demo mode: who is speaking and what, under Sherpy's caption.
+function showFamilyLine(line) {
+  const el = $("family-line");
+  if (!el) return;
+  el.replaceChildren();
+  if (!line) { el.hidden = true; return; }
+  const b = document.createElement("b"); b.textContent = `${line.who}: `;
+  el.append(b, line.text);
+  el.hidden = false;
+}
+
 function endCall() {
+  autopilot?.stop(); autopilot = null;
   client?.stop(); client = null;
   show("pause");
 }

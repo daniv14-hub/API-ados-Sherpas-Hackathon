@@ -314,3 +314,8 @@ body[data-view="mission"] .dock .jnav, body[data-view="checkpoint"] .dock .jnav 
 .tip.t1 { --tip: #fde2e2; } .tip.t2 { --tip: #e3e8ff; } .tip.t3 { --tip: #fff1c7; } .tip.t4 { --tip: #dff3e6; }
 .tip.t5 { --tip: #ffe0cc; } .tip.t6 { --tip: #d8f1f7; } .tip.t7 { --tip: #ece1fb; } .tip.t8 { --tip: #f3ead9; } .tip.t0 { --tip: var(--gray-100); }
 .tip { border-top-width: 10px; border-top-color: var(--tip, var(--ink)); }
+
+/* Generated missions: the plan's own words */
+.quotes { background: #fffbea; border: 2px solid var(--ink); border-radius: 14px; padding: 10px 12px; }
+.quotes .qhead { margin: 0 0 6px; font: 700 12px var(--font-body); letter-spacing: .06em; text-transform: uppercase; color: var(--gray-700); }
+.quotes ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; font-size: 14.5px; line-height: 1.45; color: var(--gray-800); }

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reset demo</title>
+<link rel="stylesheet" href="/tokens.css">
+<style>
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: var(--surface-frame); font-family: var(--font-body); color: var(--gray-900); }
+  main { max-width: 420px; padding: 24px; text-align: center; }
+  h1 { font-family: var(--font-heading); font-size: 26px; margin: 0 0 10px; }
+  p { color: var(--gray-600); line-height: 1.5; }
+  a { display: inline-block; margin: 6px; padding: 12px 22px; border-radius: 999px; background: var(--brand-500); color: #fff; text-decoration: none; font-weight: 600; }
+  a.ghost { background: #fff; color: var(--gray-900); border: 1px solid var(--gray-300); }
+</style>
+</head>
+<body>
+<main>
+  <h1 id="title">Clearing…</h1>
+  <p id="text"></p>
+  <p><a href="/?case=daniel-emily-johnson&amp;family=demo">Start the demo (recorded family)</a>
+     <a class="ghost" href="/?case=daniel-emily-johnson&amp;family=off">Start with a real microphone</a></p>
+</main>
+<script>
+  // Clears what this browser saved for the demo: missions progress and answers for every case, and the demo flag.
+  var n = 0;
+  try {
+    for (var i = localStorage.length - 1; i >= 0; i--) {
+      var k = localStorage.key(i);
+      if (k && k.indexOf('sherpas.') === 0) { localStorage.removeItem(k); n++; }
+    }
+    document.getElementById('title').textContent = 'Ready for a fresh start';
+    document.getElementById('text').textContent = 'Cleared ' + n + ' saved item' + (n === 1 ? '' : 's') + ' in this browser. The server side is reset with scripts/demo-reset.mjs.';
+  } catch (e) {
+    document.getElementById('title').textContent = 'Could not clear this browser';
+    document.getElementById('text').textContent = 'Clear the site data for localhost in the browser settings instead.';
+  }
+</script>
+</body>
+</html>

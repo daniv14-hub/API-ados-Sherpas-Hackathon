@@ -3,9 +3,14 @@
 // profile the server starts Sherpy as the plan advisor (phase 2), so answers come only from the family's data.
 // Voice is billed while the session is open: closing the panel, leaving the page or a long quiet moment hangs up.
 import { createVoiceClient } from '/voice-client.mjs';
+import { demoFamilyOn, loadManifest, createFamilyVoice, createAutopilot } from '/demo-family.mjs';
 import { tokenize, wordTimes, revealedCount, currentSentence, turnPhase, PHASE_LABEL, classifyError } from '/conversation-logic.mjs';
 
 const IDLE_HANGUP_MS = 90_000; // nobody spoke and Sherpy is quiet for this long -> hang up
+// Demo mode (demo-family.mjs): after Sherpy's greeting, Emily asks one recorded question about the open mission.
+const DEMO = demoFamilyOn();
+const demoLines = DEMO ? loadManifest().catch(() => null) : null;
+const askOnce = () => { let asked = false; return { reply: () => (asked ? null : (asked = true, 'ask-mission')) }; };
 
 function el(tag, attrs, ...kids) {
   const e = document.createElement(tag);
@@ -21,6 +26,7 @@ function el(tag, attrs, ...kids) {
 
 // getScreen(): { view, mission, done } of the missions screen on show, so Sherpy knows what "this mission" means.
 export function mountSherpyChat({ caseId, parent = document.body, getScreen = () => null }) {
+  let autopilot = null, familyLine = null;
   let client = null, raf = 0, lastActivity = 0, lastReplyLen = -1, lastReplyId = 0, lastScreen = 'null';
 
   const fab = el('button', { type: 'button', class: 'schat-fab', 'aria-label': 'Talk to Sherpy', 'aria-expanded': 'false', 'aria-controls': 'schat-panel' },
@@ -60,7 +66,7 @@ export function mountSherpyChat({ caseId, parent = document.body, getScreen = ()
       showError({ title: 'Sherpy hung up after a quiet moment', retry: 'Talk again' });
       return;
     }
-    if (!r) return;
+    if (!r || familyLine) return; // the family line stays on screen while it plays
     const complete = r.audioDone || /\s$/.test(r.text) ? r.text : r.text.replace(/\S+$/, '');
     const tokens = tokenize(complete);
     if (!tokens.length) return;
@@ -87,21 +93,26 @@ export function mountSherpyChat({ caseId, parent = document.body, getScreen = ()
     lastActivity = performance.now(); lastReplyId = 0; lastReplyLen = -1;
     const screen = getScreen();
     lastScreen = JSON.stringify(screen);
+    const lines = DEMO ? await demoLines : null;
+    const family = lines ? createFamilyVoice({ lines, onLine: (l) => { familyLine = l; if (l) caption.textContent = `${l.who}: ${l.text}`; } }) : null;
     const c = createVoiceClient({
-      caseId,
+      caseId, family,
       params: screen ? { screen: lastScreen } : {},
       handlers: {
         onError: (e) => { if (c === client) { hangUp(); showError(classifyError(e)); } },
         onClosed: (e) => { if (c === client) { hangUp(); showError(classifyError({ source: 'close', code: e.code })); } },
         onDone: () => { if (c === client) { hangUp(); showError({ title: 'Call ended', retry: 'Talk again' }); } },
+        onReplyDone: (text) => { if (c === client) autopilot?.heard(text); },
       },
     });
     client = c;
+    if (family) autopilot = createAutopilot({ voice: family, client: c, script: askOnce() });
     raf = requestAnimationFrame(frame);
     await c.start();
   }
 
   function hangUp() {
+    autopilot?.stop(); autopilot = null; familyLine = null;
     cancelAnimationFrame(raf); raf = 0;
     const c = client; client = null;
     c?.stop();
