@@ -40,7 +40,7 @@ is needed (if `MCP_URL` and `MCP_TOKEN` are set and valid, the live Sherpas MCP 
    - **To watch the demo without speaking:** open `http://localhost:5173/reset.html` and click
      **Start the demo (recorded family)**, then **Start**: Daniel and Emily Johnson are recorded voices that answer
      Sherpy on their own. To talk yourself, click "Start with a real microphone" (headphones or a quiet room).
-5. `npm test` (inside `agent/`) runs the 230 automated tests; no key needed.
+5. `npm test` (inside `agent/`) runs the 238 automated tests; no key needed.
 
 What is the same on every computer: every figure, the missions and the scores (they come from `cases/`). What varies
 between runs: the wording of Sherpy's live conversation and of the video narration (written by AI models within our
