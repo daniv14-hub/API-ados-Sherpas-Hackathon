@@ -9,7 +9,8 @@
 ## Run Sherpy (team APIñados)
 
 Our project: a voice conversation led by the mascot **Sherpy**, then a personal narrated explainer video built from the
-family's own plan. (The mission game is still to come.) Requires Node 22+ and the keys in the root `.env`
+family's own plan, then a mission path that turns every recommendation into small guided steps, with Sherpy one tap
+away by voice. Requires Node 22+ and the keys in the root `.env`
 (`TEAM_KEY`, `MCP_URL`, `MCP_TOKEN`, see "Save your keys" below). The keys stay in the backend; the page never sees them.
 
 ```
@@ -23,8 +24,16 @@ npm start
 - The journey runs by itself: when Sherpy says goodbye, the video is built on the server (~10 s, cached in `data/videos/`)
   and opens at `video.html?case=<caseId>` (landscape, with sound); when it ends you land on your missions at
   `missions.html?case=<caseId>` (portrait). Mission progress is kept in the browser ("Reset progress" at the bottom).
+- On a laptop the conversation and the missions appear inside a drawn phone; on a real phone they fill the screen.
+  ‹ › arrows move between the three screens (the video and missions open once the conversation is complete).
 - A family that already finished the conversation sees "Welcome back" with "Watch your video" and "My missions".
-  To start the conversation from zero, move `data/profiles/<caseId>.json` to `data/archive/`.
+- **Start a case from zero:** `npm run demo:reset [caseId]` (moves its profile and videos to `data/archive/`), restart
+  the server, then open `http://localhost:5173/reset.html` (clears the progress saved in the browser).
+- **Demo without speaking:** `http://localhost:5173/?case=daniel-emily-johnson&family=demo` — Daniel and Emily are
+  recorded ElevenLabs voices that answer Sherpy on their own (`npm run demo:audio` records them once). Recording
+  guide: `docs/demo-recording.md`.
+- Missions: the Johnsons' are hand-written (`agent/data/missions/`); every other case is generated from the plan's
+  three advice sources (`agent/src/game/generate.mjs`).
 - The old debug page is at `/bench.html`.
 - Tests: `cd agent && npm test`. Build a video from the terminal: `node --env-file=../.env scripts/build-video.mjs <caseId>`.
 - Narration voice: ElevenLabs through the proxy (`SHERPY_VOICE`, default `onyx`). Every number comes from the case data.

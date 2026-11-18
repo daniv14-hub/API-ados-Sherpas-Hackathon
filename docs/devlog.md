@@ -153,3 +153,16 @@ Timestamped entries (Europe/Madrid). Milestones, blockers, surprises and pivots,
   label from keywords (first topic named wins), a counter "2 / 12" and "Ask Sherpy about this". Headline only when
   the advice has a real one (text before " — ", or a hand-written title). Nothing removed.
 - Sherpy's phase-2 instructions now list every one of these tips in full (with their facts). 220 tests pass.
+
+## 2026-11-18 ~17:05 — Demo mode, demo reset, mission generator v2 (minimal)
+- Team: demo recorded with Johnson from zero; the family simulated with ElevenLabs voices; the video build must be
+  seen live; generator improved for every other case, Johnson untouched. Plan approved by Dani 18/11.
+- Demo family (`?family=demo`): 15 lines (Daniel "Chris", Emily "Jessica", eleven-v3, ~1.5k characters) sent as the
+  mic and played aloud. Rehearsals (headless, real Gemini) found and fixed: intro worded "Who do I have the pleasure
+  of speaking with?", a goal question split in two, the risk mediation repeating Emily's answer, and Sherpy mixing up
+  who said what (key lines now say "Daniel here" / "Emily here"). Rehearsal 4: full conversation → video built in
+  ~6 s → video wide → missions in the phone.
+- `npm run demo:reset` + `/reset.html`; guide `docs/demo-recording.md`.
+- Generator v2 (minimal): Samantha 8 missions/31 steps, Carter 7/27, Weah 9/35; every advice item in exactly one
+  mission; standard tests on all cases + a case with missing fields. Weah's life move target_amount ($485,000)
+  disagrees with its own action text ("Add $235,000"): the amount is not shown, the action is quoted. 228 tests pass.
