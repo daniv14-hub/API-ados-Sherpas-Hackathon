@@ -13,6 +13,7 @@ import { WebSocket, WebSocketServer } from 'ws';
 import { connectMcp, createCaseSource, createLocalCaseSource, withReconnect } from './src/case-source.mjs';
 import { createSession, isAllowedCase } from './src/session.mjs';
 import { isAllowedOrigin, isAllowedHost } from './src/origin.mjs';
+import { securityHeaders, createRateLimiter, ALLOWED_METHODS } from './src/security.mjs';
 import { createVideoBuilder } from './src/video/build.mjs';
 import { speech } from './src/video/voice.mjs';
 import { chatComplete } from './src/video/narrate.mjs';
@@ -21,6 +22,7 @@ import { loadMissions } from './src/game/missions.mjs';
 import { parseMissionsPath, missionsView } from './src/game/routes.mjs';
 import { parseJourneyPath, journeyView } from './src/journey.mjs';
 import { createChatMemory } from './src/chat-memory.mjs';
+import { purgeOlderThan } from './src/privacy.mjs';
 const chatMemory = createChatMemory();
 import { loadProfile } from './src/profile.mjs';
 
@@ -63,6 +65,12 @@ if (!source) {
 }
 const CASE_SOURCE = mcp ? 'MCP' : 'cases/ folder';
 
+// Data protection (docs/privacy.md): transcripts are off unless SAVE_TRANSCRIPTS=1; kept files expire.
+const SAVE_TRANSCRIPTS = process.env.SAVE_TRANSCRIPTS === '1';
+const DAY = 24 * 60 * 60 * 1000;
+const purged = (await purgeOlderThan(transcriptsDir, 7 * DAY)) + (await purgeOlderThan(join(repo, 'data', 'archive'), 30 * DAY));
+if (purged) console.log(`retention: deleted ${purged} expired transcript/archive item(s)`);
+
 const builder = createVideoBuilder({
   source,
   profilesDir,
@@ -83,6 +91,7 @@ const files = {
   '/bench.html': [join(here, 'public', 'bench.html'), 'text/html; charset=utf-8'],
   '/phone.html': [join(here, 'public', 'phone.html'), 'text/html; charset=utf-8'],
   '/reset.html': [join(here, 'public', 'reset.html'), 'text/html; charset=utf-8'],
+  '/privacy.html': [join(here, 'public', 'privacy.html'), 'text/html; charset=utf-8'],
   '/demo-family-logic.mjs': [join(here, 'public', 'demo-family-logic.mjs'), 'text/javascript; charset=utf-8'],
   '/demo-family.mjs': [join(here, 'public', 'demo-family.mjs'), 'text/javascript; charset=utf-8'],
   '/frame-guard.js': [join(here, 'public', 'frame-guard.js'), 'text/javascript; charset=utf-8'],
@@ -178,8 +187,24 @@ async function serveMissions(res, caseId) {
   }
 }
 
+// Rate limits (team request 18/11). Everything runs on one machine, so the limits are per route, not per IP:
+// all requests together, video builds (paid TTS/LLM) per case, and new voice sessions (paid realtime audio).
+const LIMITS = {
+  http: createRateLimiter({ limit: 600, windowMs: 60_000 }),
+  video: createRateLimiter({ limit: 20, windowMs: 60_000 }),
+  voiceOpen: createRateLimiter({ limit: 12, windowMs: 60_000 }),
+};
+const MAX_VOICE_SESSIONS = 3; // the proxy allows 4 concurrent requests for the whole team
+const MAX_WS_MESSAGES_PER_SECOND = 300; // the mic sends 50 frames a second
+let voiceSessions = 0;
+const HEADERS = securityHeaders(PORT);
+const tooMany = (res) => res.writeHead(429, { 'retry-after': '60', 'content-type': 'text/plain' }).end('too many requests');
+
 const server = createServer((req, res) => {
+  for (const [k, v] of Object.entries(HEADERS)) res.setHeader(k, v);
   if (!isAllowedHost(req.headers.host, PORT)) return res.writeHead(421).end('misdirected request');
+  if (!ALLOWED_METHODS.has(req.method)) return res.writeHead(405, { allow: 'GET, HEAD' }).end('method not allowed');
+  if (!LIMITS.http.hit('all')) return tooMany(res);
   const pathname = new URL(req.url, 'http://localhost').pathname;
   if (pathname === '/config') {
     res.writeHead(200, { 'content-type': 'application/json' });
@@ -195,6 +220,7 @@ const server = createServer((req, res) => {
   const missionsCase = parseMissionsPath(pathname, caseIds);
   if (missionsCase) return void serveMissions(res, missionsCase);
   const video = parseVideoPath(pathname, caseIds);
+  if (video && video.audio === null && !LIMITS.video.hit(video.caseId)) return tooMany(res);
   if (video) return void handleVideo(req, res, video);
   // Demo family clips (scripts/demo-family-audio.mjs): fixed names only, nothing from the URL reaches the path.
   const demo = /^\/demo-family\/(manifest\.json|[a-z]+(?:-[a-z]+)*\.mp3)$/.exec(pathname);
@@ -221,7 +247,11 @@ const wss = new WebSocketServer({
   server,
   path: '/voice',
   maxPayload: 1024 * 1024,
-  verifyClient: ({ origin, req }) => isAllowedOrigin(origin, PORT) && isAllowedHost(req.headers.host, PORT),
+  verifyClient: ({ origin, req }, done) => {
+    if (!isAllowedOrigin(origin, PORT) || !isAllowedHost(req.headers.host, PORT)) return done(false, 403);
+    if (voiceSessions >= MAX_VOICE_SESSIONS || !LIMITS.voiceOpen.hit('all')) return done(false, 429, 'too many voice sessions');
+    done(true);
+  },
 });
 wss.on('connection', (browser, req) => {
   const query = new URL(req.url, 'http://localhost').searchParams;
@@ -230,6 +260,15 @@ wss.on('connection', (browser, req) => {
   try { screen = JSON.parse((query.get('screen') ?? 'null').slice(0, 4000)); } catch { screen = null; }
   // Refuse before any MCP or file access.
   if (!isAllowedCase(caseId, caseIds)) return browser.close(1008, 'unknown case');
+  voiceSessions++;
+  browser.once('close', () => { voiceSessions--; });
+  // Message flood guard: a page sends ~50 audio frames a second; far more than that is not our page.
+  let second = 0, count = 0;
+  browser.on('message', () => {
+    const now = Math.floor(Date.now() / 1000);
+    if (now !== second) { second = now; count = 0; }
+    if (++count > MAX_WS_MESSAGES_PER_SECOND) browser.close(1008, 'too many messages');
+  });
 
   const upstream = new WebSocket(`${PROXY_URL.replace(/^http/, 'ws')}/v1/realtime?model=${encodeURIComponent(MODEL)}`, {
     headers: { Authorization: `Bearer ${TEAM_KEY}` },
@@ -249,7 +288,7 @@ wss.on('connection', (browser, req) => {
   browser.on('close', () => console.log(`[${caseId}] session closed`));
 
   createSession({
-    browser, upstream, caseId, source, profilesDir, transcriptsDir, chatMemory, screen,
+    browser, upstream, caseId, source, profilesDir, transcriptsDir, chatMemory, screen, saveTranscripts: SAVE_TRANSCRIPTS,
     loadMissionsView: async (id) => missionsView(await loadMissions(source, id), caseLabel(id)),
     onFinished: (id) => { builder.get(id).catch((e) => console.error(`[${id}] video build failed: ${e?.message}`)); }, // start building while the closing line plays
   }).catch((e) => {

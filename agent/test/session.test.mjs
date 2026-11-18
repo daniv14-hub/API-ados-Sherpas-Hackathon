@@ -611,3 +611,13 @@ test('a reply to a screen note is cancelled and never reaches the page; replies 
   reply('r-question');
   assert.deepEqual(browser.json().map((e) => e.type), ['input_audio_buffer.speech_started', 'response.created', 'response.output_audio.delta', 'response.done']);
 });
+
+test('saveTranscripts false: nothing is written to disk', async () => {
+  const transcriptsDir = await tmp('transcripts-');
+  const browser = new FakeSocket();
+  const upstream = new FakeSocket();
+  await createSession({ browser, upstream, caseId: ID, source: fakeSource(), profilesDir: await tmp('profiles-'), transcriptsDir, log, saveTranscripts: false });
+  upstream.emit('message', Buffer.from(JSON.stringify({ type: 'conversation.item.input_audio_transcription.completed', transcript: 'Our salary is private' })));
+  await new Promise((r) => setTimeout(r, 50));
+  assert.deepEqual(await fs.readdir(transcriptsDir), []);
+});

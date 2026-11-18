@@ -166,3 +166,15 @@ Timestamped entries (Europe/Madrid). Milestones, blockers, surprises and pivots,
 - Generator v2 (minimal): Samantha 8 missions/31 steps, Carter 7/27, Weah 9/35; every advice item in exactly one
   mission; standard tests on all cases + a case with missing fields. Weah's life move target_amount ($485,000)
   disagrees with its own action text ("Add $235,000"): the amount is not shown, the action is quoted. 228 tests pass.
+
+## 2026-11-18 ~17:25 — Security review, run-anywhere, rate limits, data protection
+- /security-review (subagent, full branch): no finding at confidence ≥ 8. Suggested hardening applied: Host
+  allow-list against DNS rebinding (421).
+- Judges: the server needs only `TEAM_KEY`; cases come from the MCP when a token works, else from `cases/` (identical
+  data for all 4 cases × 3 parts, checked against the live MCP). Fresh clone + `.env` with only TEAM_KEY: 230 tests,
+  every route 200. README has macOS and Windows steps (PowerShell `Out-File -Encoding ascii`, since PS5 writes UTF-16).
+  `.gitattributes` forces LF. Not tested on a real Windows machine.
+- Team asked for every security layer and data protection: security headers + strict CSP (0 violations on all pages,
+  voice still works), GET/HEAD only, rate limits (600 req/min, 20 video builds/min per case, 12 voice opens/min,
+  3 concurrent voice sessions, 300 WS messages/s), transcripts opt-in (`SAVE_TRANSCRIPTS=1`) with 7-day retention,
+  archive 30 days, `npm run data:delete`, `/privacy.html` + notice before talking. Legal compliance not certified.

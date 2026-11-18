@@ -45,6 +45,17 @@ between runs: the wording of Sherpy's live conversation and of the video narrati
 rules), and the answers Sherpy saves depend on what the family says. The AI proxy and its credits end on 21/11; after
 that the conversation and the video cannot run; the missions keep working (start the server with any `TEAM_KEY` value).
 
+### Security and privacy
+
+- The server listens only on `127.0.0.1` and refuses any other `Host` or page `Origin`; only `GET`/`HEAD`.
+- Security headers on every response (strict Content-Security-Policy, no framing by other sites, mic for this site only).
+- Rate limits: requests overall, video builds per case, new voice sessions and voice messages (paid services).
+- Keys stay in the backend (`.env`, git-ignored); errors sent to the page never include them.
+- Privacy: **no audio is recorded**; transcripts are **off** unless `SAVE_TRANSCRIPTS=1` (then deleted after 7 days);
+  archived copies are deleted after 30 days. What the family types in the missions stays in their browser.
+  Delete everything stored about a family: `npm run data:delete -- <caseId> --yes`. Full notice:
+  `http://localhost:5173/privacy.html`. The cases are fictitious; a real launch needs the legal steps listed there.
+
 ### More details
 
 - Open **http://localhost:5173** (it must be `localhost`) and use headphones or a quiet room. Press Start and talk to Sherpy

@@ -9,7 +9,8 @@
     "start": "node --env-file=../.env server.mjs",
     "test": "node --test",
     "demo:reset": "node scripts/demo-reset.mjs",
-    "demo:audio": "node --env-file=../.env scripts/demo-family-audio.mjs"
+    "demo:audio": "node --env-file=../.env scripts/demo-family-audio.mjs",
+    "data:delete": "node scripts/delete-family-data.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.2",

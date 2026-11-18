@@ -42,7 +42,7 @@ export function mountSherpyChat({ caseId, parent = document.body, getScreen = ()
   const panel = el('section', { id: 'schat-panel', class: 'schat-panel', role: 'dialog', 'aria-labelledby': 'schat-title', hidden: true },
     el('header', { class: 'schat-head' }, el('h2', { id: 'schat-title' }, 'Sherpy'), close),
     el('div', { class: 'schat-body' }, avatar, caption, turn, errBox),
-    el('p', { class: 'schat-fine' }, 'Ask anything about your plan, out loud.'));
+    el('p', { class: 'schat-fine' }, 'Ask anything about your plan, out loud. No audio is recorded.'));
 
   const root = el('div', { class: 'schat' }, panel, fab);
   parent.append(root);

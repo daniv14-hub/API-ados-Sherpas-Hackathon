@@ -205,7 +205,7 @@ function moreAdvice(items) {
 
 function footer() {
   return h('footer', { class: 'footer' },
-    h('small', null, "You tell us when it's done. Nothing is checked for you."),
+    h('small', null, "You tell us when it's done. Nothing is checked for you. What you type stays in this browser. ", h('a', { href: '/privacy.html' }, 'Privacy')),
     !storageOk && h('small', null, "This browser can't save your progress, so it will reset when you close the page."),
     resetControl());
 }

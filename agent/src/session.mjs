@@ -47,7 +47,7 @@ function parse(raw) {
   }
 }
 
-export async function createSession({ browser, upstream, caseId, source, profilesDir, transcriptsDir, log = console, finishGraceMs = 20000, onFinished, chatMemory, loadMissionsView, screen }) {
+export async function createSession({ browser, upstream, caseId, source, profilesDir, transcriptsDir, log = console, finishGraceMs = 20000, onFinished, chatMemory, loadMissionsView, screen, saveTranscripts = true }) {
   const startISO = new Date().toISOString();
   const transcriptFile = path.join(transcriptsDir, `${caseId}-${startISO.replace(/[:.]/g, '-')}.jsonl`);
 
@@ -178,6 +178,7 @@ export async function createSession({ browser, upstream, caseId, source, profile
   function writeLine(role, text) {
     if (!text || !text.trim()) return;
     if (state.phase === 2) chatMemory?.add(caseId, role, text);
+    if (!saveTranscripts) return; // data minimisation: the server turns transcripts on only with SAVE_TRANSCRIPTS=1
     const line = `${JSON.stringify({ t: new Date().toISOString(), role, text })}\n`;
     writeChain = writeChain
       .then(() => fs.mkdir(transcriptsDir, { recursive: true }))
