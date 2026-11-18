@@ -179,3 +179,11 @@ Timestamped entries (Europe/Madrid). Milestones, blockers, surprises and pivots,
   voice still works), GET/HEAD only, rate limits (600 req/min, 20 video builds/min per case, 12 voice opens/min,
   3 concurrent voice sessions, 300 WS messages/s), transcripts opt-in (`SAVE_TRANSCRIPTS=1`) with 7-day retention,
   archive 30 days, `npm run data:delete`, `/privacy.html` + notice before talking. Legal compliance not certified.
+
+## 2026-11-18 ~18:10 — First team take failed; demo family hardened
+- Team's first real take went off-script: Sherpy saved "college" for both right after Daniel's line, the family went
+  back to the goal and it looped. No transcript (transcripts had just been made opt-in).
+- Fixes: the scripted family never goes back to a closed topic, moves on when Sherpy repeats a question, and waits
+  3.5 s (instead of 0.9 s) when Sherpy has not asked anything yet (it is saving an answer). 237 tests pass.
+- Rehearsal after the fix (headless, real Gemini): full conversation, video, missions and the bubble, no loop.
+  The recording server runs with SAVE_TRANSCRIPTS=1 (fictitious demo data) so any failure can be read.
