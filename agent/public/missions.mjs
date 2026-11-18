@@ -115,27 +115,44 @@ function greeting(next) {
   return `${p.done} of ${p.total} steps done. Next up: "${next.title}". One step at a time.`;
 }
 
-function missionCard(m, status, n) {
+// One level on the path: a big round node (number, ✓ or the next one with Sherpy) and a label card beside it.
+const PATH_X = [0, 40, 80, 40]; // zigzag offsets in px, repeating
+const ROW_H = 132;
+function missionNode(m, status, n, i) {
   const pr = L.missionProgress(m, state);
   const alone = L.aloneScore(data, m, scoreFor);
   const owner = ownerOfMission(m);
   const stateText = status === 'done' ? 'Done' : status === 'next' ? 'Next mission' : null;
-  const score = m.moveTitle && alone != null
-    ? chip(`On its own: score ${data.base} to ${alone}`, 'score')
-    : null;
-  return h('li', null, h('button', { class: `sticker card ${status}`, type: 'button', onclick: () => goto({ name: 'mission', id: m.id }),
-      'aria-label': `${m.title}. ${stateText ?? 'Open'}. ${pr.done} of ${pr.total} steps done.` },
-    h('div', { class: 'head' },
-      h('span', { class: 'badge', 'aria-hidden': 'true' }, status === 'done' ? '✓' : String(n)),
-      h('div', null,
-        stateText && h('div', { class: 'state' }, stateText),
-        h('div', { class: 'title' }, m.title))),
-    h('div', { class: 'chips meta' },
-      m.effort && chip(L.EFFORT[m.effort] ?? m.effort, 'effort'),
-      owner && chip(owner, 'owner'),
-      chip(`${pr.done}/${pr.total} steps`, pr.complete ? 'done' : ''),
-      score),
-    !score && m.scoreNote && h('p', { class: 'noscore' }, h('b', null, 'No score for this one. '), m.scoreNote)));
+  const meta = [m.effort && (L.EFFORT[m.effort] ?? m.effort), owner, `${pr.done}/${pr.total} steps`].filter(Boolean).join(' · ');
+  const li = h('li', { class: `lvl ${status}` },
+    h('button', { type: 'button', class: 'lvl-btn', onclick: () => goto({ name: 'mission', id: m.id }),
+      'aria-label': `Mission ${n}: ${m.title}. ${stateText ?? 'Open'}. ${pr.done} of ${pr.total} steps done.` },
+      h('span', { class: 'node', 'aria-hidden': 'true' }, status === 'done' ? '✓' : String(n),
+        status === 'next' && h('img', { class: 'here', src: '/sherpy.svg', alt: '' })),
+      h('span', { class: 'lbl' },
+        stateText && h('span', { class: 'state' }, stateText),
+        h('span', { class: 'title' }, m.title),
+        h('span', { class: 'meta' }, meta),
+        m.moveTitle && alone != null && chip(`Score ${data.base} → ${alone}`, 'score'))));
+  li.style.setProperty('--x', `${PATH_X[i % PATH_X.length]}px`);
+  return li;
+}
+
+// The dotted trail behind the nodes (node centres: x = 34 + offset, y = row middle).
+function pathTrail(count) {
+  const pts = Array.from({ length: count }, (_, i) => [34 + PATH_X[i % PATH_X.length], ROW_H * i + ROW_H / 2]);
+  let d = `M ${pts[0][0]} ${pts[0][1]}`;
+  for (let i = 1; i < pts.length; i++) {
+    const [x0, y0] = pts[i - 1], [x1, y1] = pts[i];
+    d += ` C ${x0} ${y0 + ROW_H / 2}, ${x1} ${y1 - ROW_H / 2}, ${x1} ${y1}`;
+  }
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'trail'); svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('width', '200'); svg.setAttribute('height', String(ROW_H * count));
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', d);
+  svg.append(path);
+  return svg;
 }
 
 function factList(facts, { yours = false } = {}) {
@@ -159,13 +176,13 @@ function renderOverview() {
     h('h1', { class: 'sr', 'data-focus': '' }, 'Your missions'),
     sherpyRow(greeting(next)),
     progressCard(),
-    h('h2', { class: 'section-title' }, 'Your missions'),
-    h('ol', { class: 'list' }, missions.map((m, i) => missionCard(m, st[m.id], i + 1))),
+    h('h2', { class: 'section-title' }, 'Your path'),
+    h('div', { class: 'path-wrap' }, pathTrail(missions.length), h('ol', { class: 'path' }, missions.map((m, i) => missionNode(m, st[m.id], i + 1, i)))),
   ];
   if (data.keepInView.length) {
     nodes.push(
       h('h2', { class: 'section-title' }, 'Keep in view'),
-      h('p', { class: 'fine', style: 'margin-bottom:10px' }, 'Nothing to do now. Just good to know.'),
+      h('p', { class: 'fine', style: 'margin-bottom:10px' }, 'Nothing to do now. Just good to know. Tap one to read it.'),
       h('div', { class: 'keep' }, data.keepInView.map((k) => h('details', null,
         h('summary', null, keepTitle(k)),
         h('div', { class: 'body' }, h('p', null, k.body), k.facts?.length ? factList(k.facts) : null)))));
@@ -248,7 +265,20 @@ function redrawMission(id) {
   if (again && !again.disabled) again.focus({ preventScroll: true });
 }
 
+// Which steps are unfolded: the current one, plus any the family opened; a step they folded stays folded.
+let fold = { mission: null, open: new Set(), closed: new Set() };
+const currentStepId = (m) => m.steps.find((s) => !state.done[s.id])?.id ?? null;
+function isOpen(m, id) {
+  if (fold.mission !== m.id) fold = { mission: m.id, open: new Set(), closed: new Set() };
+  return fold.open.has(id) || (id === currentStepId(m) && !fold.closed.has(id));
+}
+function toggleFold(m, id) {
+  if (isOpen(m, id)) { fold.open.delete(id); fold.closed.add(id); } else { fold.closed.delete(id); fold.open.add(id); }
+  redrawMission(m.id);
+}
+
 function stepCard(m, step, idx, whyStepId) {
+  const open = isOpen(m, step.id);
   const done = !!state.done[step.id];
   const unlocked = L.stepUnlocked(m, state, step.id);
   const locked = !done && !unlocked;
@@ -265,9 +295,15 @@ function stepCard(m, step, idx, whyStepId) {
       const r = L.toggleStep(data, state, m.id, step.id);
       const before = L.progress(data, state).done;
       state = r.state; save();
+      fold.open.delete(step.id); fold.closed.delete(step.id);
       if (r.completedNow) { announce('Checkpoint reached'); goto({ name: 'checkpoint', id: m.id, fromDone: before }); }
       else {
-        announce(done ? 'Step undone' : 'Step done'); const y = window.scrollY; renderMission(m.id, { keepScroll: y, focusStep: step.id }); }
+        announce(done ? 'Step undone' : 'Step done');
+        const y = window.scrollY;
+        const nextId = currentStepId(m);
+        renderMission(m.id, { keepScroll: y, focusStep: nextId ?? step.id });
+        if (nextId && !done) document.getElementById(`s-${nextId}`)?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+      }
     } }, done ? '✓ Done (undo)' : label);
   const refresh = () => {
     if (done || locked) return;
@@ -285,12 +321,21 @@ function stepCard(m, step, idx, whyStepId) {
     copy: (text, note) => copyText(text, note).catch(() => note('Select the text above and copy it')),
     openSherpy: () => chat?.open(),
   }) : (!locked && isLearn ? renderBlocks({ h, data, mission: m, step: { ...step, ui: [] }, answers: {}, people, openSherpy: () => chat?.open() }) : []);
-  return h('div', { class: `sticker step ${done ? 'done' : ''} ${locked ? 'locked' : ''}`, id: `s-${step.id}` },
+  const typeName = L.STEP_TYPES[step.type] ?? step.type;
+  const head = h('button', { type: 'button', class: 'shead', 'aria-expanded': String(open), 'aria-controls': `sb-${step.id}`, onclick: () => toggleFold(m, step.id) },
+    h('span', { class: 'stitle' }, step.title),
+    h('span', { class: 'chips' }, chip(typeName, `type t-${step.type}`), owner && chip(owner, 'owner'), done && chip('Done', 'done'), locked && chip('Locked', 'lockedchip')),
+    h('span', { class: 'chev', 'aria-hidden': 'true' }, open ? '▴' : '▾'));
+  if (!open) {
+    return h('div', { class: `sticker step folded ${done ? 'done' : ''} ${locked ? 'locked' : ''}`, id: `s-${step.id}` },
+      h('span', { class: 'num', 'aria-hidden': 'true' }, done ? '✓' : String(idx + 1)),
+      h('div', { class: 'main' }, h('h3', { class: 'shwrap' }, head)));
+  }
+  return h('div', { class: `sticker step ${done ? 'done' : ''} ${locked ? 'locked' : ''} ${step.id === currentStepId(m) ? 'current' : ''}`, id: `s-${step.id}` },
     h('span', { class: 'num', 'aria-hidden': 'true' }, done ? '✓' : String(idx + 1)),
-    h('div', { class: 'main' },
-      h('h3', { class: 'stitle' }, step.title),
-      owner && h('div', { class: 'chips' }, chip(owner, 'owner')),
-      step.id !== whyStepId && step.body && h('p', { class: 'sbody' }, step.body),
+    h('div', { class: 'main', id: `sb-${step.id}` },
+      h('h3', { class: 'shwrap' }, head),
+      step.body && h('p', { class: `sbody ${step.id === whyStepId ? 'why-text' : ''}` }, step.id === whyStepId && h('b', null, 'Why this matters: '), step.body),
       blocks,
       step.kit && !locked && kitBlock(step),
       h('div', { class: 'actions' }, btn, locked ? h('span', { class: 'fine' }, 'Finish the step above first.') : hint)));
@@ -313,17 +358,12 @@ function renderMission(id, { keepScroll = null, focusStep = null } = {}) {
       chip(`${pr.done}/${pr.total} steps`, pr.complete ? 'done' : ''),
       m.moveTitle && alone != null ? chip(`On its own: score ${data.base} to ${alone}`, 'score') : null),
     !m.moveTitle && m.scoreNote && h('p', { class: 'fine', style: 'margin-top:8px' }, h('b', null, 'No score for this one. '), m.scoreNote),
-    why && h('section', { class: 'sticker why' }, h('h2', null, 'Why this matters'), h('p', null, why.body)),
-    m.facts.length ? h('section', { class: 'sticker facts', 'aria-label': 'Facts from your plan' }, h('h2', null, 'From your plan'), factList(m.facts)) : null,
+    m.facts.length ? h('details', { class: 'sticker facts' }, h('summary', null, h('span', null, 'Your plan\'s figures'), chip(String(m.facts.length), 'count')), factList(m.facts)) : null,
+    h('h2', { class: 'section-title' }, 'Steps'),
   ];
-  let lastType = null;
-  m.steps.forEach((s, i) => {
-    if (s.type !== lastType) {
-      nodes.push(h('div', { class: 'type-head' }, L.STEP_TYPES[s.type] ?? s.type));
-      lastType = s.type;
-    }
-    nodes.push(stepCard(m, s, i, why?.id));
-  });
+  const rail = h('div', { class: 'steps' });
+  m.steps.forEach((s, i) => rail.append(stepCard(m, s, i, why?.id)));
+  nodes.push(rail);
   nodes.push(footer());
   show(nodes, { focus: keepScroll === null });
   if (keepScroll !== null) {

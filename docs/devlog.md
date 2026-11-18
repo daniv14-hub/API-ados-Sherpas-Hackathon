@@ -133,3 +133,15 @@ Timestamped entries (Europe/Madrid). Milestones, blockers, surprises and pivots,
 - Removed kits that were general knowledge (where to look in a bank app, what insurers ask, etc.); M3-3 kit kept
   (plan-backed). M3-1 now names the credit card among the needs (it is in M3's facts and M6 uses the decision).
 - Bug found headless and fixed: each field overwrote the others (stale answers copy). 218 tests pass.
+
+## 2026-11-18 ~15:15 — Missions as a path, folded steps, phone frame on wide screens
+- Dani: missions too text-heavy; wants a path and info revealed per level, same info better distributed; screens 1
+  and 3 inside a drawn phone.
+- Overview: missions drawn as a zigzag path of round level nodes on a dotted trail (Sherpy on the next one), each
+  with a compact label (title, effort · owner · steps, score chip). Detail: "Why this matters" moved into the learn
+  step it came from; plan figures in a fold ("Your plan's figures (9)"); only the current step is unfolded, done and
+  locked steps fold to one line (tap to open); marking a step done scrolls to the next one. No content removed.
+- Phone frame: `phone.html` draws an iPhone-sized phone and loads `/` or `/missions.html` in an iframe
+  (mic/autoplay allowed). `frame-guard.js` sends top-level pages there when the window is ≥700×600 (after the
+  viewport meta, or phones read 980 px and got framed too — caught headless). The video always breaks out wide.
+- Verified headless 1280×800 (framed), 390×844 and 844×390 (not framed); 218 tests pass.

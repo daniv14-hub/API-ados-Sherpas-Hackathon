@@ -9,6 +9,8 @@ const hasCrossDocTransitions = () => typeof window.PageRevealEvent === 'function
 
 export function leaveTo(url) {
   const to = new URL(url, location.href).pathname;
+  // Inside the phone frame (phone.html) the video opens full window, wide.
+  if (to === '/video.html' && window.top !== window.self) { try { window.top.location.assign(url); return; } catch { /* fall through */ } }
   if (reducedMotion() || (hasCrossDocTransitions() && TRANSITION_PAGES.has(to))) { location.assign(url); return; }
   document.documentElement.classList.add('leaving');
   // Back button: the browser may restore this page from its back/forward cache, still faded out. Show it again.
