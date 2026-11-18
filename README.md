@@ -6,6 +6,77 @@
 
 **Sherpas x UPV Sigma Data Club hackathon, 12 to 19 November 2026**
 
+## Run Sherpy (team APIñados)
+
+Our project: a voice conversation led by the mascot **Sherpy**, then a personal narrated explainer video built from the
+family's own plan, then a mission path that turns every recommendation into small guided steps, with Sherpy one tap
+away by voice. The keys stay in our backend; the page never sees them.
+
+### Run it on your computer (macOS or Windows)
+
+You need **Node.js 22 or later** (nodejs.org), **Git**, and **Chrome or Edge** (for the microphone). Only one key is
+required: the hackathon AI key `TEAM_KEY`. The case data is read from the `cases/` folder of this repo, so no MCP token
+is needed (if `MCP_URL` and `MCP_TOKEN` are set and valid, the live Sherpas MCP is used instead; same data).
+
+1. Clone and enter the repo:
+   ```
+   git clone https://github.com/daniv14-hub/API-ados-Sherpas-Hackathon.git
+   cd API-ados-Sherpas-Hackathon
+   ```
+2. Create a file named `.env` in that folder (the repo root) with one line, `TEAM_KEY=<your hackathon AI key>`:
+   - macOS / Linux (Terminal): `printf 'TEAM_KEY=your-key-here\n' > .env`
+   - Windows (PowerShell): `"TEAM_KEY=your-key-here" | Out-File -Encoding ascii .env`
+     (plain `Set-Content`/`>` in Windows PowerShell 5 writes UTF-16, which Node cannot read)
+3. Install and start (same commands on macOS and Windows):
+   ```
+   cd agent
+   npm install
+   npm start
+   ```
+   It prints `Sherpy on http://localhost:5173 (… 4 cases from cases/ folder)`.
+4. Open **http://localhost:5173** in Chrome or Edge. It must be `localhost` (the server refuses other host names).
+   - **To watch the demo without speaking:** open `http://localhost:5173/reset.html` and click
+     **Start the demo (recorded family)**, then **Start**: Daniel and Emily Johnson are recorded voices that answer
+     Sherpy on their own. To talk yourself, click "Start with a real microphone" (headphones or a quiet room).
+5. `npm test` (inside `agent/`) runs the 230 automated tests; no key needed.
+
+What is the same on every computer: every figure, the missions and the scores (they come from `cases/`). What varies
+between runs: the wording of Sherpy's live conversation and of the video narration (written by AI models within our
+rules), and the answers Sherpy saves depend on what the family says. The AI proxy and its credits end on 21/11; after
+that the conversation and the video cannot run; the missions keep working (start the server with any `TEAM_KEY` value).
+
+### Security and privacy
+
+- The server listens only on `127.0.0.1` and refuses any other `Host` or page `Origin`; only `GET`/`HEAD`.
+- Security headers on every response (strict Content-Security-Policy, no framing by other sites, mic for this site only).
+- Rate limits: requests overall, video builds per case, new voice sessions and voice messages (paid services).
+- Keys stay in the backend (`.env`, git-ignored); errors sent to the page never include them.
+- Privacy: **no audio is recorded**; transcripts are **off** unless `SAVE_TRANSCRIPTS=1` (then deleted after 7 days);
+  archived copies are deleted after 30 days. What the family types in the missions stays in their browser.
+  Delete everything stored about a family: `npm run data:delete -- <caseId> --yes`. Full notice:
+  `http://localhost:5173/privacy.html`. The cases are fictitious; a real launch needs the legal steps listed there.
+
+### More details
+
+- Open **http://localhost:5173** (it must be `localhost`) and use headphones or a quiet room. Press Start and talk to Sherpy
+  (a small "Demo family" selector picks the case).
+- The journey runs by itself: when Sherpy says goodbye, the video is built on the server (~10 s, cached in `data/videos/`)
+  and opens at `video.html?case=<caseId>` (landscape, with sound); when it ends you land on your missions at
+  `missions.html?case=<caseId>` (portrait). Mission progress is kept in the browser ("Reset progress" at the bottom).
+- On a laptop the conversation and the missions appear inside a drawn phone; on a real phone they fill the screen.
+  ‹ › arrows move between the three screens (the video and missions open once the conversation is complete).
+- A family that already finished the conversation sees "Welcome back" with "Watch your video" and "My missions".
+- **Start a case from zero:** `npm run demo:reset [caseId]` (moves its profile and videos to `data/archive/`), restart
+  the server, then open `http://localhost:5173/reset.html` (clears the progress saved in the browser).
+- **Demo without speaking:** `http://localhost:5173/?case=daniel-emily-johnson&family=demo` — Daniel and Emily are
+  recorded ElevenLabs voices that answer Sherpy on their own (`npm run demo:audio` records them once). Recording
+  guide: `docs/demo-recording.md`.
+- Missions: the Johnsons' are hand-written (`agent/data/missions/`); every other case is generated from the plan's
+  three advice sources (`agent/src/game/generate.mjs`).
+- The old debug page is at `/bench.html`.
+- Tests: `cd agent && npm test`. Build a video from the terminal: `node --env-file=../.env scripts/build-video.mjs <caseId>`.
+- Narration voice: ElevenLabs through the proxy (`SHERPY_VOICE`, default `onyx`). Every number comes from the case data.
+
 ## Join the Discord first
 
 <a href="https://discord.gg/wVUZXmxdS"><img src="assets/discord-qr.png" alt="QR code: join the Discord" width="160" align="right"></a>

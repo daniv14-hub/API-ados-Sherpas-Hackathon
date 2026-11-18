@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy · Sherpy</title>
+<link rel="stylesheet" href="/tokens.css">
+<style>
+  body { margin: 0; background: var(--surface-frame); color: var(--gray-900); font: 400 16px/1.6 var(--font-body); }
+  main { max-width: 680px; margin: 0 auto; padding: 28px 18px 60px; }
+  h1 { font: 600 28px/1.2 var(--font-heading); margin: 0 0 6px; }
+  h2 { font: 600 18px/1.3 var(--font-heading); margin: 26px 0 6px; }
+  p, li { color: var(--gray-700); }
+  ul { padding-left: 20px; }
+  .note { background: #fffbea; border: 1px solid var(--gray-300); border-radius: 12px; padding: 12px 14px; }
+  a { color: var(--brand-600); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Your privacy with Sherpy</h1>
+  <p class="note">This is a hackathon prototype that runs on your own computer. The demo families are fictitious.
+    A real launch would also need the agreements and records the law asks for (see the last section).</p>
+
+  <h2>What Sherpy uses</h2>
+  <ul>
+    <li><b>Your plan</b>: the Sherpas financial plan of your family (figures, goals, recommendations).</li>
+    <li><b>Your answers in the conversation</b>: who is joining, your main goal, your biggest worry, how each of you
+      reacts to risk, whether you prefer numbers or what they mean, and how much detail you want.</li>
+    <li><b>Your voice, live</b>, only while a conversation or the Sherpy bubble is open.</li>
+    <li><b>What you type in the missions</b> (for example your insurer, or the order of your priorities).</li>
+  </ul>
+
+  <h2>Who processes it</h2>
+  <ul>
+    <li><b>Live conversation and the Sherpy bubble:</b> your voice and Sherpy's replies stream through this app's
+      server to the Sherpas hackathon AI service, which uses Google Gemini. Sherpy also receives the plan figures it
+      needs to answer you.</li>
+    <li><b>Your video:</b> the plan figures and your answers (including first names) go to the same AI service, where
+      an OpenAI model writes the narration and ElevenLabs reads it aloud.</li>
+    <li>The secret keys for these services stay on the server; your browser never sees them.</li>
+  </ul>
+
+  <h2>What is kept, where, and for how long</h2>
+  <ul>
+    <li><b>No audio is recorded or stored.</b> No accounts, no cookies, no analytics, no advertising.</li>
+    <li><b>On this computer (server):</b> your conversation answers (<code>data/profiles</code>) and your built video
+      (<code>data/videos</code>), until you delete them. The Sherpy bubble remembers the last chat in memory for up
+      to 2 hours, and forgets it when the server restarts.</li>
+    <li><b>Transcripts</b> of what was said are <b>off by default</b>. If a developer turns them on, they are deleted
+      automatically after 7 days. Archived copies are deleted after 30 days.</li>
+    <li><b>In your browser only:</b> your mission progress and what you typed in the missions.</li>
+    <li>The video page loads its font from Google Fonts, so Google sees that request.</li>
+  </ul>
+
+  <h2>Your choices</h2>
+  <ul>
+    <li><b>See your data:</b> it is stored as plain files on this computer, in the folders above.</li>
+    <li><b>Delete your data:</b> in the <code>agent</code> folder run <code>npm run data:delete -- &lt;case&gt; --yes</code>,
+      and open <a href="/reset.html">reset.html</a> to clear what this browser saved.</li>
+    <li><b>Stop at any time:</b> end the conversation or close the bubble; the voice connection closes at once.</li>
+  </ul>
+
+  <h2>Before a real launch</h2>
+  <p>Using this with real families would need, at least: a clear legal basis and consent screen, data processing
+    agreements with the AI providers, a record of processing, a data protection impact assessment (it handles
+    financial data), and a named contact for privacy requests. We have not done these legal steps.</p>
+  <p><a href="/">Back to Sherpy</a></p>
+</main>
+</body>
+</html>

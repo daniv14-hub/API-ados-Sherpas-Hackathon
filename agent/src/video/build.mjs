@@ -1,0 +1,141 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { createHash } from 'node:crypto';
+import { loadProfile, isPhase1Complete, isSafeCaseId } from '../profile.mjs';
+import { caseNumbers } from '../numbers.mjs';
+import { buildFacts } from './facts.mjs';
+import { planScenes } from './scenes.mjs';
+import { narrate } from './narrate.mjs';
+
+export class VideoError extends Error {
+  constructor(code, message = code) {
+    super(message);
+    this.name = 'VideoError';
+    this.code = code;
+  }
+}
+
+const VERSION = 5; // bump when the narration logic changes, so cached videos regenerate
+const PARTIAL_TTL_MS = 5 * 60 * 1000;
+
+// Only what shapes the video goes into the hash. Narration text is generated after the hash is decided.
+function hashOf(profile, voice) {
+  const used = {
+    present: profile.present,
+    styles: Object.fromEntries((profile.present ?? []).map((n) => [n, profile.people?.[n]?.style ?? null])),
+    main_goal: profile.main_goal?.agreed ?? null,
+    top_worry: profile.top_worry?.agreed ?? null,
+    detail_level: profile.detail_level ?? null,
+  };
+  return createHash('sha256').update(JSON.stringify({ profile: used, voice, version: VERSION })).digest('hex').slice(0, 12);
+}
+
+// The proxy allows 4 concurrent requests per team (the voice session may hold one), so clips go 3 at a time,
+// and a clip refused with 429 is retried once.
+const TTS_CONCURRENCY = 3;
+
+async function mapLimit(items, limit, fn) {
+  const out = new Array(items.length);
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (next < items.length) { const i = next++; out[i] = await fn(items[i], i); }
+  }));
+  return out;
+}
+
+export function createVideoBuilder({ source, profilesDir, videosDir, complete, tts, voice, log = console, now = Date.now, retryDelayMs = 1500 }) {
+  const speak = async (text) => {
+    try { return await tts(text); } catch (e) {
+      if (!/\b429\b/.test(e?.message ?? '')) throw e;
+      await new Promise((r) => setTimeout(r, retryDelayMs));
+      return tts(text);
+    }
+  };
+  const inflight = new Map();
+  const partials = new Map(); // dir -> { result, at }: builds with a failed TTS clip, kept so requests don't re-spend
+
+  async function dirFor(caseId) {
+    const profile = await loadProfile(profilesDir, caseId, []);
+    if (!isPhase1Complete(profile)) throw new VideoError('profile_incomplete', `profile for ${caseId} is not complete`);
+    return { profile, dir: path.join(videosDir, `${caseId}-${hashOf(profile, voice)}`) };
+  }
+
+  async function build(caseId) {
+    // Unknown adults only matter for a brand-new profile, which is incomplete anyway.
+    const { profile, dir } = await dirFor(caseId);
+    const hit = partials.get(dir);
+    if (hit && now() - hit.at < PARTIAL_TTL_MS) return hit.result;
+
+    const file = path.join(dir, 'video.json');
+    try {
+      return { video: JSON.parse(await fs.readFile(file, 'utf8')), dir };
+    } catch { /* not cached yet */ }
+
+    const [fh, ia, personaMd] = await Promise.all(
+      ['financial-health', 'investment-analysis', 'persona'].map((p) => source.getPart(caseId, p)),
+    );
+    const scenes = planScenes(buildFacts(fh, personaMd), profile);
+    const lines = await narrate(scenes, { complete, numberSet: caseNumbers(fh, ia, personaMd), profile, log });
+
+    await fs.mkdir(dir, { recursive: true });
+    let failed = false;
+    const out = await mapLimit(scenes, TTS_CONCURRENCY, async (s, i) => {
+      const line = lines.find((l) => l.id === s.id);
+      let audio = null;
+      try {
+        const name = `scene-${i}.mp3`;
+        await fs.writeFile(path.join(dir, name), await speak(line.text));
+        audio = name;
+      } catch (e) {
+        failed = true;
+        log.warn(`tts failed for scene ${s.id}: ${e?.message ?? e}`);
+      }
+      return { id: s.id, props: s.props, text: line.text, segments: line.segments, audio, duration: null };
+    });
+
+    const video = { caseId, voice, scenes: out };
+    if (!failed) {
+      const tmp = `${file}.tmp`;
+      await fs.writeFile(tmp, JSON.stringify(video, null, 2));
+      await fs.rename(tmp, file); // last, so video.json never points at missing audio
+      partials.delete(dir);
+    } else {
+      partials.set(dir, { result: { video, dir }, at: now() });
+    }
+    return { video, dir };
+  }
+
+  // Server-side only: `dir` holds the scene audio files and must never be sent to the browser.
+  function locate(caseId) {
+    if (!isSafeCaseId(caseId)) return Promise.reject(new Error(`unsafe caseId: ${caseId}`));
+    if (!inflight.has(caseId)) {
+      const p = build(caseId).finally(() => inflight.delete(caseId));
+      inflight.set(caseId, p);
+    }
+    return inflight.get(caseId);
+  }
+
+  // Never builds (no MCP, model or TTS): the last partial result or a cached video.json, else null.
+  async function peek(caseId) {
+    if (!isSafeCaseId(caseId)) return null;
+    let dir;
+    try {
+      ({ dir } = await dirFor(caseId));
+    } catch {
+      return null;
+    }
+    const hit = partials.get(dir);
+    if (hit) return hit.result;
+    try {
+      return { video: JSON.parse(await fs.readFile(path.join(dir, 'video.json'), 'utf8')), dir };
+    } catch {
+      return null;
+    }
+  }
+
+  return {
+    locate,
+    peek,
+    get: (caseId) => locate(caseId).then((r) => r.video),
+  };
+}

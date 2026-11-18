@@ -19,3 +19,6 @@ build/
 
 # Claude Code / Superpowers local state
 .superpowers/
+data/
+!agent/data/
+!agent/data/missions/

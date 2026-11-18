@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sherpas</title>
+<link rel="stylesheet" href="/tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { background: var(--surface-frame); background-image: radial-gradient(circle at 2px 2px, var(--gray-200) 1.5px, transparent 0);
+         background-size: 28px 28px; display: grid; place-items: center; font-family: var(--font-body); overflow: hidden; }
+  /* An iPhone-sized silhouette (390 x 844 points), scaled to fit the window height. */
+  .phone { --h: min(844px + 28px, calc(100vh - 40px)); height: var(--h); aspect-ratio: 418 / 872; position: relative;
+           background: #0b0f2e; border-radius: calc(var(--h) * .075); padding: calc(var(--h) * .016);
+           box-shadow: 0 0 0 2px #2a2f55, 0 30px 80px rgba(11,15,46,.35); }
+  .phone::before, .phone::after { content: ""; position: absolute; width: 4px; background: #2a2f55; border-radius: 2px; }
+  .phone::before { left: -6px; top: 18%; height: 7%; box-shadow: 0 calc(var(--h) * .1) 0 #2a2f55; }
+  .phone::after { right: -6px; top: 24%; height: 11%; }
+  .screen { position: relative; width: 100%; height: 100%; border-radius: calc(var(--h) * .06); overflow: hidden; background: var(--surface-frame);
+            display: flex; flex-direction: column; }
+  .status { flex: none; height: 46px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font: 600 15px var(--font-body); color: #0b0f2e; }
+  .island { position: absolute; left: 50%; top: 11px; translate: -50% 0; width: 31%; height: 30px; border-radius: 20px; background: #0b0f2e; }
+  .icons { display: flex; gap: 6px; align-items: center; }
+  .icons i { display: block; background: #0b0f2e; border-radius: 2px; }
+  iframe { flex: 1; width: 100%; border: 0; display: block; background: var(--surface-frame); }
+  .home { position: absolute; left: 50%; bottom: 8px; translate: -50% 0; width: 36%; height: 5px; border-radius: 3px; background: #0b0f2e; opacity: .85; pointer-events: none; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="screen">
+    <div class="status" aria-hidden="true"><span id="clock">9:41</span><span class="island"></span>
+      <span class="icons"><i style="width:4px;height:6px"></i><i style="width:4px;height:9px"></i><i style="width:4px;height:12px"></i><i style="width:24px;height:12px;border-radius:4px"></i></span></div>
+    <iframe id="app" title="Sherpas app" allow="microphone; autoplay; clipboard-write"></iframe>
+  </div>
+  <div class="home" aria-hidden="true"></div>
+</div>
+<script>
+  // Only our own phone screens may load in the frame.
+  (function () {
+    var src = new URLSearchParams(location.search).get('src') || '/';
+    var u;
+    try { u = new URL(src, location.origin); } catch (e) { u = new URL('/', location.origin); }
+    var ok = u.origin === location.origin && ['/', '/index.html', '/missions.html'].indexOf(u.pathname) >= 0;
+    document.getElementById('app').src = ok ? u.pathname + u.search + u.hash : '/';
+    var c = document.getElementById('clock');
+    var tick = function () { var d = new Date(); c.textContent = d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0'); };
+    tick(); setInterval(tick, 30000);
+  })();
+</script>
+</body>
+</html>

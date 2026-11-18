@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sherpy conversation screen · proposals</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap">
+<style>
+/* Sherpas brand tokens (assets/brand/tokens.css). Layout: each proposal = one row, phone portrait + desktop landscape. */
+:root{
+  --brand:#4666d7; --brand-50:#eff5ff; --brand-100:#e0e7ff; --brand-200:#c6d2fd; --brand-400:#6485fb; --brand-700:#1738b1; --brand-950:#0b0f2e;
+  --g100:#eff1f5; --g200:#e2e5eb; --g400:#a1a4b3; --g500:#5f6480; --g800:#2f323e; --g900:#15161a;
+  --surface:#f3f3f3; --frame:#f8fafd; --card:#fff; --dark:#161827;
+  --hero:linear-gradient(120deg,rgba(225,232,255,.75) 0%,rgba(199,213,255,.5) 60%,rgba(225,232,255,.75) 100%);
+  --cta:linear-gradient(127deg,#948df7 11%,#4565d6 119%);
+  --fh:"Poppins",ui-sans-serif,system-ui,sans-serif; --fb:"Inter",ui-sans-serif,system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#e9ebf0;color:var(--g900);font-family:var(--fb);padding:28px max(16px,3vw) 60px}
+h1{font-family:var(--fh);font-weight:600;font-size:26px;margin:0 0 6px}
+.lead{color:var(--g500);margin:0 0 28px;max-width:70ch;line-height:1.5}
+.opt{background:var(--card);border:1px solid var(--g200);border-radius:14px;padding:22px;margin-bottom:26px;cursor:pointer;transition:box-shadow .2s,border-color .2s}
+.opt.selected{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-200)}
+.opt-head{display:flex;gap:14px;align-items:baseline;margin-bottom:6px}
+.letter{font-family:var(--fh);font-weight:700;color:#fff;background:var(--brand);border-radius:8px;width:30px;height:30px;display:grid;place-items:center;flex:none}
+.opt h2{font-family:var(--fh);font-weight:600;font-size:19px;margin:0}
+.opt p.d{color:var(--g500);margin:4px 0 18px 44px;max-width:80ch;line-height:1.5;font-size:14px}
+.devices{display:flex;gap:28px;align-items:flex-end;flex-wrap:wrap;margin-left:44px}
+.cap{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--g400);margin-top:8px;text-align:center}
+.phone{width:290px;height:600px;border-radius:38px;border:10px solid #111;overflow:hidden;position:relative;background:#111}
+.desk{width:760px;height:460px;border-radius:12px;border:8px solid #1d1f27;border-top-width:22px;overflow:hidden;position:relative;background:#111;max-width:100%}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column}
+
+/* shared bits */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;flex:none}
+.logo{height:16px;width:auto;color:var(--g900)}
+.who{font-size:12px;color:var(--g500);font-weight:500}
+.end{font:600 12px var(--fb);border:1px solid var(--g200);background:var(--card);color:#cd3b3b;border-radius:999px;padding:7px 12px}
+.sherpy{position:relative}
+.sherpy svg{width:100%;height:auto;display:block;overflow:visible}
+.sherpy .head-rig{transform-origin:160px 250px;transform-box:view-box}
+.talking .sherpy .head-rig{animation:bob .5s ease-in-out infinite alternate}
+.talking .sherpy .mouth-open{animation:mouth .26s steps(1) infinite}
+.talking .sherpy .smile{animation:mouth .26s steps(1) infinite;animation-delay:-.13s}
+.sherpy .mouth-open{opacity:0}
+@keyframes mouth{0%{opacity:1}50%{opacity:0}}
+@keyframes bob{from{transform:rotate(-1.5deg)}to{transform:rotate(1.5deg) translateY(-2px)}}
+.w{opacity:.0;transition:opacity .18s}
+.w.on{opacity:1}
+.w.key{color:var(--brand)}
+
+/* turn indicator: the half-duplex made visible */
+.turn{display:flex;align-items:center;gap:10px;font-weight:600;font-size:14px;border-radius:999px;padding:10px 16px 10px 12px;transition:all .3s}
+.turn .dot{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;flex:none;position:relative}
+.turn .dot svg{width:15px;height:15px}
+.talking .turn{background:var(--g100);color:var(--g500)}
+.talking .turn .dot{background:var(--g200);color:var(--g500)}
+.listening .turn{background:var(--brand);color:#fff;box-shadow:0 6px 20px rgba(70,102,215,.35)}
+.listening .turn .dot{background:#fff;color:var(--brand)}
+.listening .turn .dot::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:2px solid rgba(255,255,255,.7);animation:ping 1.2s ease-out infinite}
+@keyframes ping{from{transform:scale(.8);opacity:1}to{transform:scale(1.5);opacity:0}}
+.turn .t-talk{display:inline}.turn .t-listen{display:none}
+.listening .turn .t-talk{display:none}.listening .turn .t-listen{display:inline}
+
+/* ===== A · Advisor call (light app look) ===== */
+.A{background:var(--frame)}
+.A .body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:0 22px 22px;min-height:0}
+.A .halo{border-radius:50%;background:var(--hero);display:grid;place-items:center;position:relative}
+.A .halo::before{content:"";position:absolute;inset:-10px;border-radius:50%;border:2px solid transparent;transition:border-color .3s}
+.A.listening .halo::before{border-color:var(--brand-200);animation:breathe 1.6s ease-in-out infinite}
+@keyframes breathe{50%{transform:scale(1.04)}}
+.A .caption{font-family:var(--fh);font-weight:600;color:var(--g900);text-align:center;line-height:1.3;text-wrap:balance}
+.A .name{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--brand);font-weight:700}
+.phone .A .halo{width:200px;height:200px}.phone .A .halo .sherpy{width:165px;margin-top:14px}
+.phone .A .caption{font-size:20px;min-height:104px}
+.desk .A .body{flex-direction:row;gap:46px;padding:0 54px 30px}
+.desk .A .halo{width:270px;height:270px;flex:none}.desk .A .halo .sherpy{width:220px;margin-top:20px}
+.desk .A .right{display:flex;flex-direction:column;gap:18px;align-items:flex-start;flex:1}
+.desk .A .caption{font-size:28px;text-align:left;min-height:150px}
+
+/* ===== B · Stage (dark, cinematic, continuity with the video) ===== */
+.B{background:radial-gradient(120% 80% at 50% 30%,#1b2150 0%,var(--brand-950) 70%)}
+.B .logo,.B .who{color:#fff}.B .who{opacity:.7}
+.B .end{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);color:#ffb4b4}
+.B .body{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-height:0}
+.B .spot{position:absolute;left:50%;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle,rgba(100,133,251,.45) 0%,rgba(100,133,251,0) 65%);transition:opacity .4s}
+.B.talking .spot{opacity:.5}.B.listening .spot{opacity:1}
+.B .sherpy{position:relative}
+.B .subs{position:relative;width:100%;background:linear-gradient(to top,rgba(11,15,46,.95) 55%,rgba(11,15,46,0));color:#fff;text-align:center;font-family:var(--fh);font-weight:600;line-height:1.3;text-wrap:balance}
+.B .subs .w.key{color:#fff;background:var(--brand);border-radius:4px;padding:0 4px}
+.B .turn-wrap{display:flex;justify-content:center;padding-bottom:18px}
+.B.talking .turn{background:rgba(255,255,255,.08);color:rgba(255,255,255,.6)}
+.B.talking .turn .dot{background:rgba(255,255,255,.12);color:rgba(255,255,255,.6)}
+.phone .B .spot{width:330px;height:330px;top:20px}.phone .B .sherpy{width:230px;margin-bottom:-30px}
+.phone .B .subs{font-size:19px;padding:44px 20px 14px;min-height:150px}
+.desk .B .spot{width:460px;height:460px;top:-40px}.desk .B .sherpy{width:250px;margin-bottom:-40px}
+.desk .B .subs{font-size:26px;padding:50px 90px 14px;min-height:140px}
+
+/* ===== C · Speech bubble (sticker style of D10 and Sherpy's outlines) ===== */
+.C{background:var(--surface)}
+.C .body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 18px 18px;gap:6px;min-height:0}
+.C .bubble{position:relative;background:#fff;border:3px solid var(--brand-950);border-radius:22px;box-shadow:5px 6px 0 var(--brand-950);font-family:var(--fh);font-weight:600;color:var(--g900);line-height:1.3;text-wrap:balance}
+.C .bubble::after{content:"";position:absolute;width:26px;height:26px;background:#fff;border-right:3px solid var(--brand-950);border-bottom:3px solid var(--brand-950);transform:rotate(45deg)}
+.C .bubble .w.key{background:var(--brand-200);border-radius:4px;padding:0 3px;color:var(--g900)}
+.C .stamp{font-family:var(--fh);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:12px;border:2.5px solid var(--brand-950);border-radius:8px;padding:6px 12px;transform:rotate(-3deg);box-shadow:3px 3px 0 var(--brand-950);transition:all .3s}
+.C.talking .stamp{background:#fff;color:var(--g500)}
+.C.listening .stamp{background:var(--brand);color:#fff;transform:rotate(-3deg) scale(1.08)}
+.C .stamp .t-talk{display:inline}.C .stamp .t-listen{display:none}
+.C.listening .stamp .t-talk{display:none}.C.listening .stamp .t-listen{display:inline}
+.phone .C .bubble{font-size:19px;padding:18px 18px;width:100%;min-height:128px;margin-bottom:18px}
+.phone .C .bubble::after{bottom:-15px;left:50%;margin-left:-13px}
+.phone .C .sherpy{width:200px}
+.desk .C .body{flex-direction:row;align-items:center;justify-content:center;gap:36px;padding:0 50px 26px}
+.desk .C .sherpy{width:250px;flex:none}
+.desk .C .col{display:flex;flex-direction:column;gap:22px;align-items:flex-start;flex:1}
+.desk .C .bubble{font-size:26px;padding:24px 26px;min-height:150px;width:100%}
+.desk .C .bubble::after{left:-16px;top:50%;margin-top:-13px;transform:rotate(135deg)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<h1>Talk with Sherpy · conversation screen</h1>
+<p class="lead">Three proposals, each on a phone (portrait) and a laptop (landscape). Only Sherpy's words appear, word by word as it speaks, with the key words highlighted. The bottom pill shows whose turn it is, so nobody talks while Sherpy can't hear them. The animation loops on two real Sherpy lines. Click the one you prefer.</p>
+
+<template id="sherpy-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="20 40 280 336" aria-label="Sherpy"><g class="body-rig"><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="#1738b1" d="M28,372 C32,318 52,288 96,272 L224,272 C268,288 288,318 292,372 Z"/><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" fill="#fff" d="M110,272 L210,272 L160,384 Z"/><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" fill="#112980" d="M94,272 L110,272 L158,380 L130,334 L106,302 L116,292 Z"/><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" fill="#112980" d="M226,272 L210,272 L162,380 L190,334 L214,302 L204,292 Z"/><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" fill="#6485fb" d="M150,278 L170,278 L165,293 L173,326 L160,344 L147,326 L155,293 Z"/><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" fill="#c6d2fd" d="M224,318 L250,318 L246,330 L240,322 L234,330 L228,322 Z"/><line stroke="#0b0f2e" stroke-width="5" stroke-linecap="round" x1="220" y1="330" x2="256" y2="330"/></g><g class="head-rig"><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" fill="#f3eadb" d="M86,114 C60,110 40,90 36,54 C50,76 70,86 94,96 Z"/><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" fill="#f3eadb" d="M234,114 C260,110 280,90 284,54 C270,76 250,86 226,96 Z"/><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" fill="#5c3d29" d="M268.0,160.0 Q270.2,182.5 257.3,201.7 Q248.3,223.0 227.3,235.1 Q209.0,251.0 184.0,253.6 Q160.0,261.0 136.0,253.6 Q111.0,251.0 92.7,235.1 Q71.7,223.0 62.7,201.7 Q49.8,182.5 52.0,160.0 Q49.8,137.5 62.7,118.3 Q71.7,97.0 92.7,84.9 Q111.0,69.0 136.0,66.4 Q160.0,59.0 184.0,66.4 Q209.0,69.0 227.3,84.9 Q248.3,97.0 257.3,118.3 Q270.2,137.5 268.0,160.0Z"/><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" fill="#5c3d29" d="M215.2,243.4 Q222.2,254.3 206.8,250.3 Q210.2,262.9 195.6,255.9 Q195.2,269.5 182.2,259.7 Q178.1,273.6 167.6,261.7 Q160.0,275.0 152.4,261.7 Q141.9,273.6 137.8,259.7 Q124.8,269.5 124.4,255.9 Q109.8,262.9 113.2,250.3 Q97.8,254.3 104.8,243.4"/><ellipse stroke="#0b0f2e" stroke-width="5" fill="#8a5f40" cx="62" cy="150" rx="22" ry="12" transform="rotate(-18 62 150)"/><ellipse stroke="#0b0f2e" stroke-width="5" fill="#8a5f40" cx="258" cy="150" rx="22" ry="12" transform="rotate(18 258 150)"/><ellipse fill="#8a5f40" cx="160" cy="172" rx="76" ry="76"/><ellipse fill="rgba(232,115,138,.28)" cx="112" cy="196" rx="13" ry="8"/><ellipse fill="rgba(232,115,138,.28)" cx="208" cy="196" rx="13" ry="8"/><ellipse fill="#0b0f2e" cx="130" cy="162" rx="10" ry="12"/><ellipse fill="#0b0f2e" cx="190" cy="162" rx="10" ry="12"/><circle fill="#fff" cx="134" cy="157" r="3.6"/><circle fill="#fff" cx="194" cy="157" r="3.6"/><path fill="#0b0f2e" d="M110,146 C118,132 136,128 150,136 C138,136 124,140 113,151 Z"/><path fill="#0b0f2e" d="M210,146 C202,132 184,128 170,136 C182,136 196,140 207,151 Z"/><ellipse stroke="#0b0f2e" stroke-width="5" fill="#e2c3a3" cx="160" cy="214" rx="46" ry="30"/><ellipse fill="#0b0f2e" cx="145" cy="206" rx="6" ry="4.5"/><ellipse fill="#0b0f2e" cx="175" cy="206" rx="6" ry="4.5"/><path class="mouth-open" fill="#0b0f2e" d="M144,224 Q160,226 176,224 Q174,246 160,248 Q146,246 144,224 Z"/><path class="smile" fill="none" stroke="#0b0f2e" stroke-width="4.5" stroke-linecap="round" d="M144,224 Q160,236 176,224"/></g></svg></template>
+<template id="logo-svg"><svg class="logo" viewBox="0 0 123 30" fill="none" aria-label="sherpas"><path d="M16.4442 1.26842V23.7916H21.1364V14.6158C21.1364 11.7626 22.679 10.0441 25.0251 10.0441C27.1141 10.0441 28.0461 11.3411 28.0461 13.9674V23.7916H32.7383V13.1568C32.7383 8.71479 30.2958 5.89397 26.3749 5.89397C24.286 5.89397 22.4541 6.67213 21.1364 7.93664V0L16.4442 1.26842Z" fill="currentColor"/><path d="M7.1114 24.3104C11.5143 24.3104 14.4068 21.9759 14.4068 18.4094C14.4068 14.2086 10.9081 13.5687 8.10458 13.0559L7.94699 13.0271C6.14725 12.7029 4.66889 12.411 4.66889 11.2438C4.66889 10.2387 5.53663 9.59022 6.98285 9.59022C8.54286 9.59022 9.49148 10.207 9.60706 11.4686L13.9238 10.3017C13.2747 7.56314 10.7207 5.7967 7.1114 5.7967C2.93343 5.7967 0.137402 8.09875 0.137402 11.4059C0.137402 15.5237 3.67261 16.2694 6.4365 16.7558C8.26838 17.0476 9.77888 17.4042 9.77888 18.6039C9.77888 19.7711 8.58976 20.3872 7.30423 20.3872C5.71586 20.3872 4.56297 19.6842 4.42501 18.2784L0 19.4745C0.651655 22.4097 3.35016 24.3104 7.1114 24.3104Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M43.7726 5.7967C49.1075 5.7967 52.7713 9.94688 52.7713 15.0049C52.7713 15.4588 52.7391 15.9128 52.6749 16.3667H39.5303C39.9481 18.766 41.4908 20.0954 43.7726 20.0954C45.2999 20.0954 46.5762 19.4196 47.3151 18.3043L51.7757 19.5101C50.2338 22.4855 47.2806 24.3104 43.7726 24.3104C38.6626 24.3104 34.7739 20.2899 34.7739 15.0373C34.7739 9.78476 38.6305 5.7967 43.7726 5.7967ZM48.0791 13.1568C47.4042 11.0168 45.8937 9.84961 43.7726 9.84961C41.6836 9.84961 40.2052 11.0817 39.6589 13.1568H48.0791Z" fill="currentColor"/><path d="M63.8796 6.18578C61.6299 6.18578 60.0873 6.89909 58.8339 8.45541L57.9983 6.28305H55.0095V23.7916H59.7016V14.7131C59.7016 11.8599 60.7301 10.6602 63.3654 10.6602H65.4222V6.18578H63.8796Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M71.3793 7.90421C72.8577 6.57486 74.786 5.7967 76.9392 5.7967C82.1778 5.7967 86.0344 9.75234 86.0344 15.0373C86.0344 20.3548 82.1778 24.3428 76.9392 24.3428C75.1395 24.3428 73.5004 23.7916 72.1828 22.8513V28.7316L67.4906 30V6.28305H70.5759L71.3793 7.90421ZM71.8293 15.0373C71.8293 17.7933 73.8218 19.836 76.5536 19.836C79.2853 19.836 81.2779 17.7933 81.2779 15.0373C81.2779 12.3138 79.2853 10.2387 76.5536 10.2387C73.8218 10.2387 71.8293 12.3138 71.8293 15.0373Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M102.932 6.28305L102.45 7.93664C100.939 6.60728 98.9787 5.7967 96.7291 5.7967C91.5227 5.7967 87.6339 9.75234 87.6339 15.0373C87.6339 20.3223 91.5227 24.3104 96.7291 24.3104C98.9466 24.3104 100.875 23.5322 102.353 22.2029L102.771 23.7916H106.435V6.28305H102.932ZM97.1147 19.836C94.383 19.836 92.3904 17.7609 92.3904 15.0373C92.3904 12.2814 94.383 10.2387 97.1147 10.2387C99.8465 10.2387 101.839 12.2814 101.839 15.0373C101.839 17.7933 99.8465 19.836 97.1147 19.836Z" fill="currentColor"/><path d="M123 18.4094C123 21.9759 120.108 24.3104 115.705 24.3104C111.934 24.3104 109.231 22.4 108.588 19.452L113.016 18.2551C113.144 19.6765 114.3 20.3872 115.897 20.3872C117.183 20.3872 118.372 19.7711 118.372 18.6039C118.372 17.4042 116.862 17.0476 115.03 16.7558C112.266 16.2694 108.731 15.5237 108.731 11.4059C108.731 8.09875 111.527 5.7967 115.705 5.7967C119.304 5.7967 121.854 7.5535 122.512 10.2792L118.198 11.4453C118.073 10.1994 117.126 9.59022 115.576 9.59022C114.13 9.59022 113.262 10.2387 113.262 11.2438C113.262 12.411 114.74 12.7029 116.54 13.0271L116.698 13.0559C119.501 13.5687 123 14.2086 123 18.4094Z" fill="currentColor"/></svg></template>
+<template id="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></template>
+
+<!-- A -->
+<div class="opt" data-choice="a" onclick="pick(this)">
+  <div class="opt-head"><div class="letter">A</div><h2>Advisor call · light, like the Sherpas app</h2></div>
+  <p class="d">Same look as the client app the family already uses: off-white page, Sherpy inside the soft blue circle from the score card, the sentence in big Poppins under it. When it's their turn the circle breathes. The most "drops straight into Sherpas" option.</p>
+  <div class="devices">
+    <div><div class="phone"><div class="screen A scr"><div class="topbar"><span data-logo></span><button class="end">End</button></div>
+      <div class="body"><div class="halo"><div class="sherpy"></div></div><div class="name">Sherpy</div><div class="caption"></div><div class="turn"><span class="dot" data-mic></span><span class="t-talk">Sherpy is speaking</span><span class="t-listen">Your turn · speak now</span></div></div></div></div><div class="cap">Phone · portrait</div></div>
+    <div><div class="desk"><div class="screen A scr"><div class="topbar"><span data-logo></span><button class="end">End conversation</button></div>
+      <div class="body"><div class="halo"><div class="sherpy"></div></div><div class="right"><div class="name">Sherpy</div><div class="caption"></div><div class="turn"><span class="dot" data-mic></span><span class="t-talk">Sherpy is speaking</span><span class="t-listen">Your turn · speak now</span></div></div></div></div></div><div class="cap">Laptop · landscape</div></div>
+  </div>
+</div>
+
+<!-- B -->
+<div class="opt" data-choice="b" onclick="pick(this)">
+  <div class="opt-head"><div class="letter">B</div><h2>Stage · dark, like a video call with subtitles</h2></div>
+  <p class="d">Sherpy stands on a navy stage (the colour of the Sherpas website) under a soft spotlight that brightens when it's their turn. Its words are film-style subtitles at the bottom. Feels the most like a real call, and leads naturally into the video that comes next.</p>
+  <div class="devices">
+    <div><div class="phone"><div class="screen B scr"><div class="topbar"><span data-logo></span><button class="end">End</button></div>
+      <div class="body"><div class="spot"></div><div class="sherpy"></div><div class="subs"></div><div class="turn-wrap" style="width:100%;background:rgba(11,15,46,.95)"><div class="turn"><span class="dot" data-mic></span><span class="t-talk">Sherpy is speaking</span><span class="t-listen">Your turn · speak now</span></div></div></div></div></div><div class="cap">Phone · portrait</div></div>
+    <div><div class="desk"><div class="screen B scr"><div class="topbar"><span data-logo></span><button class="end">End conversation</button></div>
+      <div class="body"><div class="spot"></div><div class="sherpy"></div><div class="subs"></div><div class="turn-wrap" style="width:100%;background:rgba(11,15,46,.95)"><div class="turn"><span class="dot" data-mic></span><span class="t-talk">Sherpy is speaking</span><span class="t-listen">Your turn · speak now</span></div></div></div></div></div><div class="cap">Laptop · landscape</div></div>
+  </div>
+</div>
+
+<!-- C -->
+<div class="opt" data-choice="c" onclick="pick(this)">
+  <div class="opt-head"><div class="letter">C</div><h2>Speech bubble · sticker style</h2></div>
+  <p class="d">A comic speech bubble with the same thick navy outline as Sherpy and a hard shadow, like the sticker look planned for the video (En Plata / Punto Ciego). Key words sit on a highlight block. Their turn is a tilted "Your turn" stamp. The most playful option, and it matches the game.</p>
+  <div class="devices">
+    <div><div class="phone"><div class="screen C scr"><div class="topbar"><span data-logo></span><button class="end">End</button></div>
+      <div class="body"><div class="bubble"></div><div class="sherpy"></div><div class="stamp"><span class="t-talk">Sherpy is speaking</span><span class="t-listen">● Your turn · speak now</span></div></div></div></div><div class="cap">Phone · portrait</div></div>
+    <div><div class="desk"><div class="screen C scr"><div class="topbar"><span data-logo></span><button class="end">End conversation</button></div>
+      <div class="body"><div class="sherpy"></div><div class="col"><div class="bubble"></div><div class="stamp"><span class="t-talk">Sherpy is speaking</span><span class="t-listen">● Your turn · speak now</span></div></div></div></div></div><div class="cap">Laptop · landscape</div></div>
+  </div>
+</div>
+
+<script>
+const tpl = (id) => document.getElementById(id).innerHTML;
+document.querySelectorAll(".sherpy").forEach((el) => (el.innerHTML = tpl("sherpy-svg")));
+document.querySelectorAll("[data-logo]").forEach((el) => (el.outerHTML = tpl("logo-svg")));
+document.querySelectorAll("[data-mic]").forEach((el) => (el.innerHTML = tpl("mic")));
+// Two real Sherpy lines from the live tests. *word* = highlighted key word.
+const LINES = [
+  "Hello Daniel and Emily! I'm *Sherpy,* your Sherpas advisor. I'd love to get to know you a little.",
+  "Daniel, if your investments dropped *twenty* *percent* in a year, would you *sell,* *wait,* or *buy* *more?*",
+];
+const screens = [...document.querySelectorAll(".scr")];
+const targets = screens.map((s) => s.querySelector(".caption, .subs, .bubble"));
+let li = 0;
+function speak() {
+  const words = LINES[li].split(" ");
+  const html = words.map((w) => w.startsWith("*") ? `<span class="w key">${w.replaceAll("*", "")}</span>` : `<span class="w">${w}</span>`).join(" ");
+  screens.forEach((s) => { s.classList.add("talking"); s.classList.remove("listening"); });
+  targets.forEach((t) => (t.innerHTML = html));
+  let i = 0;
+  const tick = setInterval(() => {
+    targets.forEach((t) => t.querySelectorAll(".w")[i]?.classList.add("on"));
+    if (++i >= words.length) { clearInterval(tick); setTimeout(listen, 500); }
+  }, 300);
+}
+function listen() {
+  screens.forEach((s) => { s.classList.remove("talking"); s.classList.add("listening"); });
+  setTimeout(() => { li = (li + 1) % LINES.length; speak(); }, 3200);
+}
+speak();
+function pick(el) {
+  document.querySelectorAll(".opt").forEach((o) => o.classList.toggle("selected", o === el));
+  if (window.brainstorm?.send) window.brainstorm.send({ type: "click", choice: el.dataset.choice, text: el.querySelector("h2").textContent });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+{
+  "lines": [
+    {
+      "id": "present",
+      "who": "Daniel",
+      "text": "Hi Sherpy! It's both of us here, Daniel and Emily.",
+      "voice": "iP95p4xoKVk53GoZ742B",
+      "model": "eleven-v3",
+      "file": "present.mp3"
+    },
+    {
+      "id": "goal-daniel",
+      "who": "Daniel",
+      "text": "Daniel here. For me it's college. Oliver starts in just a few years, and I want that covered.",
+      "voice": "iP95p4xoKVk53GoZ742B",
+      "model": "eleven-v3",
+      "file": "goal-daniel.mp3"
+    },
+    {
+      "id": "goal-emily",
+      "who": "Emily",
+      "text": "And this is Emily. Honestly, I'd put retirement first. We aren't saving anything for it right now.",
+      "voice": "cgSgspJ2msm6clMCkdW9",
+      "model": "eleven-v3",
+      "file": "goal-emily.mp3"
+    },
+    {
+      "id": "goal-agree",
+      "who": "Emily",
+      "text": "Okay, Daniel, you're right, the kids come first. Let's put college first, and keep retirement right behind it.",
+      "voice": "cgSgspJ2msm6clMCkdW9",
+      "model": "eleven-v3",
+      "file": "goal-agree.mp3"
+    },
+    {
+      "id": "worry",
+      "who": "Daniel",
+      "text": "This is Daniel. What worries us most is protecting the family if something happens to one of us.",
+      "voice": "iP95p4xoKVk53GoZ742B",
+      "model": "eleven-v3",
+      "file": "worry.mp3"
+    },
+    {
+      "id": "risk-daniel",
+      "who": "Daniel",
+      "text": "Daniel here. I'd buy more. If prices drop, that's a discount.",
+      "voice": "iP95p4xoKVk53GoZ742B",
+      "model": "eleven-v3",
+      "file": "risk-daniel.mp3"
+    },
+    {
+      "id": "risk-emily",
+      "who": "Emily",
+      "text": "Emily here. I wouldn't sell, but I'd wait it out. And honestly, I'd be pretty nervous.",
+      "voice": "cgSgspJ2msm6clMCkdW9",
+      "model": "eleven-v3",
+      "file": "risk-emily.mp3"
+    },
+    {
+      "id": "risk-agree",
+      "who": "Emily",
+      "text": "Daniel, I can live with staying invested, as long as we don't take big bets with the kids' money.",
+      "voice": "cgSgspJ2msm6clMCkdW9",
+      "model": "eleven-v3",
+      "file": "risk-agree.mp3"
+    },
+    {
+      "id": "style-daniel",
+      "who": "Daniel",
+      "text": "Daniel here. Give me the numbers.",
+      "voice": "iP95p4xoKVk53GoZ742B",
+      "model": "eleven-v3",
+      "file": "style-daniel.mp3"
+    },
+    {
+      "id": "style-emily",
+      "who": "Emily",
+      "text": "Emily here. Tell me what it means for our family.",
+      "voice": "cgSgspJ2msm6clMCkdW9",
+      "model": "eleven-v3",
+      "file": "style-emily.mp3"
+    },
+    {
+      "id": "detail",
+      "who": "Emily",
+      "text": "This is Emily. The key numbers are enough for us.",
+      "voice": "cgSgspJ2msm6clMCkdW9",
+      "model": "eleven-v3",
+      "file": "detail.mp3"
+    },
+    {
+      "id": "yes-daniel",
+      "who": "Daniel",
+      "text": "Yes, that's right.",
+      "voice": "iP95p4xoKVk53GoZ742B",
+      "model": "eleven-v3",
+      "file": "yes-daniel.mp3"
+    },
+    {
+      "id": "yes-emily",
+      "who": "Emily",
+      "text": "Yes, exactly.",
+      "voice": "cgSgspJ2msm6clMCkdW9",
+      "model": "eleven-v3",
+      "file": "yes-emily.mp3"
+    },
+    {
+      "id": "thanks",
+      "who": "Emily",
+      "text": "Thank you, Sherpy!",
+      "voice": "cgSgspJ2msm6clMCkdW9",
+      "model": "eleven-v3",
+      "file": "thanks.mp3"
+    },
+    {
+      "id": "ask-mission",
+      "who": "Emily",
+      "text": "What's the second step of this mission?",
+      "voice": "cgSgspJ2msm6clMCkdW9",
+      "model": "eleven-v3",
+      "file": "ask-mission.mp3"
+    }
+  ]
+}

@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="/frame-guard.js"></script><!-- after the viewport meta: phones must report their real width -->
+<title>Talk with Sherpy</title>
+<meta name="theme-color" content="#f8fafd">
+<link rel="stylesheet" href="/tokens.css">
+<link rel="stylesheet" href="/conversation.css">
+</head>
+<body>
+<!-- Product conversation screen (option A). The voice test bench lives at /bench.html. -->
+<template id="sherpy-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="20 40 280 336" aria-label="Sherpy"><g class="body-rig"><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="#1738b1" d="M28,372 C32,318 52,288 96,272 L224,272 C268,288 288,318 292,372 Z"/><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" fill="#fff" d="M110,272 L210,272 L160,384 Z"/><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" fill="#112980" d="M94,272 L110,272 L158,380 L130,334 L106,302 L116,292 Z"/><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" fill="#112980" d="M226,272 L210,272 L162,380 L190,334 L214,302 L204,292 Z"/><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" fill="#6485fb" d="M150,278 L170,278 L165,293 L173,326 L160,344 L147,326 L155,293 Z"/><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" fill="#c6d2fd" d="M224,318 L250,318 L246,330 L240,322 L234,330 L228,322 Z"/><line stroke="#0b0f2e" stroke-width="5" stroke-linecap="round" x1="220" y1="330" x2="256" y2="330"/></g><g class="head-rig"><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" fill="#f3eadb" d="M86,114 C60,110 40,90 36,54 C50,76 70,86 94,96 Z"/><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" fill="#f3eadb" d="M234,114 C260,110 280,90 284,54 C270,76 250,86 226,96 Z"/><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" fill="#5c3d29" d="M268.0,160.0 Q270.2,182.5 257.3,201.7 Q248.3,223.0 227.3,235.1 Q209.0,251.0 184.0,253.6 Q160.0,261.0 136.0,253.6 Q111.0,251.0 92.7,235.1 Q71.7,223.0 62.7,201.7 Q49.8,182.5 52.0,160.0 Q49.8,137.5 62.7,118.3 Q71.7,97.0 92.7,84.9 Q111.0,69.0 136.0,66.4 Q160.0,59.0 184.0,66.4 Q209.0,69.0 227.3,84.9 Q248.3,97.0 257.3,118.3 Q270.2,137.5 268.0,160.0Z"/><path stroke="#0b0f2e" stroke-width="5" stroke-linejoin="round" fill="#5c3d29" d="M215.2,243.4 Q222.2,254.3 206.8,250.3 Q210.2,262.9 195.6,255.9 Q195.2,269.5 182.2,259.7 Q178.1,273.6 167.6,261.7 Q160.0,275.0 152.4,261.7 Q141.9,273.6 137.8,259.7 Q124.8,269.5 124.4,255.9 Q109.8,262.9 113.2,250.3 Q97.8,254.3 104.8,243.4"/><ellipse stroke="#0b0f2e" stroke-width="5" fill="#8a5f40" cx="62" cy="150" rx="22" ry="12" transform="rotate(-18 62 150)"/><ellipse stroke="#0b0f2e" stroke-width="5" fill="#8a5f40" cx="258" cy="150" rx="22" ry="12" transform="rotate(18 258 150)"/><ellipse fill="#8a5f40" cx="160" cy="172" rx="76" ry="76"/><ellipse fill="rgba(232,115,138,.28)" cx="112" cy="196" rx="13" ry="8"/><ellipse fill="rgba(232,115,138,.28)" cx="208" cy="196" rx="13" ry="8"/><ellipse fill="#0b0f2e" cx="130" cy="162" rx="10" ry="12"/><ellipse fill="#0b0f2e" cx="190" cy="162" rx="10" ry="12"/><circle fill="#fff" cx="134" cy="157" r="3.6"/><circle fill="#fff" cx="194" cy="157" r="3.6"/><path fill="#0b0f2e" d="M110,146 C118,132 136,128 150,136 C138,136 124,140 113,151 Z"/><path fill="#0b0f2e" d="M210,146 C202,132 184,128 170,136 C182,136 196,140 207,151 Z"/><ellipse stroke="#0b0f2e" stroke-width="5" fill="#e2c3a3" cx="160" cy="214" rx="46" ry="30"/><ellipse fill="#0b0f2e" cx="145" cy="206" rx="6" ry="4.5"/><ellipse fill="#0b0f2e" cx="175" cy="206" rx="6" ry="4.5"/><path class="mouth-open" fill="#0b0f2e" d="M144,224 Q160,226 176,224 Q174,246 160,248 Q146,246 144,224 Z"/><path class="smile" fill="none" stroke="#0b0f2e" stroke-width="4.5" stroke-linecap="round" d="M144,224 Q160,236 176,224"/></g></svg></template>
+<template id="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></template>
+
+<div id="app">
+  <header class="topbar">
+    <img src="/sherpas-logo.svg" alt="Sherpas" width="74" height="18">
+    <button id="end" class="btn end" type="button" hidden><span class="short">End</span><span class="long">End conversation</span></button>
+  </header>
+
+  <main>
+    <section id="start" class="view" aria-labelledby="start-title">
+      <div class="stage row">
+        <div class="halo"><div class="sherpy" data-sherpy></div></div>
+        <div class="right">
+          <div class="name">Sherpy</div>
+          <h1 id="start-title" class="lead-title" tabindex="-1">Hi, I'm Sherpy</h1>
+          <p class="lead-text" id="start-text">Let's talk through your plan together. I'll ask a few questions, and you just answer out loud.</p>
+          <button id="go" class="btn primary" type="button" disabled>Start</button>
+          <div id="back-actions" class="back-actions" hidden>
+            <a id="watch-video" class="btn ghost" href="/video.html">Watch your video</a>
+            <a id="my-missions" class="btn ghost" href="/missions.html">My missions</a>
+          </div>
+          <p class="privacy-note">Sherpy hears you through your microphone and an AI service processes what you say. No audio is recorded. <a href="/privacy.html">Privacy</a></p>
+          <label class="demo"><span>Demo family</span><select id="family" aria-label="Demo family"></select></label>
+        </div>
+      </div>
+    </section>
+
+    <section id="call" class="view" aria-labelledby="call-title" hidden>
+      <h1 id="call-title" class="sr-only" tabindex="-1">Conversation with Sherpy</h1>
+      <div id="callstage" class="stage row">
+        <div class="halo"><div class="sherpy" data-sherpy></div></div>
+        <div class="right">
+          <div class="name">Sherpy</div>
+          <div id="caption" class="caption" aria-hidden="true"></div>
+          <p id="family-line" class="family-line" aria-live="polite" hidden></p>
+          <div id="making" class="making-msg">
+            <p id="making-title" class="making-title" role="status">Sherpy is putting your video together</p>
+            <div class="loader" aria-hidden="true"><span></span><span></span><span></span></div>
+            <p id="making-sub" class="making-sub">This only takes a few seconds.</p>
+            <div id="making-fail" class="making-fail" hidden>
+              <button id="making-retry" class="btn primary" type="button">Try again</button>
+              <a id="making-missions" class="text-link" href="/missions.html">Go to my missions</a>
+            </div>
+          </div>
+          <div id="turn" class="turn" role="status"><span class="dot" data-mic></span><span id="turn-label">Sherpy is joining…</span></div>
+          <div id="sentence-live" class="sr-only" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pause" class="view" aria-labelledby="pause-title" hidden>
+      <div class="stage row">
+        <div class="halo"><div class="sherpy" data-sherpy></div></div>
+        <div class="right">
+          <div class="name">Sherpy</div>
+          <h1 id="pause-title" class="lead-title" tabindex="-1">Conversation paused</h1>
+          <p class="lead-text">Sherpy keeps what you've shared so far. Continue whenever you're ready and we'll pick up where we left off.</p>
+          <button id="resume" class="btn primary" type="button">Continue with Sherpy</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="error" class="view" aria-labelledby="err-title" hidden>
+      <div class="stage">
+        <div class="err-icon" aria-hidden="true">!</div>
+        <h1 id="err-title" class="lead-title" tabindex="-1"></h1>
+        <p id="err-text" class="lead-text" role="alert"></p>
+        <button id="retry" class="btn primary" type="button"></button>
+        <div id="fam-list" class="fam-list" hidden></div>
+      </div>
+    </section>
+  </main>
+  <div id="journey" class="journey"></div>
+</div>
+
+<dialog id="confirm" aria-labelledby="confirm-title">
+  <h2 id="confirm-title">End now?</h2>
+  <p>Sherpy keeps what you've shared so far.</p>
+  <div class="dlg-actions">
+    <button id="keep" class="btn ghost" type="button" autofocus>Keep talking</button>
+    <button id="end-now" class="btn danger" type="button">End now</button>
+  </div>
+</dialog>
+
+<script type="module" src="/conversation.mjs"></script>
+<script type="module">
+  import { initConversationHandoff, initReturningFamily } from '/handoff.mjs';
+  import { mountJourneyNav } from '/journey-nav.mjs';
+  import { readJourneyParams } from '/journey-logic.mjs';
+  const nav = mountJourneyNav({ step: 'talk', caseId: readJourneyParams(location.search).caseId, parent: document.getElementById('journey'), complete: false });
+  initConversationHandoff();
+  initReturningFamily({ onStatus: (caseId, complete) => nav.update({ caseId, complete }) });
+  addEventListener('sherpy:done', (e) => nav.update({ caseId: e.detail?.caseId, complete: true }));
+</script>
+</body>
+</html>

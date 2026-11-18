@@ -30,6 +30,7 @@ Rewritten 15/11 after reviewing every planning conversation. IDs are stable; don
 | D16 | Voice | Live agent = realtime speech-to-speech model; demo video = scripted, ElevenLabs voices | DECIDED |
 | D17 | Conversation | Profile file per family (JSON); closed, specific phase-1 questions | DECIDED |
 | D18 | Agent | Design approved: no calculations, data via the MCP at runtime | DECIDED |
+| D19 | Conversation | Natural conversation with a fixed agenda; mediate whenever needed; close and show the video | DECIDED |
 
 What we ruled out at idea stage (questionnaire, NotebookLM-style menu, expert dashboard, generic video,
 favourite-character narrator, video per step, leaderboard) and why: `docs/idea-note.md`.
@@ -188,7 +189,10 @@ favourite-character narrator, video per step, leaderboard) and why: `docs/idea-n
   ~40 min ElevenLabs cap for the whole team); C, realtime model with text output + ElevenLabs (unverified on the proxy).
 - **Demo video recording:** **100% artificial**, scripted and voiced with **ElevenLabs** (simulated, not live).
   Recommended by the Sherpas mentor, who wants teams to use the ElevenLabs credit.
-- Still open: which realtime model (`gpt-realtime-2.1-mini`, `gemini-3.8-live`, `gpt-live-1`) → voice spike (Q-VOICE).
+- **Model: `gemini-3.8-live`** (team, via Dani, 16/11, after the spike): tool calling works (1.1–1.5 s) and it continues
+  on its own after a tool output. `gpt-realtime-2.1-mini` untestable (proxy returns `expired_secret_key`; reported to
+  Sherpas). Re-run the spike if they fix it. Closes Q-VOICE.
+- **Voice: Charon** (team, via Dani, 16/11), chosen from 8 Gemini voice samples; the proxy honours `audio.output.voice`.
 - Agent behaviour ("hybrid", team's words): phase 1 = advisor role with predetermined questions to break the ice and
   fill the video profile; phase 2 = connected to the Sherpas context, freer to reason, without hallucinating.
   **Sherpas context = only the case data from the MCP (same as `cases/`). Inventing any figure or fact is strictly
@@ -217,6 +221,28 @@ favourite-character narrator, video per step, leaderboard) and why: `docs/idea-n
 - **Sherpy never calculates.** It only says figures exactly as they appear in the data.
 - **Data comes from the Sherpas MCP at runtime**, not from `cases/` ("they give it to us for a reason; they want us to
   use it"). Accepted costs: 72 h token renewal, MCP access ends 21/11, network round trip per lookup.
+- **One session, both phases (team, via Dani, 16/11):** the proxy/Gemini ignore a mid-session `session.update` (tested:
+  instructions ALPHA→BRAVO kept answering ALPHA). So Sherpy gets both phases' instructions and both tools
+  (`save_answer`, `get_plan_section`) from the start; it asks the phase-1 questions first and can still answer plan
+  questions at any moment. A returning family with a complete profile starts with phase-2 instructions only.
+  Ruled out: reconnecting for phase 2 (1–2 s cut, loses the conversation), rules as a conversation item (unverified).
 - The pitch is a presentation; the MVP is not shown live. **The jury won't run the MVP**: it is only shown in the
   demo video. So no fallback to `cases/` files; if the MCP fails, Sherpy says it can't reach the plan right now.
+
+## D19 · How Sherpy talks (after the first live test) — DECIDED (team, via Dani, 16/11)
+- First live test failed (devlog 16/11 20:50). The team's direction:
+- **It must feel like talking to a real person** who understands your problems. Sherpy knows clearly which questions
+  it has to cover (the D17 agenda), but it is intelligent: after an answer it responds to what they said, mediates
+  when partners disagree **on any topic** (e.g. risk: Daniel buy more vs Emily sell), or whatever is needed, and
+  only moves to the next question when everything is clear. Replaces the rigid closed-question script of D17
+  (the saved values stay validated against the options).
+- **Closing:** Sherpy closes clearly, like "I've got everything I need. I'm putting together your video now.", and
+  when the conversation ends **the video appears on screen**. No jump into Q&A right after the questions.
+- The current conversation page (`agent/public/`) is a test bench, not the product screen; the team doesn't like it.
+- **Approach approved (team, via Dani, 16/11):** rewrite the instructions as a natural conversation with an agenda;
+  mediate any disagreement (risk included); confirm aloud before saving; when everything is saved Sherpy says the
+  closing line and calls a new `finish_conversation` tool → the server tells the page and the voice session closes
+  (no paying for idle time); the test page shows a placeholder where the video will appear. **Questions about the plan
+  move to after the video** (the game, with Sherpy always available); during the conversation Sherpy says it will go
+  through them after the video. UI design waits until the agent works well (the test page stays as it is).
 
