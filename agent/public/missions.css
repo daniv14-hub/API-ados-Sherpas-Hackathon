@@ -135,6 +135,66 @@ dl { margin: 0; }
   .sherpy-row img { width: 64px; }
   .cp .stage img { width: 110px; }
 }
+/* Interactive step blocks (step-ui.mjs) */
+.blk { margin-top: 14px; }
+.blk-title { margin: 0 0 8px; font: 700 13px var(--font-body); letter-spacing: .05em; text-transform: uppercase; color: var(--gray-600); }
+.blk h5 { margin: 0 0 6px; font: 700 14px var(--font-body); color: var(--ink); }
+.pill.small { min-height: 40px; padding: 6px 14px; font-size: 14px; }
+.pill.ask { margin-top: 12px; background: var(--brand-50); }
+.pill.waiting { opacity: .55; }
+.need:not(:empty) { color: var(--error-600); font-weight: 600; }
+.bars { display: flex; flex-direction: column; gap: 14px; }
+.barlabel { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; color: var(--gray-700); }
+.barlabel strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+.track { position: relative; height: 18px; margin-top: 6px; background: #fff; border: 3px solid var(--ink); border-radius: 10px; overflow: visible; }
+.track > i { display: block; height: 100%; background: var(--priority-medium); border-radius: 6px 0 0 6px; }
+.track .tick { position: absolute; top: -7px; bottom: -7px; width: 4px; margin-left: -2px; background: var(--brand-600); border-radius: 2px; }
+.barref { margin-top: 6px; font-size: 13px; color: var(--gray-700); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.tickkey { width: 4px; height: 14px; background: var(--brand-600); border-radius: 2px; }
+.fields { border: 2px solid var(--ink); border-radius: 14px; padding: 10px 12px 12px; margin: 0 0 10px; background: #fff; min-width: 0; }
+.fields legend { font-weight: 700; padding: 0 6px; color: var(--ink); }
+.field { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+.field label { font-size: 13.5px; font-weight: 600; color: var(--gray-700); }
+.field .opt { font-weight: 400; color: var(--gray-500); }
+.blk input[type=text] { min-height: 44px; width: 100%; min-width: 0; border: 2px solid var(--gray-400); border-radius: 10px; padding: 8px 10px; font: 500 16px var(--font-body); color: var(--ink); background: #fff; }
+.blk input[type=text]:focus { border-color: var(--brand-600); outline: none; box-shadow: 0 0 0 3px var(--brand-100); }
+.checks { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.checks li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 10px; border: 2px solid var(--gray-300); border-radius: 12px; background: #fff; }
+.checks input { width: 24px; height: 24px; accent-color: var(--brand-600); flex: none; }
+.checks label { flex: 1 1 160px; font-size: 15px; color: var(--ink); min-width: 0; }
+.copywrap { display: inline-flex; align-items: center; gap: 6px; }
+.email { border: 2px solid var(--ink); border-radius: 14px; padding: 12px; margin-bottom: 12px; background: #fff; }
+.email pre.mail { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0 0 10px; font: 400 14.5px/1.55 var(--font-body); background: var(--brand-50); border-radius: 10px; padding: 10px 12px; }
+.email .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.q { margin-top: 10px; }
+.qlabel { display: block; font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+.opts { display: flex; gap: 8px; flex-wrap: wrap; }
+.opt-btn { min-height: 40px; padding: 6px 14px; border: 2px solid var(--ink); border-radius: 999px; background: #fff; }
+.opt-btn.on { background: var(--brand-500); color: #fff; }
+.ranks { display: flex; flex-direction: column; gap: 14px; }
+.ranklist { list-style: none; padding: 0; margin: 0 0 10px; display: flex; flex-direction: column; gap: 8px; }
+.ranklist li { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 10px; background: #fff; border: 2px solid var(--ink); border-radius: 14px; box-shadow: 2px 2px 0 var(--ink); flex-wrap: wrap; }
+.ranklist .pos { width: 28px; height: 28px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--brand-500); color: #fff; font: 700 14px var(--font-heading); }
+.ranklist li:not(:has(input)) { flex-wrap: nowrap; }
+.ranklist .what { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; font-weight: 600; color: var(--ink); font-size: 15px; }
+.ranklist .what small { font-weight: 500; color: var(--gray-600); font-size: 12.5px; }
+.ranklist input[type=text] { flex: 1 1 110px; width: auto; max-width: 140px; }
+.moves { display: flex; gap: 6px; margin-left: auto; }
+.mv { width: 40px; height: 40px; border: 2px solid var(--ink); border-radius: 10px; background: #fff; font-size: 18px; }
+.mv:disabled { opacity: .3; cursor: default; }
+.saved { margin: 0; color: var(--success-600); font-weight: 700; font-size: 14px; }
+.compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.theirs { border: 2px dashed var(--gray-400); border-radius: 12px; padding: 8px 10px; font-size: 13.5px; }
+.theirs ol { margin: 0; padding-left: 18px; }
+.total { font-size: 14px; color: var(--gray-700); background: var(--brand-50); border-radius: 10px; padding: 8px 10px; }
+.total strong { color: var(--ink); }
+.choice { display: flex; flex-direction: column; gap: 10px; }
+.opt-card { text-align: left; min-height: 48px; padding: 10px 12px; border: 2px solid var(--ink); border-radius: 14px; background: #fff; font: 500 15px var(--font-body); color: var(--ink); display: flex; flex-direction: column; gap: 8px; }
+.opt-card.on { background: var(--brand-50); box-shadow: 3px 3px 0 var(--ink); }
+.linkish { background: none; border: 0; padding: 0; text-align: left; font: 600 15px var(--font-body); color: var(--ink); min-height: 28px; }
+.agreed { margin: 0; padding: 10px 12px; border-radius: 12px; background: #fffbea; border: 2px solid var(--ink); font-size: 14.5px; color: var(--ink); }
+.recall { margin: 0; padding: 8px 12px 8px 28px; background: var(--gray-100); border-radius: 12px; font-size: 14px; color: var(--gray-800); }
+
 /* Bottom dock: ‹ Video arrow on the left (journey-nav.mjs), Sherpy bubble on the right (sherpy-chat.mjs). */
 #app { padding-bottom: 120px; }
 .dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; pointer-events: none;

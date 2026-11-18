@@ -22,7 +22,7 @@ export function missionsView(loaded, label) {
     missions: loaded.missions.map((m) => ({
       id: m.id, title: m.title, kind: m.kind, effort: m.effort ?? null, moveTitle: m.moveTitle ?? null, scoreNote: m.scoreNote ?? null,
       facts: (m.facts ?? []).map(strip),
-      steps: (m.steps ?? []).map((s) => ({ id: s.id, type: s.type, owner: s.owner ?? null, title: s.title, body: s.body ?? '', kit: s.kit ?? null })),
+      steps: (m.steps ?? []).map((s) => ({ id: s.id, type: s.type, owner: s.owner ?? null, title: s.title, body: s.body ?? '', kit: s.kit ?? null, ui: s.ui ?? null })),
     })),
     keepInView: (loaded.keepInView ?? []).map((k) => ({ id: k.id, title: k.title, body: k.body, facts: (k.facts ?? []).map(strip) })),
   };

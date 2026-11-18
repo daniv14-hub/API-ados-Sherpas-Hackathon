@@ -24,55 +24,64 @@
           "label": "Daniel's life cover today (whole life)",
           "value": 250000,
           "fmt": "usd",
-          "src": "FH: key_metrics.ratios.lifeInsurance.clientCoverage"
+          "src": "FH: key_metrics.ratios.lifeInsurance.clientCoverage",
+          "key": "d_today"
         },
         {
           "label": "Recommended for Daniel, from",
           "value": 1600000,
           "fmt": "usd",
-          "src": "FH: key_metrics.ratios.lifeInsurance.recommendedClientMinCoverage"
+          "src": "FH: key_metrics.ratios.lifeInsurance.recommendedClientMinCoverage",
+          "key": "d_from"
         },
         {
           "label": "Recommended for Daniel, to",
           "value": 2400000,
           "fmt": "usd",
-          "src": "FH: key_metrics.ratios.lifeInsurance.recommendedClientMaxCoverage"
+          "src": "FH: key_metrics.ratios.lifeInsurance.recommendedClientMaxCoverage",
+          "key": "d_to"
         },
         {
           "label": "Emily's life cover today (whole life)",
           "value": 200000,
           "fmt": "usd",
-          "src": "FH: key_metrics.ratios.lifeInsurance.coClientCoverage"
+          "src": "FH: key_metrics.ratios.lifeInsurance.coClientCoverage",
+          "key": "e_today"
         },
         {
           "label": "Recommended for Emily, from",
           "value": 1200000,
           "fmt": "usd",
-          "src": "FH: key_metrics.ratios.lifeInsurance.recommendedCoClientMinCoverage"
+          "src": "FH: key_metrics.ratios.lifeInsurance.recommendedCoClientMinCoverage",
+          "key": "e_from"
         },
         {
           "label": "Recommended for Emily, to",
           "value": 1800000,
           "fmt": "usd",
-          "src": "FH: key_metrics.ratios.lifeInsurance.recommendedCoClientMaxCoverage"
+          "src": "FH: key_metrics.ratios.lifeInsurance.recommendedCoClientMaxCoverage",
+          "key": "e_to"
         },
         {
           "label": "Household cover after the plan's move",
           "value": 1616000,
           "fmt": "usd",
-          "src": "FH: score.top_moves[0].target_amount"
+          "src": "FH: score.top_moves[0].target_amount",
+          "key": "household_after"
         },
         {
           "label": "Daniel's income at risk",
           "value": 160000,
           "fmt": "usd",
-          "src": "FH: key_metrics.ratios.lifeInsurance.clientEarnedIncome"
+          "src": "FH: key_metrics.ratios.lifeInsurance.clientEarnedIncome",
+          "key": "d_income"
         },
         {
           "label": "Emily's income at risk",
           "value": 120000,
           "fmt": "usd",
-          "src": "FH: key_metrics.ratios.lifeInsurance.coClientEarnedIncome"
+          "src": "FH: key_metrics.ratios.lifeInsurance.coClientEarnedIncome",
+          "key": "e_income"
         }
       ],
       "steps": [
@@ -82,7 +91,26 @@
           "owner": "together",
           "title": "See how far your cover is from the plan's range",
           "body": "Each of you has some life cover today, and it sits well below the range the plan recommends for you. If one income stopped, the other person would carry the whole household. Look at your own range, not a share of the household total.",
-          "kit": null
+          "kit": null,
+          "ui": [
+            {
+              "kind": "bars",
+              "rows": [
+                {
+                  "label": "Daniel's cover today",
+                  "fact": "d_today",
+                  "ref": "d_from",
+                  "refLabel": "The plan's range for Daniel starts at"
+                },
+                {
+                  "label": "Emily's cover today",
+                  "fact": "e_today",
+                  "ref": "e_from",
+                  "refLabel": "The plan's range for Emily starts at"
+                }
+              ]
+            }
+          ]
         },
         {
           "id": "M1-2",
@@ -90,7 +118,29 @@
           "owner": "each",
           "title": "Find your current life policy",
           "body": "Before you ask for any quote, know exactly what you have now: who the insurer is, how much it pays out and what type of policy it is.",
-          "kit": "Where to look: a letter or email from the insurer, your employer's benefits portal, or the policy documents in your files. Write down three things: the insurer, the amount, and the type of policy."
+          "kit": null,
+          "ui": [
+            {
+              "kind": "fields",
+              "per": "each",
+              "title": "Write down what you find",
+              "fields": [
+                {
+                  "key": "insurer",
+                  "label": "Insurer"
+                },
+                {
+                  "key": "amount",
+                  "label": "Amount it pays out",
+                  "kind": "usd"
+                },
+                {
+                  "key": "type",
+                  "label": "Type of policy"
+                }
+              ]
+            }
+          ]
         },
         {
           "id": "M1-3",
@@ -98,7 +148,50 @@
           "owner": "each",
           "title": "Ask for a quote inside your recommended range",
           "body": "Contact an insurer or an independent agent and ask for a quote for an amount inside your own range. The plan does not name a product or a price, so these quotes are your first real numbers.",
-          "kit": "What they will usually ask: your age, your health, your income, the amount of cover and how long you want it to last. Compare two or three quotes. For each one, ask what the monthly cost is, what is excluded, and whether the price can change over time."
+          "kit": null,
+          "ui": [
+            {
+              "kind": "recall",
+              "step": "M1-2",
+              "title": "What you have today (from step 2)"
+            },
+            {
+              "kind": "checklist",
+              "title": "Ask for a quote inside your own range",
+              "items": [
+                {
+                  "text": "Daniel asked for a quote between {d_from} and {d_to}",
+                  "copy": "{d_from} to {d_to}"
+                },
+                {
+                  "text": "Emily asked for a quote between {e_from} and {e_to}",
+                  "copy": "{e_from} to {e_to}"
+                }
+              ]
+            },
+            {
+              "kind": "fields",
+              "per": "each",
+              "optional": true,
+              "title": "Your quote (optional)",
+              "fields": [
+                {
+                  "key": "quoteInsurer",
+                  "label": "Who quoted"
+                },
+                {
+                  "key": "quoteAmount",
+                  "label": "Cover quoted",
+                  "kind": "usd"
+                },
+                {
+                  "key": "quoteCost",
+                  "label": "Monthly cost quoted",
+                  "kind": "usd"
+                }
+              ]
+            }
+          ]
         },
         {
           "id": "M1-4",
@@ -106,7 +199,31 @@
           "owner": "each",
           "title": "Choose a policy and apply",
           "body": "Pick the quote that fits you and send the application. Tap \"I did it\" when you have applied. That is the checkpoint.",
-          "kit": null
+          "kit": null,
+          "ui": [
+            {
+              "kind": "recall",
+              "step": "M1-3",
+              "title": "Your quotes (from step 3)"
+            },
+            {
+              "kind": "fields",
+              "per": "each",
+              "optional": true,
+              "title": "What you applied for (optional)",
+              "fields": [
+                {
+                  "key": "chosen",
+                  "label": "Insurer you chose"
+                },
+                {
+                  "key": "cover",
+                  "label": "Cover you applied for",
+                  "kind": "usd"
+                }
+              ]
+            }
+          ]
         }
       ],
       "adviceRefs": [
@@ -127,26 +244,30 @@
           "label": "Recommended umbrella cover (you have none)",
           "value": 1000000,
           "fmt": "usd",
-          "src": "FH: key_metrics.ratios.umbrella.recommendedCoverage"
+          "src": "FH: key_metrics.ratios.umbrella.recommendedCoverage",
+          "key": "umbrella"
         },
         {
           "label": "Home and car a claim could reach",
           "value": 785000,
           "fmt": "usd",
-          "src": "FH: key_metrics.protection.umbrellaInsurance.assetExposed.assetExposedSummary[3][2]"
+          "src": "FH: key_metrics.protection.umbrellaInsurance.assetExposed.assetExposedSummary[3][2]",
+          "key": "home_car"
         },
         {
           "label": "Cash and investments a claim could reach",
           "value": 344000,
           "fmt": "usd",
-          "src": "FH: key_metrics.protection.umbrellaInsurance.assetExposed.totalLiquidAssets"
+          "src": "FH: key_metrics.protection.umbrellaInsurance.assetExposed.totalLiquidAssets",
+          "key": "cash_inv"
         },
         {
           "label": "Price of umbrella cover",
           "value": "Not in the plan",
           "fmt": "text",
           "src": "FH: narrative.protection_umbrella_short_observations",
-          "verify": "exists"
+          "verify": "exists",
+          "key": "price"
         }
       ],
       "steps": [
@@ -156,7 +277,26 @@
           "owner": "together",
           "title": "See what a large claim could reach",
           "body": "Without an umbrella, one large liability claim could reach your home, your car, and the cash and investments you hold. The plan recommends an umbrella policy on top of your home and auto cover.",
-          "kit": null
+          "kit": null,
+          "ui": [
+            {
+              "kind": "bars",
+              "rows": [
+                {
+                  "label": "Home and car a claim could reach",
+                  "fact": "home_car",
+                  "ref": "umbrella",
+                  "refLabel": "Umbrella cover the plan recommends"
+                },
+                {
+                  "label": "Cash and investments a claim could reach",
+                  "fact": "cash_inv",
+                  "ref": "umbrella",
+                  "refLabel": "Umbrella cover the plan recommends"
+                }
+              ]
+            }
+          ]
         },
         {
           "id": "M2-2",
@@ -164,7 +304,34 @@
           "owner": "together",
           "title": "Find your home and auto policies",
           "body": "The plan flags your home and your car as not insured. That may only mean details are missing in the data. An umbrella sits on top of those policies, so confirm what you already have.",
-          "kit": "Where to look: your insurer's app or website, or last year's renewal letters. Write down the insurer and the liability limits on each policy."
+          "kit": null,
+          "ui": [
+            {
+              "kind": "fields",
+              "per": "together",
+              "title": "Write down what you find",
+              "fields": [
+                {
+                  "key": "homeInsurer",
+                  "label": "Home insurer"
+                },
+                {
+                  "key": "homeLimit",
+                  "label": "Home liability limit",
+                  "kind": "usd"
+                },
+                {
+                  "key": "autoInsurer",
+                  "label": "Auto insurer"
+                },
+                {
+                  "key": "autoLimit",
+                  "label": "Auto liability limit",
+                  "kind": "usd"
+                }
+              ]
+            }
+          ]
         },
         {
           "id": "M2-3",
@@ -172,7 +339,40 @@
           "owner": "together",
           "title": "Ask for an umbrella quote",
           "body": "The plan has no price for umbrella cover, so this quote is the first real number you will see.",
-          "kit": "Start with the insurer that already covers your home and car. Ask for an umbrella quote at the amount the plan recommends. They will usually ask for your current liability limits and for details of your household and vehicles."
+          "kit": null,
+          "ui": [
+            {
+              "kind": "recall",
+              "step": "M2-2",
+              "title": "Your policies today (from step 2)"
+            },
+            {
+              "kind": "checklist",
+              "items": [
+                {
+                  "text": "We asked for an umbrella quote of {umbrella}",
+                  "copy": "{umbrella}"
+                }
+              ]
+            },
+            {
+              "kind": "fields",
+              "per": "together",
+              "optional": true,
+              "title": "The quote (optional)",
+              "fields": [
+                {
+                  "key": "quoteInsurer",
+                  "label": "Who quoted"
+                },
+                {
+                  "key": "quoteCost",
+                  "label": "Yearly price quoted",
+                  "kind": "usd"
+                }
+              ]
+            }
+          ]
         },
         {
           "id": "M2-4",
@@ -180,7 +380,22 @@
           "owner": "together",
           "title": "Sign and put it in place",
           "body": "When you are happy with the quote, sign the policy. Tap \"I did it\" once it is active.",
-          "kit": null
+          "kit": null,
+          "ui": [
+            {
+              "kind": "recall",
+              "step": "M2-3",
+              "title": "Your quote (from step 3)"
+            },
+            {
+              "kind": "checklist",
+              "items": [
+                {
+                  "text": "The umbrella policy is signed and active"
+                }
+              ]
+            }
+          ]
         }
       ],
       "adviceRefs": [
@@ -201,37 +416,43 @@
           "label": "Free cash flow per year",
           "value": 15032,
           "fmt": "usd",
-          "src": "FH: key_metrics.cashflowStatement.freeCashflow.total"
+          "src": "FH: key_metrics.cashflowStatement.freeCashflow.total",
+          "key": "fcf"
         },
         {
           "label": "Cash reserve gap",
           "value": 92360,
           "fmt": "usd",
-          "src": "FH: key_metrics.ratios.emergencyFund.shortfallToAdjustedMin"
+          "src": "FH: key_metrics.ratios.emergencyFund.shortfallToAdjustedMin",
+          "key": "cash_gap"
         },
         {
           "label": "Extra retirement saving the plan calls for, per year",
           "value": 34165,
           "fmt": "usd",
-          "src": "FH: key_metrics.ratios.retirementSavings.requiredExtraSavings"
+          "src": "FH: key_metrics.ratios.retirementSavings.requiredExtraSavings",
+          "key": "ret_extra"
         },
         {
           "label": "Credit card balance",
           "value": 18000,
           "fmt": "usd",
-          "src": "FH: profile.liabilities[0].balance"
+          "src": "FH: profile.liabilities[0].balance",
+          "key": "card"
         },
         {
           "label": "Extra college saving needed in the first year",
           "value": 1928,
           "fmt": "usd",
-          "src": "FH: key_metrics.facts.education.extraYearlySaving.value"
+          "src": "FH: key_metrics.facts.education.extraYearlySaving.value",
+          "key": "college_first"
         },
         {
           "label": "Mortgage payment per month",
           "value": 4100,
           "fmt": "usd",
-          "src": "FH: profile.liabilities[2].monthly_payment"
+          "src": "FH: profile.liabilities[2].monthly_payment",
+          "key": "mortgage"
         }
       ],
       "steps": [
@@ -239,8 +460,8 @@
           "id": "M3-1",
           "type": "learn",
           "owner": "together",
-          "title": "See the four needs that share the same money",
-          "body": "Protection, the cash reserve, retirement saving and the college fund all draw on the same yearly free cash flow, and the mortgage payment has to fit alongside them. The plan says its data does not settle which comes first, so it is your choice.",
+          "title": "See the needs that share the same money",
+          "body": "Protection, the cash reserve, retirement saving, the college fund and the credit card all draw on the same yearly free cash flow, and the mortgage payment has to fit alongside them. The plan says its data does not settle which comes first, so it is your choice.",
           "kit": null
         },
         {
@@ -249,7 +470,44 @@
           "owner": "each",
           "title": "Put the needs in your own order",
           "body": "Each of you, on your own, puts the needs in the order you would choose. It is fine if your orders differ: that is the conversation to have next.",
-          "kit": null
+          "kit": null,
+          "ui": [
+            {
+              "kind": "rank",
+              "title": "Put them in your order: first = most important to you",
+              "items": [
+                {
+                  "key": "protection",
+                  "label": "Protection: life and umbrella cover",
+                  "note": "The plan gives no price for it"
+                },
+                {
+                  "key": "cash",
+                  "label": "The cash reserve",
+                  "fact": "cash_gap",
+                  "factLabel": "gap"
+                },
+                {
+                  "key": "retirement",
+                  "label": "Retirement saving",
+                  "fact": "ret_extra",
+                  "factLabel": "extra a year"
+                },
+                {
+                  "key": "college",
+                  "label": "The college fund",
+                  "fact": "college_first",
+                  "factLabel": "extra in the first year"
+                },
+                {
+                  "key": "card",
+                  "label": "The credit card",
+                  "fact": "card",
+                  "factLabel": "balance"
+                }
+              ]
+            }
+          ]
         },
         {
           "id": "M3-3",
@@ -257,7 +515,14 @@
           "owner": "together",
           "title": "Agree one order, and optionally an amount for each",
           "body": "Compare your orders and agree one. If you like, also decide how much of the yearly free cash flow goes to each need. Any amount you pick is your own number, not the plan's.",
-          "kit": "Have the plan's facts side by side while you talk: the free cash flow, the cash gap, the retirement need, the card balance and the college need. The plan itself suggests taking small, clear steps rather than everything at once."
+          "kit": "Have the plan's facts side by side while you talk: the free cash flow, the cash gap, the retirement need, the card balance and the college need. The plan itself suggests taking small, clear steps rather than everything at once.",
+          "ui": [
+            {
+              "kind": "agree",
+              "rankStep": "M3-2",
+              "total": "fcf"
+            }
+          ]
         }
       ],
       "adviceRefs": [
@@ -280,37 +545,43 @@
           "label": "Accessible cash today",
           "value": 19000,
           "fmt": "usd",
-          "src": "FH: key_metrics.facts.cash.accessibleCash.value"
+          "src": "FH: key_metrics.facts.cash.accessibleCash.value",
+          "key": "cash_today"
         },
         {
           "label": "Months of essential expenses it covers",
           "value": 1.4,
           "fmt": "months",
-          "src": "FH: key_metrics.facts.cash.monthsCovered.value"
+          "src": "FH: key_metrics.facts.cash.monthsCovered.value",
+          "key": "months"
         },
         {
           "label": "Cash target, from (reserve plus near-term goals)",
           "value": 111360,
           "fmt": "usd",
-          "src": "FH: key_metrics.facts.cash.totalCashNeeded.min"
+          "src": "FH: key_metrics.facts.cash.totalCashNeeded.min",
+          "key": "target_from"
         },
         {
           "label": "Cash target, to",
           "value": 124718,
           "fmt": "usd",
-          "src": "FH: key_metrics.facts.cash.totalCashNeeded.max"
+          "src": "FH: key_metrics.facts.cash.totalCashNeeded.max",
+          "key": "target_to"
         },
         {
           "label": "Gap",
           "value": 92360,
           "fmt": "usd",
-          "src": "FH: key_metrics.ratios.emergencyFund.shortfallToAdjustedMin"
+          "src": "FH: key_metrics.ratios.emergencyFund.shortfallToAdjustedMin",
+          "key": "gap"
         },
         {
           "label": "Vacation payment included in the target (January 2027)",
           "value": 4500,
           "fmt": "usd",
-          "src": "FH: key_metrics.facts.cash.nearTermGoals[0].value"
+          "src": "FH: key_metrics.facts.cash.nearTermGoals[0].value",
+          "key": "vacation"
         }
       ],
       "steps": [
@@ -320,7 +591,20 @@
           "owner": "together",
           "title": "See what the cushion is for",
           "body": "A cash reserve lets you handle a lost paycheck or a big bill without selling investments at a bad time. Your accessible cash today is far below the plan's target. The plan says closing the gap will take time, so steady progress is the goal.",
-          "kit": null
+          "kit": null,
+          "ui": [
+            {
+              "kind": "bars",
+              "rows": [
+                {
+                  "label": "Accessible cash today",
+                  "fact": "cash_today",
+                  "ref": "target_from",
+                  "refLabel": "The plan's cash target starts at"
+                }
+              ]
+            }
+          ]
         },
         {
           "id": "M5-2",
@@ -328,7 +612,38 @@
           "owner": "together",
           "title": "Set up an automatic monthly transfer to savings",
           "body": "Choose the monthly amount you agreed in the cash flow decision, and set up a transfer that moves it to savings on its own.",
-          "kit": "In your bank app, look for \"transfers\" or \"recurring transfers\". Pick the source account, the savings account, the amount and a day just after payday. Have at hand: both account names and the amount you agreed."
+          "kit": null,
+          "ui": [
+            {
+              "kind": "agreed",
+              "need": "cash",
+              "label": "for the cash reserve"
+            },
+            {
+              "kind": "fields",
+              "per": "together",
+              "title": "Your transfer",
+              "fields": [
+                {
+                  "key": "monthly",
+                  "label": "Monthly amount you set up",
+                  "kind": "usd"
+                },
+                {
+                  "key": "day",
+                  "label": "Day of the month it runs"
+                }
+              ]
+            },
+            {
+              "kind": "checklist",
+              "items": [
+                {
+                  "text": "The transfer is set to repeat every month"
+                }
+              ]
+            }
+          ]
         },
         {
           "id": "M5-3",
@@ -336,7 +651,22 @@
           "owner": "together",
           "title": "Make the first transfer",
           "body": "Confirm the first transfer went through. Later, you can type in your savings balance at check-ins and compare it with the plan's target.",
-          "kit": null
+          "kit": null,
+          "ui": [
+            {
+              "kind": "recall",
+              "step": "M5-2",
+              "title": "Your transfer (from step 2)"
+            },
+            {
+              "kind": "checklist",
+              "items": [
+                {
+                  "text": "The first transfer went through"
+                }
+              ]
+            }
+          ]
         }
       ],
       "adviceRefs": [
@@ -358,31 +688,36 @@
           "label": "Going into your 401(k)s today",
           "value": 0,
           "fmt": "usd",
-          "src": "IA: key_metrics.savingsAndContributions.taxOpportunityCheck.annualTaxSavingsByBucket[3][2]"
+          "src": "IA: key_metrics.savingsAndContributions.taxOpportunityCheck.annualTaxSavingsByBucket[3][2]",
+          "key": "k401_today"
         },
         {
           "label": "Each of you can contribute per year",
           "value": 24500,
           "fmt": "usd",
-          "src": "FH: key_metrics.assetsAndInvestments.contributions.employerPlanContributions[1][1]"
+          "src": "FH: key_metrics.assetsAndInvestments.contributions.employerPlanContributions[1][1]",
+          "key": "limit_each"
         },
         {
           "label": "Extra saving the plan calls for, per year",
           "value": 34165,
           "fmt": "usd",
-          "src": "FH: key_metrics.ratios.retirementSavings.requiredExtraSavings"
+          "src": "FH: key_metrics.ratios.retirementSavings.requiredExtraSavings",
+          "key": "extra"
         },
         {
           "label": "Retirement gap (today's dollars)",
           "value": 1427456,
           "fmt": "usd",
-          "src": "FH: key_metrics.ratios.retirementSavings.planningGapAtRetirementAgeInTodaysDollars"
+          "src": "FH: key_metrics.ratios.retirementSavings.planningGapAtRetirementAgeInTodaysDollars",
+          "key": "gap"
         },
         {
           "label": "Tax it could save per year if both of you contribute in full",
           "value": 11760,
           "fmt": "usd",
-          "src": "IA: key_metrics.savingsAndContributions.taxOpportunityCheck.annualTaxSavingsByBucket[3][5]"
+          "src": "IA: key_metrics.savingsAndContributions.taxOpportunityCheck.annualTaxSavingsByBucket[3][5]",
+          "key": "tax"
         },
         {
           "label": "Employer match",
@@ -392,13 +727,15 @@
             "FH: key_metrics.assetsAndInvestments.matchGapAnalysis[0].matchPolicyConfigured",
             "FH: key_metrics.assetsAndInvestments.matchGapAnalysis[1].matchPolicyConfigured"
           ],
-          "verify": "exists"
+          "verify": "exists",
+          "key": "match"
         },
         {
           "label": "HSA: most you could put in per year, if eligible",
           "value": 8750,
           "fmt": "usd",
-          "src": "FH: key_metrics.assetsAndInvestments.contributions.hsaContributions.maxContributions"
+          "src": "FH: key_metrics.assetsAndInvestments.contributions.hsaContributions.maxContributions",
+          "key": "hsa_max"
         }
       ],
       "steps": [
@@ -408,7 +745,20 @@
           "owner": "together",
           "title": "See what goes in today and what could",
           "body": "Right now nothing goes into your 401(k)s. Each of you could contribute up to the yearly limit, and the plan calls for more saving than your free cash flow covers today. No employer match is recorded, but the plan flags that as unconfirmed.",
-          "kit": null
+          "kit": null,
+          "ui": [
+            {
+              "kind": "bars",
+              "rows": [
+                {
+                  "label": "Going into your 401(k)s today",
+                  "fact": "k401_today",
+                  "ref": "limit_each",
+                  "refLabel": "Each of you can contribute per year"
+                }
+              ]
+            }
+          ]
         },
         {
           "id": "M4-2",
@@ -416,7 +766,25 @@
           "owner": "each",
           "title": "Ask HR about the match and the HSA",
           "body": "Send your HR team one short email. You need two answers: does the company offer a 401(k) match, and does your health plan qualify for an HSA.",
-          "kit": "Hi, I'd like to start contributing to my 401(k). Could you tell me first whether the company offers a match and how it works, and second whether my health plan is eligible for an HSA? Thanks, {name}."
+          "kit": null,
+          "ui": [
+            {
+              "kind": "email",
+              "title": "Your email to HR",
+              "template": "Hi, I'd like to start contributing to my 401(k). Could you tell me first whether the company offers a match and how it works, and second whether my health plan is eligible for an HSA? Thanks, {name}.",
+              "subject": "401(k) match and HSA",
+              "questions": [
+                {
+                  "key": "match",
+                  "label": "Does the company offer a 401(k) match?"
+                },
+                {
+                  "key": "hsa",
+                  "label": "Does your health plan qualify for an HSA?"
+                }
+              ]
+            }
+          ]
         },
         {
           "id": "M4-3",
@@ -424,7 +792,31 @@
           "owner": "each",
           "title": "Set your 401(k) contribution",
           "body": "In your employer's portal, set the amount you contribute from each paycheck. Use the amount you agreed in the cash flow decision.",
-          "kit": "It is usually in the benefits or retirement section of the employer portal. Have at hand: your login, the amount you agreed, and the answer from HR about the match."
+          "kit": null,
+          "ui": [
+            {
+              "kind": "agreed",
+              "need": "retirement",
+              "label": "for retirement saving"
+            },
+            {
+              "kind": "recall",
+              "step": "M4-2",
+              "title": "What HR told you (from step 2)"
+            },
+            {
+              "kind": "fields",
+              "per": "each",
+              "title": "What you set in the portal",
+              "fields": [
+                {
+                  "key": "perPaycheck",
+                  "label": "Amount per paycheck",
+                  "kind": "usd"
+                }
+              ]
+            }
+          ]
         },
         {
           "id": "M4-4",
@@ -432,7 +824,17 @@
           "owner": "each",
           "title": "If HR said yes, start your HSA",
           "body": "Only do this if HR confirmed your health plan qualifies. The plan calls the HSA a secondary step, to come after the bigger priorities, so it stays last.",
-          "kit": null
+          "kit": null,
+          "ui": [
+            {
+              "kind": "recall",
+              "step": "M4-2",
+              "keys": [
+                "hsa"
+              ],
+              "title": "Did HR say your plan qualifies? (from step 2)"
+            }
+          ]
         }
       ],
       "adviceRefs": [
@@ -457,31 +859,36 @@
           "label": "Balance",
           "value": 18000,
           "fmt": "usd",
-          "src": "FH: profile.liabilities[0].balance"
+          "src": "FH: profile.liabilities[0].balance",
+          "key": "balance"
         },
         {
           "label": "Interest rate",
           "value": 0.249,
           "fmt": "pct",
-          "src": "FH: profile.liabilities[0].interest_rate"
+          "src": "FH: profile.liabilities[0].interest_rate",
+          "key": "rate"
         },
         {
           "label": "Monthly payment",
           "value": 450,
           "fmt": "usd",
-          "src": "FH: profile.liabilities[0].monthly_payment"
+          "src": "FH: profile.liabilities[0].monthly_payment",
+          "key": "payment"
         },
         {
           "label": "Part of each payment that is interest, at today's balance",
           "value": 374,
           "fmt": "usd",
-          "src": "FH: key_metrics.ratios.creditCardDebt.paymentsEqualToInterest"
+          "src": "FH: key_metrics.ratios.creditCardDebt.paymentsEqualToInterest",
+          "key": "interest_part"
         },
         {
           "label": "Paid off at the current payment",
           "value": "2034-01",
           "fmt": "date",
-          "src": "FH: key_metrics.ratios.creditCardDebt.ccPayoffDate"
+          "src": "FH: key_metrics.ratios.creditCardDebt.ccPayoffDate",
+          "key": "payoff"
         }
       ],
       "steps": [
@@ -491,7 +898,20 @@
           "owner": "together",
           "title": "See what the card costs you",
           "body": "This is your costliest debt. A large part of every payment goes to interest, not to the balance. At today's payment the plan shows when it would be paid off.",
-          "kit": null
+          "kit": null,
+          "ui": [
+            {
+              "kind": "bars",
+              "rows": [
+                {
+                  "label": "Part of each payment that is interest",
+                  "fact": "interest_part",
+                  "ref": "payment",
+                  "refLabel": "Your monthly payment"
+                }
+              ]
+            }
+          ]
         },
         {
           "id": "M6-2",
@@ -499,7 +919,18 @@
           "owner": "together",
           "title": "Decide whether a higher payment fits",
           "body": "Look at what you agreed in the cash flow decision and decide whether a bigger monthly payment fits. The plan does not compute a new payoff date, so we do not show one.",
-          "kit": null
+          "kit": null,
+          "ui": [
+            {
+              "kind": "agreed",
+              "need": "card",
+              "label": "for the credit card"
+            },
+            {
+              "kind": "choice",
+              "keep": "payment"
+            }
+          ]
         },
         {
           "id": "M6-3",
@@ -507,7 +938,22 @@
           "owner": "Daniel",
           "title": "Change the autopay amount",
           "body": "The card is Daniel's. Change the automatic payment to the amount you decided.",
-          "kit": "In the card's app or website, look for \"autopay\" or \"payment settings\". Pick a fixed amount and enter the new payment. Have at hand: your login and the amount you decided."
+          "kit": null,
+          "ui": [
+            {
+              "kind": "recall",
+              "step": "M6-2",
+              "title": "What you decided (from step 2)"
+            },
+            {
+              "kind": "checklist",
+              "items": [
+                {
+                  "text": "Autopay now uses the amount we decided"
+                }
+              ]
+            }
+          ]
         }
       ],
       "adviceRefs": [
@@ -528,43 +974,50 @@
           "label": "529 balance",
           "value": 30000,
           "fmt": "usd",
-          "src": "FH: profile.accounts[4].balance"
+          "src": "FH: profile.accounts[4].balance",
+          "key": "balance"
         },
         {
           "label": "Going in per year",
           "value": 8000,
           "fmt": "usd",
-          "src": "FH: profile.accounts[4].yearly_contribution_total"
+          "src": "FH: profile.accounts[4].yearly_contribution_total",
+          "key": "per_year"
         },
         {
           "label": "Cost per child",
           "value": 60000,
           "fmt": "usd",
-          "src": "FH: key_metrics.facts.education.totalCostPerGoal[0].value"
+          "src": "FH: key_metrics.facts.education.totalCostPerGoal[0].value",
+          "key": "cost_child"
         },
         {
           "label": "College funding gap",
           "value": 106552,
           "fmt": "usd",
-          "src": "FH: key_metrics.facts.education.fundingGap.value"
+          "src": "FH: key_metrics.facts.education.fundingGap.value",
+          "key": "gap"
         },
         {
           "label": "Extra saving needed in the first year (it rises each year)",
           "value": 1928,
           "fmt": "usd",
-          "src": "FH: key_metrics.facts.education.extraYearlySaving.value"
+          "src": "FH: key_metrics.facts.education.extraYearlySaving.value",
+          "key": "first_year"
         },
         {
           "label": "Oliver starts",
           "value": "2033-08",
           "fmt": "date",
-          "src": "FH: goals.chartGoals[1].date"
+          "src": "FH: goals.chartGoals[1].date",
+          "key": "oliver"
         },
         {
           "label": "Sophia starts",
           "value": "2035-08",
           "fmt": "date",
-          "src": "FH: goals.chartGoals[2].date"
+          "src": "FH: goals.chartGoals[2].date",
+          "key": "sophia"
         }
       ],
       "steps": [
@@ -574,7 +1027,22 @@
           "owner": "together",
           "title": "See where the college fund stands",
           "body": "You already save in a college savings plan. The plan shows what is saved, what goes in each year, the gap that remains and when each child starts.",
-          "kit": null
+          "kit": null,
+          "ui": [
+            {
+              "kind": "bars",
+              "rows": [
+                {
+                  "label": "Saved in the college plan",
+                  "fact": "balance"
+                },
+                {
+                  "label": "College funding gap",
+                  "fact": "gap"
+                }
+              ]
+            }
+          ]
         },
         {
           "id": "M7-2",
@@ -582,7 +1050,26 @@
           "owner": "Emily",
           "title": "Adjust the college savings contribution",
           "body": "The college savings plan is Emily's. Change the yearly contribution to the amount you agreed in the cash flow decision.",
-          "kit": "In the plan's portal, look for \"contributions\" or \"automatic investments\". Change the amount and the schedule. Have at hand: your login and the amount you agreed."
+          "kit": null,
+          "ui": [
+            {
+              "kind": "agreed",
+              "need": "college",
+              "label": "for the college fund"
+            },
+            {
+              "kind": "fields",
+              "per": "together",
+              "title": "What you set in the portal",
+              "fields": [
+                {
+                  "key": "yearly",
+                  "label": "New yearly contribution",
+                  "kind": "usd"
+                }
+              ]
+            }
+          ]
         }
       ],
       "adviceRefs": [
@@ -602,25 +1089,29 @@
           "label": "Household stocks today",
           "value": 0.5435,
           "fmt": "pct",
-          "src": "IA: analysis.summary.assetAllocation.currentEF.equity"
+          "src": "IA: analysis.summary.assetAllocation.currentEF.equity",
+          "key": "stocks_today"
         },
         {
           "label": "Household stocks, plan's target",
           "value": 0.663,
           "fmt": "pct",
-          "src": "IA: analysis.summary.assetAllocation.targetEF.equity"
+          "src": "IA: analysis.summary.assetAllocation.targetEF.equity",
+          "key": "stocks_target"
         },
         {
           "label": "Plan flag on Daniel's 401(k) mix (Active means worth a look)",
           "value": "Active",
           "fmt": "text",
-          "src": "IA: key_metrics.allocationBenchmarkAnalysis.accounts[2].allocationSeverity"
+          "src": "IA: key_metrics.allocationBenchmarkAnalysis.accounts[2].allocationSeverity",
+          "key": "d_flag"
         },
         {
           "label": "Plan flag on Emily's 401(k) mix (None means on target)",
           "value": "None",
           "fmt": "text",
-          "src": "IA: key_metrics.allocationBenchmarkAnalysis.accounts[3].allocationSeverity"
+          "src": "IA: key_metrics.allocationBenchmarkAnalysis.accounts[3].allocationSeverity",
+          "key": "e_flag"
         }
       ],
       "steps": [
@@ -630,7 +1121,20 @@
           "owner": "together",
           "title": "See your mix next to the plan's target",
           "body": "The plan compares the mix of stocks and bonds you hold with the mix it recommends, and shows how both behaved in past markets. Those are past results, not a promise. Emily's 401(k) is on target; Daniel's is the account to look at.",
-          "kit": null
+          "kit": null,
+          "ui": [
+            {
+              "kind": "bars",
+              "rows": [
+                {
+                  "label": "Household stocks today",
+                  "fact": "stocks_today",
+                  "ref": "stocks_target",
+                  "refLabel": "The plan's target"
+                }
+              ]
+            }
+          ]
         },
         {
           "id": "M8-2",
@@ -638,7 +1142,27 @@
           "owner": "Daniel",
           "title": "Get ready to review the mix with your advisor",
           "body": "The report presents this as a proposal to review with your advisor, not an instruction.",
-          "kit": "Bring to that conversation: the plan's current and target mix, the account statement for your 401(k), and the risk profile you chose."
+          "kit": null,
+          "ui": [
+            {
+              "kind": "checklist",
+              "title": "Bring to the review",
+              "items": [
+                {
+                  "text": "The plan's current mix: {stocks_today} stocks"
+                },
+                {
+                  "text": "The plan's target mix: {stocks_target} stocks"
+                },
+                {
+                  "text": "The account statement for your 401(k)"
+                },
+                {
+                  "text": "The risk profile you chose"
+                }
+              ]
+            }
+          ]
         },
         {
           "id": "M8-3",
@@ -646,7 +1170,29 @@
           "owner": "Daniel",
           "title": "Change the fund mix in your 401(k) portal",
           "body": "After the review, change the fund mix in your 401(k) portal to the mix you settled on.",
-          "kit": null
+          "kit": null,
+          "ui": [
+            {
+              "kind": "fields",
+              "per": "together",
+              "optional": true,
+              "title": "The mix you settled on (optional)",
+              "fields": [
+                {
+                  "key": "mix",
+                  "label": "Mix you settled on"
+                }
+              ]
+            },
+            {
+              "kind": "checklist",
+              "items": [
+                {
+                  "text": "The fund mix is changed in the 401(k) portal"
+                }
+              ]
+            }
+          ]
         }
       ],
       "adviceRefs": [

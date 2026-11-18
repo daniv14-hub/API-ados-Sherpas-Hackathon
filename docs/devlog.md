@@ -121,3 +121,15 @@ Timestamped entries (Europe/Madrid). Milestones, blockers, surprises and pivots,
   note, before the family speaks, is now cancelled and dropped by the server.
 - Live (fake mic): in mission 3 "What is the second step of this mission?" -> "put the needs in your own order";
   after moving to mission 1 -> "find your current life policy…"; two screen changes -> no reply. 213 tests pass.
+
+## 2026-11-18 ~14:40 — Interactive, guided mission steps (no invented content)
+- Team (Dani, 18/11): steps were "text + Done". Approved (via question): drop generic tips that are not in the plan;
+  show the sum of the family's own amounts next to the plan's free cash flow; build everything, demo pieces first.
+- Every Johnson step now has blocks (`ui` in data/missions JSON, `step-logic.mjs` + `step-ui.mjs`): learn = bars of
+  plan figures + "Ask Sherpy about this"; prepare = fields to write down what they find; M3-2 each partner ranks the
+  needs (↑↓); M3-3 both orders side by side, a shared order and optional yearly amounts (total vs $15,032);
+  M4-2 ready-made HR email (copy / open mail app) + what HR answered; act steps show the amount agreed in M3-3 and
+  recall earlier answers; M6-2 keep $450 or pay more. "I did it" waits until the step is filled in.
+- Removed kits that were general knowledge (where to look in a bank app, what insurers ask, etc.); M3-3 kit kept
+  (plan-backed). M3-1 now names the credit card among the needs (it is in M3's facts and M6 uses the decision).
+- Bug found headless and fixed: each field overwrote the others (stale answers copy). 223 tests pass.

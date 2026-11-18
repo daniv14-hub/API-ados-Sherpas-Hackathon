@@ -87,6 +87,8 @@ const files = {
   '/missions.css': [join(here, 'public', 'missions.css'), 'text/css; charset=utf-8'],
   '/missions.mjs': [join(here, 'public', 'missions.mjs'), 'text/javascript; charset=utf-8'],
   '/missions-logic.mjs': [join(here, 'public', 'missions-logic.mjs'), 'text/javascript; charset=utf-8'],
+  '/step-logic.mjs': [join(here, 'public', 'step-logic.mjs'), 'text/javascript; charset=utf-8'],
+  '/step-ui.mjs': [join(here, 'public', 'step-ui.mjs'), 'text/javascript; charset=utf-8'],
   '/game-score.mjs': [join(here, 'src', 'game', 'score.mjs'), 'text/javascript; charset=utf-8'],
 };
 

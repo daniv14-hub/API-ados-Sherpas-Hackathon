@@ -1,6 +1,8 @@
 import { scoreFor } from '/game-score.mjs';
 import * as L from '/missions-logic.mjs';
 import { mountJourneyNav } from '/journey-nav.mjs';
+import * as S from '/step-logic.mjs';
+import { renderBlocks } from '/step-ui.mjs';
 import { mountSherpyChat } from '/sherpy-chat.mjs';
 
 const app = document.getElementById('app');
@@ -31,7 +33,10 @@ const chip = (text, cls = '') => h('span', { class: `chip ${cls}` }, text);
 // ---------- storage ----------
 const key = () => `sherpas.missions.v1.${caseId}`;
 function load() {
-  try { return L.sanitizeState(data, JSON.parse(localStorage.getItem(key()))); } catch { storageOk = false; return L.emptyState(); }
+  try {
+    const raw = JSON.parse(localStorage.getItem(key()));
+    return { ...L.sanitizeState(data, raw), answers: S.sanitizeAnswers(data, raw?.answers) };
+  } catch { storageOk = false; return { ...L.emptyState(), answers: {} }; }
 }
 function save() { try { localStorage.setItem(key(), JSON.stringify(state)); } catch { storageOk = false; } }
 
@@ -224,6 +229,25 @@ function kitBlock(step) {
       ' ', note));
 }
 
+function setAnswer(stepId, i, who, value) {
+  const answers = { ...(state.answers ?? {}) };
+  const st = { ...(answers[stepId] ?? {}) };
+  st[i] = { ...(st[i] ?? {}), [who]: value };
+  answers[stepId] = st;
+  state = { ...state, answers };
+  save();
+}
+
+// Redraw the mission after a click inside a step, keeping the scroll position and the focused control.
+function redrawMission(id) {
+  const a = document.activeElement;
+  const label = a?.getAttribute?.('aria-label');
+  const fid = a?.id;
+  renderMission(id, { keepScroll: window.scrollY, focusStep: null });
+  const again = (fid && document.getElementById(fid)) || (label && app.querySelector(`[aria-label="${CSS.escape(label)}"]`));
+  if (again && !again.disabled) again.focus({ preventScroll: true });
+}
+
 function stepCard(m, step, idx, whyStepId) {
   const done = !!state.done[step.id];
   const unlocked = L.stepUnlocked(m, state, step.id);
@@ -231,9 +255,13 @@ function stepCard(m, step, idx, whyStepId) {
   const owner = L.ownerLabel(step.owner, single);
   const isLearn = step.type === 'learn';
   const label = done ? 'Done. Tap to undo' : isLearn ? "I've read it" : 'I did it';
+  const people = S.peopleOf(data.label);
+  const hint = h('span', { class: 'fine need', role: 'status' });
+  const isReady = () => S.stepReady(step, state.answers, people);
   const btn = h('button', { type: 'button', class: `pill ${done ? '' : 'primary'}`, 'aria-pressed': String(done), 'aria-disabled': locked ? 'true' : 'false',
     onclick: () => {
       if (locked) return;
+      if (!done && !isReady()) { hint.textContent = 'Fill in this step first.'; return; }
       const r = L.toggleStep(data, state, m.id, step.id);
       const before = L.progress(data, state).done;
       state = r.state; save();
@@ -241,14 +269,31 @@ function stepCard(m, step, idx, whyStepId) {
       else {
         announce(done ? 'Step undone' : 'Step done'); const y = window.scrollY; renderMission(m.id, { keepScroll: y, focusStep: step.id }); }
     } }, done ? '✓ Done (undo)' : label);
+  const refresh = () => {
+    if (done || locked) return;
+    const ok = isReady();
+    btn.classList.toggle('waiting', !ok);
+    if (ok) hint.textContent = '';
+  };
+  refresh();
+  const blocks = !locked && step.ui ? renderBlocks({
+    h, data, mission: m, step, people,
+    get answers() { return state.answers; }, // always the latest answers, never a copy from render time
+    set: (i, who, value) => setAnswer(step.id, i, who, value),
+    redraw: () => redrawMission(m.id),
+    ready: () => { refresh(); },
+    copy: (text, note) => copyText(text, note).catch(() => note('Select the text above and copy it')),
+    openSherpy: () => chat?.open(),
+  }) : (!locked && isLearn ? renderBlocks({ h, data, mission: m, step: { ...step, ui: [] }, answers: {}, people, openSherpy: () => chat?.open() }) : []);
   return h('div', { class: `sticker step ${done ? 'done' : ''} ${locked ? 'locked' : ''}`, id: `s-${step.id}` },
     h('span', { class: 'num', 'aria-hidden': 'true' }, done ? '✓' : String(idx + 1)),
     h('div', { class: 'main' },
       h('h3', { class: 'stitle' }, step.title),
       owner && h('div', { class: 'chips' }, chip(owner, 'owner')),
       step.id !== whyStepId && step.body && h('p', { class: 'sbody' }, step.body),
+      blocks,
       step.kit && !locked && kitBlock(step),
-      h('div', { class: 'actions' }, btn, locked && h('span', { class: 'fine' }, 'Finish the step above first.'))));
+      h('div', { class: 'actions' }, btn, locked ? h('span', { class: 'fine' }, 'Finish the step above first.') : hint)));
 }
 
 function renderMission(id, { keepScroll = null, focusStep = null } = {}) {

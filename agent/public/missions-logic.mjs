@@ -48,7 +48,7 @@ export function toggleStep(data, state, missionId, stepId) {
   if (done[stepId]) {
     for (const s of mission.steps.slice(mission.steps.findIndex((x) => x.id === stepId))) delete done[s.id];
     completed = completed.filter((id) => id !== missionId);
-    return { state: { v: 1, done, completed }, completedNow: null };
+    return { state: { ...state, v: 1, done, completed }, completedNow: null };
   }
   if (!stepUnlocked(mission, state, stepId)) return { state, completedNow: null };
   done[stepId] = true;
@@ -57,7 +57,7 @@ export function toggleStep(data, state, missionId, stepId) {
     completed.push(missionId);
     completedNow = missionId;
   }
-  return { state: { v: 1, done, completed }, completedNow };
+  return { state: { ...state, v: 1, done, completed }, completedNow }; // ...state keeps the step answers
 }
 
 export function progress(data, state) {
