@@ -1,4 +1,4 @@
-# Sherpy — bring the plan to life (team APIñados) — DRAFT for the team to review
+# Sherpy — bring the plan to life (team APIñados)
 
 **The problem.** A family gets a thorough Sherpas financial plan, and nobody reads it. Ten recommendations and a
 score do not tell them what to do on Monday morning.
@@ -33,6 +33,10 @@ between families (money data is too sensitive).
 
 **How it is built.** Node 22, plain HTML/CSS/JS (no framework). Voice: Gemini realtime through the hackathon proxy,
 relayed by our backend so keys never reach the browser. Video: GPT-5 mini writes the lines, ElevenLabs narrates,
-scenes are animated in the browser in the Sherpas style. Case data from the Sherpas MCP. 227 automated tests.
+scenes are animated in the browser in the Sherpas style. Case data from the Sherpas MCP, or the same JSON from
+`cases/` so anyone can run it (only the AI key is needed; steps for macOS and Windows in the README). 238 automated
+tests. Privacy by design: no audio is recorded, transcripts are off by default, local data expires and can be deleted,
+and a privacy notice is shown before talking. The demo video uses a recorded "demo family" (Daniel and Emily are
+synthetic ElevenLabs voices); Sherpy, the video and the missions run live.
 
 *Team: Dani, Javi, Nico.*
