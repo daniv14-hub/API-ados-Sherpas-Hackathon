@@ -1,6 +1,6 @@
 # Sherpy — bring the plan to life (team APIñados)
 
-**The problem.** A family gets a thorough Sherpas financial plan, and nobody reads it. Ten recommendations and a
+**The problem.** A family gets a thorough Sherpas financial plan, and nobody reads it. Pages of recommendations and a
 score do not tell them what to do on Monday morning.
 
 **What we built.** A mobile-first journey, led by Sherpy, a friendly Sherpas advisor mascot, in three steps:
