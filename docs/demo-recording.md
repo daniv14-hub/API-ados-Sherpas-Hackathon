@@ -33,7 +33,9 @@ ElevenLabs voices that answer Sherpy on their own. Nobody speaks during the reco
 0:00–0:10 title "A 30-page financial plan. Nobody acts on it." · 0:10–0:45 conversation highlights (greeting,
 a disagreement, the goodbye + "putting together your video") · 0:45–1:15 the video (show it is ready in seconds)
 · 1:15–1:50 missions (checkpoint 52 → 57, ranking, the bubble) · 1:50–2:00 "Every number from their own plan.
-Nothing invented." + team. Export 1080p, upload to YouTube as **Unlisted**, test the link in a private window.
+Nothing invented." + team. Export 1080p, upload to YouTube as **Unlisted** (or Google Drive with "Anyone with the link"), test the link in a
+private window. **Never a UPV SharePoint link**: it does not open outside the university (organisers, Discord 18/11
+19:29). After uploading, run `/entregar` again with the new link (the last delivery counts).
 
 ## If something goes wrong
 - Sherpy stuck or the family silent for >10 s: press **N**.
