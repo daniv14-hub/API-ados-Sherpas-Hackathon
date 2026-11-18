@@ -61,6 +61,8 @@ favourite-character narrator, video per step, leaderboard) and why: `docs/idea-n
 ## D4 · Build the video while they talk — PROVISIONAL (13/11)
 - Base scenes are filled from the case JSON **without AI** before the conversation starts.
 - During the conversation, a profile fills up as answers come in (detail level, risk per person, top worry, …).
+  It must also capture whether each person is more **analytical or emotional**: the mascot's checkpoint lines
+  depend on it (D15).
 - At the end, one `gpt-5-mini` call orders the scenes and writes the narration for that profile. It never touches numbers.
 - So there's no waiting at the end and no filler talk (the team first thought of chatting to fill the wait; this
   replaced it). Any idle moment is used for something useful: confirm the goal, ask the other partner.

@@ -5,7 +5,9 @@ When the team decides one, the desktop Claude moves it to `decisions.md` and del
 Format: `ID · question` — context — options — who raised it, when.
 
 ## Product (decide together)
-- **Q-MASCOT · What is the mascot?** Character, name, look (on-brand), how it's animated. **To be decided in the next Claude Code session with the team** (Dani, 15/11).
+- **Q-MASCOT · Mascot look, name and animation.** Role and behaviour are decided (D8, D15). Still open: what it
+  looks like (2D avatar, on-brand, `docs/brand.md`), its name, and how it's animated (SVG + CSS, Lottie, Rive…).
+  To agree with the team on 16/11.
 - **Q-CONFIRM · How does the game know a real-world action is done?** Self-declared ("I did it") is enough for an
   MVP, but it has to be said explicitly. Raised 13/11.
 - **Q-EXPERT · How do we serve experts?** The rubric asks if it works "for someone new to finance and for an

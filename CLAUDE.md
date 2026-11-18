@@ -15,7 +15,8 @@ If two docs disagree: `STATUS.md` > `decisions.md` > `idea-note.md` > anything e
 earlier sessions. If something isn't written down, it isn't decided: **ask**.
 
 ## The product in 4 lines (details in decisions.md)
-1. **Warm voice conversation led by an animated Sherpas mascot** (D1, D8) that learns what the plan doesn't know.
+1. **Warm voice conversation led by an animated Sherpas mascot** (D1, D8, D15): a 2D virtual financial advisor,
+   the protagonist, always available; it learns what the plan doesn't know.
 2. **Personal animated explainer video** with narration (D10), in the style of En Plata / Punto Ciego shorts,
    built while they talk, measured in their own goals.
 3. **A mission-style game** (D11): each step of the plan is a level (mission); completing it is a checkpoint and the
