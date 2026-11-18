@@ -9,3 +9,12 @@ test('refuses foreign origin', () => {
   assert.equal(isAllowedOrigin('http://localhost:5173', 5173), true);
   assert.equal(isAllowedOrigin('http://127.0.0.1:5173', 5173), true);
 });
+
+test('isAllowedHost: only localhost and 127.0.0.1 on our port', async () => {
+  const { isAllowedHost } = await import('../src/origin.mjs');
+  assert.equal(isAllowedHost('localhost:5173', 5173), true);
+  assert.equal(isAllowedHost('127.0.0.1:5173', 5173), true);
+  assert.equal(isAllowedHost('evil.example:5173', 5173), false);
+  assert.equal(isAllowedHost('localhost:80', 5173), false);
+  assert.equal(isAllowedHost(undefined, 5173), false);
+});

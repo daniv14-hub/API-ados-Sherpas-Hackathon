@@ -99,3 +99,17 @@ test("withReconnect throws after a second failure", async () => {
   await assert.rejects(() => w.callTool("get_case", {}), /still down/);
   assert.equal(connects, 2);
 });
+
+test('local case source reads cases/ like the MCP: parts, sections, persona text, ids; unsafe ids refused', async () => {
+  const { createLocalCaseSource } = await import('../src/case-source.mjs');
+  const src = createLocalCaseSource(new URL('../../cases/', import.meta.url));
+  const ids = await src.listCaseIds();
+  assert.deepEqual([...ids].sort(), ['daniel-emily-johnson', 'michael-carter', 'samantha-lewis', 'timothy-melanie-weah']);
+  const fh = await src.getPart('daniel-emily-johnson', 'financial-health');
+  assert.equal(fh.score.published_score, 52);
+  assert.deepEqual(await src.getPart('daniel-emily-johnson', 'financial-health', 'score'), fh.score);
+  assert.equal(typeof (await src.getPart('samantha-lewis', 'persona')), 'string');
+  assert.ok((await src.getPart('samantha-lewis', 'investment-analysis')).narrative);
+  await assert.rejects(src.getPart('../etc', 'persona'));
+  await assert.rejects(src.getPart('daniel-emily-johnson', '../../.env'));
+});

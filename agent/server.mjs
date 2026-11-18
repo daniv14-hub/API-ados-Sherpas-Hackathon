@@ -10,9 +10,9 @@ import { stat } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WebSocket, WebSocketServer } from 'ws';
-import { connectMcp, createCaseSource, withReconnect } from './src/case-source.mjs';
+import { connectMcp, createCaseSource, createLocalCaseSource, withReconnect } from './src/case-source.mjs';
 import { createSession, isAllowedCase } from './src/session.mjs';
-import { isAllowedOrigin } from './src/origin.mjs';
+import { isAllowedOrigin, isAllowedHost } from './src/origin.mjs';
 import { createVideoBuilder } from './src/video/build.mjs';
 import { speech } from './src/video/voice.mjs';
 import { chatComplete } from './src/video/narrate.mjs';
@@ -36,15 +36,32 @@ const profilesDir = join(repo, 'data', 'profiles');
 const transcriptsDir = join(repo, 'data', 'transcripts');
 const videosDir = join(repo, 'data', 'videos');
 
-const missing = ['TEAM_KEY', 'MCP_URL', 'MCP_TOKEN'].filter((k) => !process.env[k]);
-if (missing.length) {
-  console.error(`Missing in the root .env: ${missing.join(', ')}. Run with: node --env-file=../.env server.mjs`);
+if (!process.env.TEAM_KEY) {
+  console.error('Missing TEAM_KEY in the root .env (the AI proxy key). Run with: node --env-file=../.env server.mjs');
   process.exit(1);
 }
 
-const mcp = withReconnect(() => connectMcp(MCP_URL, MCP_TOKEN));
-const source = createCaseSource(mcp);
-const caseIds = await source.listCaseIds(); // cached: the allow-list for /voice
+// Case data: the Sherpas MCP when a token is set and works; otherwise the same JSON from the repo's cases/ folder
+// (the MCP token is personal and lasts 72 h; the files never expire, so anyone can run this later).
+let mcp = null;
+let source = null;
+let caseIds = null;
+if (MCP_URL && MCP_TOKEN) {
+  try {
+    mcp = withReconnect(() => connectMcp(MCP_URL, MCP_TOKEN));
+    source = createCaseSource(mcp);
+    caseIds = await source.listCaseIds(); // cached: the allow-list for /voice
+  } catch (e) {
+    console.warn(`MCP unavailable (${e?.message ?? e}); reading the cases from cases/ instead.`);
+    await mcp?.close?.().catch(() => {});
+    mcp = null; source = null;
+  }
+}
+if (!source) {
+  source = createLocalCaseSource(join(repo, 'cases'));
+  caseIds = await source.listCaseIds();
+}
+const CASE_SOURCE = mcp ? 'MCP' : 'cases/ folder';
 
 const builder = createVideoBuilder({
   source,
@@ -162,6 +179,7 @@ async function serveMissions(res, caseId) {
 }
 
 const server = createServer((req, res) => {
+  if (!isAllowedHost(req.headers.host, PORT)) return res.writeHead(421).end('misdirected request');
   const pathname = new URL(req.url, 'http://localhost').pathname;
   if (pathname === '/config') {
     res.writeHead(200, { 'content-type': 'application/json' });
@@ -203,7 +221,7 @@ const wss = new WebSocketServer({
   server,
   path: '/voice',
   maxPayload: 1024 * 1024,
-  verifyClient: ({ origin }) => isAllowedOrigin(origin, PORT),
+  verifyClient: ({ origin, req }) => isAllowedOrigin(origin, PORT) && isAllowedHost(req.headers.host, PORT),
 });
 wss.on('connection', (browser, req) => {
   const query = new URL(req.url, 'http://localhost').searchParams;
@@ -242,13 +260,13 @@ wss.on('connection', (browser, req) => {
 });
 
 server.listen(PORT, '127.0.0.1', () => {
-  console.log(`Sherpy on http://localhost:${PORT}  (model ${MODEL}, ${caseIds.length} cases from MCP)`);
+  console.log(`Sherpy on http://localhost:${PORT}  (model ${MODEL}, ${caseIds.length} cases from ${CASE_SOURCE})`);
 });
 
 async function shutdown() {
   for (const c of wss.clients) c.close();
   server.close();
-  await mcp.close().catch(() => {});
+  await mcp?.close().catch(() => {});
   process.exit(0);
 }
 process.on('SIGINT', shutdown);

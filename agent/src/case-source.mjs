@@ -1,3 +1,5 @@
+import { readFile, readdir } from 'node:fs/promises';
+import { pathToFileURL } from 'node:url';
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
@@ -94,6 +96,28 @@ export function withReconnect(connect) {
       const old = current;
       current = null;
       await old?.close();
+    },
+  };
+}
+
+// Same interface, read from the repo's cases/ folder (the JSON the MCP serves). Used when no MCP token is set:
+// the token is personal and lasts 72 h, the files never expire (hackathon README), so judges can run the app later.
+const PARTS = { 'financial-health': 'financial-health.json', 'investment-analysis': 'investment-analysis.json', persona: 'persona.md' };
+const SAFE_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+export function createLocalCaseSource(dirUrl) {
+  const dir = dirUrl instanceof URL ? dirUrl : pathToFileURL(`${dirUrl}/`);
+  return {
+    async getPart(caseId, part, section) {
+      if (!SAFE_ID.test(String(caseId)) || !Object.hasOwn(PARTS, part)) throw new CaseSourceError(`unknown case part: ${part}`);
+      const text = await readFile(new URL(`${caseId}/${PARTS[part]}`, dir), 'utf8');
+      if (part === 'persona') return text;
+      const data = JSON.parse(text);
+      return section === undefined ? data : data?.[section];
+    },
+    async listCaseIds() {
+      const entries = await readdir(dir, { withFileTypes: true });
+      return entries.filter((e) => e.isDirectory() && SAFE_ID.test(e.name)).map((e) => e.name);
     },
   };
 }

@@ -6,11 +6,12 @@
 // Usage (from agent/): node scripts/demo-reset.mjs [caseId]   (default daniel-emily-johnson)
 import { existsSync, mkdirSync, readdirSync, renameSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { isSafeCaseId } from '../src/profile.mjs';
 
 const caseId = process.argv[2] || 'daniel-emily-johnson';
 if (!isSafeCaseId(caseId)) { console.error(`unsafe case id: ${caseId}`); process.exit(1); }
-const data = new URL('../../data/', import.meta.url).pathname;
+const data = fileURLToPath(new URL('../../data/', import.meta.url)); // fileURLToPath: also right on Windows
 const stamp = new Date().toISOString().replace(/[:.]/g, '-');
 const dest = join(data, 'archive', `reset-${stamp}`);
 const moves = [];
